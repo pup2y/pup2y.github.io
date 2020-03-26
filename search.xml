@@ -4,7 +4,6 @@
     <title>test2</title>
     <url>/2020/03/25/test2/</url>
     <content><![CDATA[<p><img src="1.jpg" alt="1.jpg"></p>
-<p><img src="http://www.wailian.work/image/20200325143445.Av1Npp" alt="whoami"></p>
 <script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
