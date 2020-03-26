@@ -4,6 +4,7 @@
     <title>test2</title>
     <url>/2020/03/25/test2/</url>
     <content><![CDATA[<p><img src="1.jpg" alt="1.jpg"></p>
+<p><img src="http://www.wailian.work/image/20200325143445.Av1Npp" alt="whoami"></p>
 <script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
@@ -53,29 +54,6 @@
       <tags>
         <tag>d-link</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>article title</title>
-    <url>/2020/03/24/article-title/</url>
-    <content><![CDATA[<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>]]></content>
   </entry>
   <entry>
     <title>Hello World</title>
