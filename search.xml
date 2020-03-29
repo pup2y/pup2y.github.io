@@ -2,13 +2,13 @@
 <search>
   <entry>
     <title>D-Link RCE CVE-2019-17621分析</title>
-    <url>/2020/03/29/test/</url>
+    <url>/2020/03/29/d-link-rce-cve-2019-17621-fen-xi/</url>
     <content><![CDATA[<h1 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h1><blockquote>
 <p> The UPnP endpoint URL /gena.cgi in the D-Link DIR-859 Wi-Fi router 1.05 and 1.06B01 Beta01 allows an Unauthenticated remote attacker to execute system commands as root, by sending a specially crafted HTTP SUBSCRIBE request to the UPnP service when connecting to the local network. </p>
 </blockquote>
 <p>这是CVE官网对于CVE-2019-17621的描述，从描述中可以看出漏洞出现在涉及UPnP订阅请求的代码中，漏洞目标是D-Link DIR-859路由器，固件版本为1.06b01 Beta01, 1.05，该漏洞是无需认证的远程代码执行漏洞（一般处于局域网中）。</p>
 <p>根据研究人员Miguel Mendez Z.的介绍，该漏洞还影响以下产品：</p>
-<p>![](Affected product.png)</p>
+<p><img src="/2020/03/29/d-link-rce-cve-2019-17621-fen-xi/Affected_product.png" alt=""></p>
 <h1 id="分析环境"><a href="#分析环境" class="headerlink" title="分析环境"></a>分析环境</h1><table>
 <thead>
 <tr>
@@ -32,10 +32,15 @@
 <td>Ghidra</td>
 <td></td>
 </tr>
+<tr>
+<td>分析固件</td>
+<td>DIR-859 1.05版本</td>
+<td><a href="ftp://ftp2.dlink.com/PRODUCTS/DIR-859/DIR-859_REVA_FIRMWARE_v1.05B03.zip">ftp://ftp2.dlink.com/PRODUCTS/DIR-859/DIR-859_REVA_FIRMWARE_v1.05B03.zip</a></td>
+</tr>
 </tbody></table>
-<p> Firmadyne是一款自动化和可裁剪的嵌入式Linux系统固件分析框架，它支持系统固件逆向QEMU嵌入式系统模拟执行，使用其可模拟执行路由器固件，<a href="https://github.com/firmadyne/firmadyne" target="_blank" rel="noopener">github</a>上有详细的介绍。之后的文章会可能会对该工具进一步介绍。</p>
+<p> Firmadyne是一款自动化和可裁剪的嵌入式Linux系统固件分析框架，它支持系统固件逆向QEMU嵌入式系统模拟执行，使用其可模拟执行路由器固件，安装和使用方法<a href="https://github.com/firmadyne/firmadyne" target="_blank" rel="noopener">https://github.com/firmadyne/firmadyne</a>。之后的文章会可能会对该工具进一步介绍。</p>
 <p> Ghidra是由美国国家安全局（NSA）研究部门开发的软件逆向工程（SRE）套件，用于支持网络安全任务。 Ghidra具有反编译功能，查看、定位反编译后的代码相较于IDA有优势。 针对MIPS架构代码的反编译功能较好。</p>
-<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><script>
+<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><h2 id="upnp"><a href="#upnp" class="headerlink" title="upnp"></a>upnp</h2><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
@@ -61,61 +66,5 @@
         <tag>d-link</tag>
         <tag>dir-859</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>test2</title>
-    <url>/2020/03/25/test2/</url>
-    <content><![CDATA[<p><img src="1.jpg" alt="1.jpg"></p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>]]></content>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2020/03/24/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><pre class=" language-bash"><code class="language-bash">$ hexo new <span class="token string">"My New Post"</span></code></pre>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><pre class=" language-bash"><code class="language-bash">$ hexo server</code></pre>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><pre class=" language-bash"><code class="language-bash">$ hexo generate</code></pre>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><pre class=" language-bash"><code class="language-bash">$ hexo deploy</code></pre>
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>]]></content>
   </entry>
 </search>
