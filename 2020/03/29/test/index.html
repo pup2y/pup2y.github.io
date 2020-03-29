@@ -5,16 +5,13 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>test - pup2y&#39;s world</title>
+    <title>D-Link RCE CVE-2019-17621分析 - pup2y&#39;s world</title>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     <meta name="keywords" content="Fechin,"> 
-    <meta name="description" content="一级标题
-
-        document.querySelectorAll(&#39;.github-emoji&#39;)
-          .forEach(el =&gt; {
-            if ,"> 
+    <meta name="description" content="漏洞介绍
+ The UPnP endpoint URL /gena.cgi *in the D-Link DIR-859 Wi-Fi router 1.05 and 1.06B01 Beta01 a,"> 
     <meta name="author" content="阿航"> 
     <link rel="alternative" href="atom.xml" title="pup2y&#39;s world" type="application/atom+xml"> 
     <link rel="icon" href="/img/favicon.jpg"> 
@@ -44,7 +41,7 @@
     <div class="bar" style="width: 0;"></div>
     <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://pup2y.github.io"></a>
     <div title="播放/暂停" class="iconfont icon-play"></div>
-    <h3 class="subtitle">test</h3>
+    <h3 class="subtitle">D-Link RCE CVE-2019-17621分析</h3>
     <div class="social">
         <div>
             <div class="share">
@@ -59,17 +56,48 @@
     <div class="section">
         <div class="article">
     <div class='main'>
-        <h1 class="title">test</h1>
+        <h1 class="title">D-Link RCE CVE-2019-17621分析</h1>
         <div class="stuff">
-            <span>三月 25, 2020</span>
+            <span>三月 29, 2020</span>
             
-  <ul class="post-tags-list" itemprop="keywords"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/d-link/" rel="tag">d-link</a></li></ul>
+  <ul class="post-tags-list" itemprop="keywords"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/d-link/" rel="tag">d-link</a></li><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/dir-859/" rel="tag">dir-859</a></li></ul>
 
 
         </div>
         <div class="content markdown">
-            <h1 id="一级标题"><a href="#一级标题" class="headerlink" title="一级标题"></a>一级标题</h1><p><img src="%E7%9C%8B%E9%97%A8%E7%8B%972.jpg" alt="第一张图"></p>
-<script>
+            <h1 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h1><blockquote>
+<p> The UPnP endpoint URL <strong>/gena.cgi *<em>in the D-Link DIR-859 Wi-Fi router 1.05 and 1.06B01 Beta01 allows an *</em>Unauthenticated</strong> remote attacker to execute system commands as root, by sending a specially crafted HTTP SUBSCRIBE request to the UPnP service when connecting to the <strong>local network</strong>. </p>
+</blockquote>
+<p>这是CVE官网对于CVE-2019-17621的描述，从描述中可以看出漏洞出现在涉及UPnP订阅请求的代码中，漏洞目标是D-Link DIR-859路由器，固件版本为1.06b01 Beta01, 1.05，该漏洞是无需认证的远程代码执行漏洞（一般处于局域网中）。</p>
+<p>根据研究人员Miguel Mendez Z.的介绍，该漏洞还影响以下产品：</p>
+<p>![](./test/Affected product.png)</p>
+<h1 id="分析环境"><a href="#分析环境" class="headerlink" title="分析环境"></a>分析环境</h1><table>
+<thead>
+<tr>
+<th></th>
+<th>测试环境</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>操作系统</td>
+<td>Ubuntu 16.04 LTS</td>
+<td></td>
+</tr>
+<tr>
+<td>系统仿真工具</td>
+<td>Firmadyne</td>
+<td></td>
+</tr>
+<tr>
+<td>反编译工具</td>
+<td>Ghidra</td>
+<td></td>
+</tr>
+</tbody></table>
+<p> Firmadyne是一款自动化和可裁剪的嵌入式Linux系统固件分析框架，它支持系统固件逆向QEMU嵌入式系统模拟执行，使用其可模拟执行路由器固件，<a href="https://github.com/firmadyne/firmadyne" target="_blank" rel="noopener">github</a>上有详细的介绍.之后的文章会可能会对该工具进一步介绍。</p>
+<p> Ghidra是由美国国家安全局（NSA）研究部门开发的软件逆向工程（SRE）套件，用于支持网络安全任务。 Ghidra具有反编译功能，查看、定位反编译后的代码相较于IDA有优势。 针对MIPS架构代码的反编译功能较好。</p>
+<h1 id=""><a href="#" class="headerlink" title=""></a></h1><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
@@ -114,7 +142,7 @@
     </div>
     
         <div class='side'>
-			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#一级标题"><span class="toc-number">1.</span> <span class="toc-text">一级标题</span></a></li></ol>	
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#漏洞介绍"><span class="toc-number">1.</span> <span class="toc-text">漏洞介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#分析环境"><span class="toc-number">2.</span> <span class="toc-text">分析环境</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#"><span class="toc-number">3.</span> <span class="toc-text"></span></a></li></ol>	
         </div>
     
 </div>
