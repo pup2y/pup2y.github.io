@@ -4,11 +4,11 @@
     <title>D-Link RCE CVE-2019-17621分析</title>
     <url>/2020/03/29/test/</url>
     <content><![CDATA[<h1 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h1><blockquote>
-<p> The UPnP endpoint URL <strong>/gena.cgi *<em>in the D-Link DIR-859 Wi-Fi router 1.05 and 1.06B01 Beta01 allows an *</em>Unauthenticated</strong> remote attacker to execute system commands as root, by sending a specially crafted HTTP SUBSCRIBE request to the UPnP service when connecting to the <strong>local network</strong>. </p>
+<p> The UPnP endpoint URL /gena.cgi in the D-Link DIR-859 Wi-Fi router 1.05 and 1.06B01 Beta01 allows an Unauthenticated remote attacker to execute system commands as root, by sending a specially crafted HTTP SUBSCRIBE request to the UPnP service when connecting to the local network. </p>
 </blockquote>
 <p>这是CVE官网对于CVE-2019-17621的描述，从描述中可以看出漏洞出现在涉及UPnP订阅请求的代码中，漏洞目标是D-Link DIR-859路由器，固件版本为1.06b01 Beta01, 1.05，该漏洞是无需认证的远程代码执行漏洞（一般处于局域网中）。</p>
 <p>根据研究人员Miguel Mendez Z.的介绍，该漏洞还影响以下产品：</p>
-<p>![](./test/Affected product.png)</p>
+<p>![](Affected product.png)</p>
 <h1 id="分析环境"><a href="#分析环境" class="headerlink" title="分析环境"></a>分析环境</h1><table>
 <thead>
 <tr>
@@ -33,9 +33,9 @@
 <td></td>
 </tr>
 </tbody></table>
-<p> Firmadyne是一款自动化和可裁剪的嵌入式Linux系统固件分析框架，它支持系统固件逆向QEMU嵌入式系统模拟执行，使用其可模拟执行路由器固件，<a href="https://github.com/firmadyne/firmadyne" target="_blank" rel="noopener">github</a>上有详细的介绍.之后的文章会可能会对该工具进一步介绍。</p>
+<p> Firmadyne是一款自动化和可裁剪的嵌入式Linux系统固件分析框架，它支持系统固件逆向QEMU嵌入式系统模拟执行，使用其可模拟执行路由器固件，<a href="https://github.com/firmadyne/firmadyne" target="_blank" rel="noopener">github</a>上有详细的介绍。之后的文章会可能会对该工具进一步介绍。</p>
 <p> Ghidra是由美国国家安全局（NSA）研究部门开发的软件逆向工程（SRE）套件，用于支持网络安全任务。 Ghidra具有反编译功能，查看、定位反编译后的代码相较于IDA有优势。 针对MIPS架构代码的反编译功能较好。</p>
-<h1 id=""><a href="#" class="headerlink" title=""></a></h1><script>
+<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
