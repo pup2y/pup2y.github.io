@@ -1,0 +1,327 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>路由器漏洞挖掘环境搭建 - pup2y&#39;s world</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="前言从2019年5月开始决定把物联网漏洞挖掘作为自己的课题开始，到现在也断断续续调试分析过一些漏洞，感觉一路心酸历程啊！确实踩了很多坑，恰逢最近重新搭建环境，值此良机，整理下搭建过程。
+我使用的是u,"> 
+    <meta name="author" content="青云"> 
+    <link rel="alternative" href="atom.xml" title="pup2y&#39;s world" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.jpg"> 
+    
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({
+              google_ad_client: "ca-pub-8691406134231910",
+              enable_page_level_ads: true
+         });
+    </script>
+    <script async custom-element="amp-auto-ads"
+        src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
+
+<body class="loading">
+    <span id="config-title" style="display:none">pup2y&#39;s world</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://pup2y.github.io"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle">路由器漏洞挖掘环境搭建</h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="article">
+    <div class='main'>
+        <h1 class="title">路由器漏洞挖掘环境搭建</h1>
+        <div class="stuff">
+            <span>三月 30, 2020</span>
+			
+			<span>
+   阅读数  <span id="busuanzi_value_page_pv"></span>
+</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>从2019年5月开始决定把物联网漏洞挖掘作为自己的课题开始，到现在也断断续续调试分析过一些漏洞，感觉一路心酸历程啊！确实踩了很多坑，恰逢最近重新搭建环境，值此良机，整理下搭建过程。</p>
+<p>我使用的是ubuntu16.04 LTS虚拟机。</p>
+<h1 id="binwalk"><a href="#binwalk" class="headerlink" title="binwalk"></a>binwalk</h1><p>因为利用apt-get安装binwalk会缺少很多依赖项所以还是建议根据 <a href="https://github.com/ReFirmLabs/binwalk/blob/master/INSTALL.md" target="_blank" rel="noopener">https://github.com/ReFirmLabs/binwalk/blob/master/INSTALL.md</a> </p>
+<pre class=" language-shell"><code class="language-shell">git clone https://github.com/ReFirmLabs/binwalk.git
+cd binwalk
+# 对于Debian/Ubuntu的用户而言，很多依赖项都可以通过deps.sh安装
+sudo ./deps.sh</code></pre>
+<h1 id="qemu"><a href="#qemu" class="headerlink" title="qemu"></a>qemu</h1><h2 id="qemu安装"><a href="#qemu安装" class="headerlink" title="qemu安装"></a>qemu安装</h2><p>这里没有自己编译qemu，直接使用系统提供的版本，ubuntu16.04一般是qemu2.5</p>
+<pre class=" language-shell"><code class="language-shell">sudo apt-get install qemu </code></pre>
+<h2 id="qemu网络配置"><a href="#qemu网络配置" class="headerlink" title="qemu网络配置"></a>qemu网络配置</h2><pre class=" language-shell"><code class="language-shell">sudo apt-get install bridge-utils #虚拟网桥工具
+sudo apt-get install uml-utilities # UML（User-mode linux）工具</code></pre>
+<p><code>sudo vi /etc/network/interfaces</code></p>
+<p>写入下面的内容：</p>
+<pre class=" language-shell"><code class="language-shell"># interfaces(5) file used by ifup(8) and ifdown(8)
+auto lo
+iface lo inet loopback
+auto ens33
+iface ens33 inet manual
+up ifconfig ens33 0.0.0.0 up
+auto br0
+iface br0 inet dhcp
+  bridge_ports ens33
+  bridge_maxwait 0</code></pre>
+<p>改完之后要重启网卡才能生效：</p>
+<p><code>sudo /etc/init.d/networking  restart</code></p>
+<p> 配置 qemu 虚拟机的网卡信息： </p>
+<p><code>sudo vi /etc/qemu-ifup</code></p>
+<p> 将原来的内容注释，换成下面的内容： </p>
+<pre class=" language-shell"><code class="language-shell">#! /bin/sh
+echo "Executing /etc/qemu-ifup"
+echo "bridge networking"
+echo "Bringing up $1 for bridge mode"
+sudo /sbin/ifconfig $1 0.0.0.0 promisc up
+echo "Adding $1 to br0"
+sudo /sbin/brctl addif br0 $1
+sleep 3</code></pre>
+<h2 id="qemu-mips对应包下载"><a href="#qemu-mips对应包下载" class="headerlink" title="qemu-mips对应包下载"></a>qemu-mips对应包下载</h2><p>从 <a href="https://people.debian.org/~aurel32/qemu/mips/下载对应的debian" target="_blank" rel="noopener">https://people.debian.org/~aurel32/qemu/mips/下载对应的debian</a> mips qemu镜像  </p>
+<p><img src="mips_qemu.png" alt=""></p>
+<p>选择debian_squeeze_mips_standard.qcow2和vmlinux-2.6.32-5-4kc-malta.   </p>
+<p>使用qemu系统模式加载之前下载的内核：qemu-system-mips对于mips的镜像。</p>
+<pre class=" language-shell"><code class="language-shell">sudo qemu-system-mips -M malta -kernel vmlinux-2.6.32-5-4kc-malta -hda debian_squeeze_mips_standard.qcow2 -append "root=/dev/sda1 console=tty0" -net nic,macaddr=00:16:3e:00:00:01 -net tap</code></pre>
+<p>可以看到一个qemu虚拟机，用root/root登录进去：   </p>
+<p><img src="qemu_mips%E8%99%9A%E6%8B%9F%E6%9C%BA.png" alt=""></p>
+<p><code>nano /etc/network/interfaces</code>将网卡eth0改为eth1：  </p>
+<p><code>/etc/init.d/networking restart</code>看是否配置成功，不然可以重启qemu试试是否自动配置好了eth1的网卡信息。 </p>
+<p>进去虚拟机之后，如果发现只有网卡的其他信息、没有 IP 地址，<strong>可以手动配置一下 eth1 网卡的 IP</strong>：</p>
+<pre class=" language-sh"><code class="language-sh">ifconfig eth1 192.168.91.130/24 #跟宿主机在同一个网段内</code></pre>
+<p>之后ping一下外面的主机看看是否联通。宿主机也可以通过ssh <a href="mailto:root@192.168.91.130">root@192.168.91.130</a>远程登陆进去。</p>
+<p>以后的文章可能会细讲，qemu的网络配置和通信。</p>
+<h1 id="buildroot"><a href="#buildroot" class="headerlink" title="buildroot"></a>buildroot</h1><ol>
+<li><p>下载buildroot安装包（我这里选了一个2019.02版本）</p>
+<pre class=" language-shell"><code class="language-shell">wget http://buildroot.net/downloads/buildroot-2019.02.tar.gz
+或者直接从http://buildroot.net/downloads/下载</code></pre>
+</li>
+<li><p>解压安装包</p>
+<pre class=" language-shell"><code class="language-shell">tar -zxvf buildroot-2019.02.tar.gz</code></pre>
+</li>
+<li><p>进入安装包，配置   </p>
+<pre class=" language-shell"><code class="language-shell">cd buildroot-2019.02 && make clean && make menuconfig</code></pre>
+</li>
+<li><p>进入配置界面</p>
+<p><img src="%E9%85%8D%E7%BD%AE%E7%95%8C%E9%9D%A2.png" alt=""></p>
+<p>首先根据想要调试的目标架构进行配置Target options，我因为要调试mips小端架构，所以选择如下： </p>
+<p><img src="target_options.png" alt="">  </p>
+<p>Build options选择默认就好，进入Toolchain进入配置</p>
+<p>C library选择uClibc-ng，因为二进制文件是使用此库编译的，所以大多数设备都是用此C库</p>
+<p><img src="c_library.png" alt=""></p>
+<p>其中的kernel Headers根据查看ubantu操作系统内核进行选择 </p>
+<p><code>uname -a</code></p>
+<p><img src="uname_a.png" alt=""></p>
+<p>选择Manually specified然后找到4.15.x并选择</p>
+<p><img src="kernel_head.png" alt=""></p>
+<p>gcc 版本选择</p>
+<p><code>gcc -v</code></p>
+<p><img src="gcc-.png" alt=""></p>
+<p>选择gcc 5.x   </p>
+<p><img src="gcc-%E9%80%89%E6%8B%A9.png" alt=""></p>
+<p>最后启用“为主机启用交叉编译的gdb”按Y选中,括号内会有*号。   </p>
+<p><img src="gdb%E9%80%89%E6%8B%A9.png" alt=""></p>
+<p>最后<code>sudo make -j8</code> </p>
+</li>
+<li><p>配置环境变量</p>
+<p>在/etc/profile文件中加入</p>
+<p><code>export PATH=$PATH:/home/yourname/buildroot-2019.02.2/output/host/bin</code></p>
+<p>最后<code>source /etc/profile</code></p>
+</li>
+<li><p>检验是否能编译生成mipsel文件</p>
+<pre class=" language-c"><code class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h></span></span>
+
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"demo\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span></code></pre>
+<p>利用<code>mipsel-linux-gcc demo.c -static -o demo</code>得到是小端文件</p>
+<pre class=" language-shell"><code class="language-shell"> ~/Desktop/IoT :  mipsel-linux-gcc demo.c -static -o demo
+ ~/Desktop/IoT :  file demo
+demo: ELF 32-bit LSB executable, MIPS, MIPS32 version 1 (SYSV), statically linked, not stripped</code></pre>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p> <a href="https://xz.aliyun.com/t/3826" target="_blank" rel="noopener">https://xz.aliyun.com/t/3826</a> </p>
+<p> <a href="https://xz.aliyun.com/t/462" target="_blank" rel="noopener">https://xz.aliyun.com/t/462</a> </p>
+</li>
+</ol>
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        
+                            <li title='0' data-url='http://music.163.com/song?id=441532&userid=258169074'></li>
+                        
+                    
+                        
+                            <li title='1' data-url='https://link.hhtjim.com/163/26584453.mp3'></li>
+                        
+                    
+                        
+                            <li title='2' data-url='https://link.hhtjim.com/163/28245304.mp3'></li>
+                        
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+		data-enable='true'
+        data-ae='true'
+        data-ci='177c577b486a2fd2b061'
+        data-cs='ce4ec96a3a9f14b35d6e9d750e1d7f231c22db0e'
+        data-r='pup2y.github.io'
+        data-o='pup2y'
+        data-a='pup2y'
+        data-d='true'
+    >查看评论</div>
+
+
+    </div>
+    
+        <div class='side'>
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#binwalk"><span class="toc-number">2.</span> <span class="toc-text">binwalk</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#qemu"><span class="toc-number">3.</span> <span class="toc-text">qemu</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu安装"><span class="toc-number">3.1.</span> <span class="toc-text">qemu安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu网络配置"><span class="toc-number">3.2.</span> <span class="toc-text">qemu网络配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu-mips对应包下载"><span class="toc-number">3.3.</span> <span class="toc-text">qemu-mips对应包下载</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#buildroot"><span class="toc-number">4.</span> <span class="toc-text">buildroot</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考资料"><span class="toc-number">5.</span> <span class="toc-text">参考资料</span></a></li></ol>	
+        </div>
+    
+</div>
+
+
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/koharu.model.json"},"display":{"superSample":2,"hOffset":0,"vOffset":-20,"position":"right","width":145,"height":315},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body>
+
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+
+
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+        tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno",skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
+        TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+        messageStyle: "none"
+    });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+
+</html>
