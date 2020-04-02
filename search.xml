@@ -1,6 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>DIR-815 经典溢出漏洞分析</title>
+    <url>/2020/04/02/dir-815-jing-dian-yi-chu-lou-dong-fen-xi/</url>
+    <content><![CDATA[<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>]]></content>
+  </entry>
+  <entry>
     <title>Linux以及qemu网络配置的学习</title>
     <url>/2020/04/02/linux-yi-ji-qemu-wang-luo-pei-zhi-de-xue-xi/</url>
     <content><![CDATA[<script>
@@ -132,6 +155,7 @@ demo: ELF 32-bit LSB executable, MIPS, MIPS32 version 1 (SYSV), statically linke
 <p><a href="https://www.secrss.com/articles/8829" target="_blank" rel="noopener">NSA开源逆向工具Ghidra入门使用教程</a></p>
 <h1 id="Firmadyne"><a href="#Firmadyne" class="headerlink" title="Firmadyne"></a>Firmadyne</h1><p>Firmadyne是一个基于qemu的Linux嵌入式系统自动仿真工具。利用它可以主要可以模拟路由器固件的运行。它拥有自己自己预编译好的mips架构Linux内核。</p>
 <p>github传送门： <a href="https://github.com/firmadyne/firmadyne" target="_blank" rel="noopener">https://github.com/firmadyne/firmadyne</a> 里面有详细的安装和使用说明。</p>
+<p>也可以参考这篇帖子进行安装使用： <a href="https://chuansongme.com/n/1009525252762" target="_blank" rel="noopener">https://chuansongme.com/n/1009525252762</a> </p>
 <p>到此环境差不多安装完了。</p>
 <h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p> <a href="https://xz.aliyun.com/t/3826" target="_blank" rel="noopener">https://xz.aliyun.com/t/3826</a> </p>
 <p> <a href="https://xz.aliyun.com/t/462" target="_blank" rel="noopener">https://xz.aliyun.com/t/462</a> </p>
