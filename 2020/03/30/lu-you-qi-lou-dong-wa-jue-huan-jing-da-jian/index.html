@@ -161,10 +161,15 @@ sleep 3</code></pre>
 <span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
     <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"demo\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span></code></pre>
-<p>利用<code>mipsel-linux-gcc demo.c -static -o demo</code>得到是小端文件</p>
+<p>利用<code>mipsel-linux-gcc demo.c -static -o demo</code>得到是小端文件，并且能直接运行。</p>
 <pre class=" language-shell"><code class="language-shell"> ~/Desktop/IoT :  mipsel-linux-gcc demo.c -static -o demo
  ~/Desktop/IoT :  file demo
 demo: ELF 32-bit LSB executable, MIPS, MIPS32 version 1 (SYSV), statically linked, not stripped</code></pre>
+<p>如果没有加<code>-static</code>将需要动态链接库</p>
+<p><img src="%E9%9C%80%E8%A6%81%E9%93%BE%E6%8E%A5%E5%BA%93.png" alt=""></p>
+<p>这时我们只需要找到该库，使用<code>qemu-mipsel -L /Your_Path/buildroot/output/target/ hello</code>即可运行。 </p>
+</li>
+</ol>
 <h1 id="Ghidra"><a href="#Ghidra" class="headerlink" title="Ghidra"></a>Ghidra</h1><p> Ghidra是由美国国家安全局（NSA）研究部门开发的软件逆向工程（SRE）套件，用于支持网络安全任务。  该反汇编工具类似于我们常用的IDA，不过其基于JAVA开发，是一款适用于Windows、Mac和Linux的跨平台反汇编工具，用户还可以使用Java或Python开发自己的Ghidra插件或者脚本。 </p>
 <h2 id="安装条件"><a href="#安装条件" class="headerlink" title="安装条件"></a>安装条件</h2><p>硬件条件:4GB内存;1GB硬盘空间</p>
 <p>软件条件:Java 11+</p>
@@ -176,10 +181,24 @@ demo: ELF 32-bit LSB executable, MIPS, MIPS32 version 1 (SYSV), statically linke
 <p>github传送门： <a href="https://github.com/firmadyne/firmadyne" target="_blank" rel="noopener">https://github.com/firmadyne/firmadyne</a> 里面有详细的安装和使用说明。</p>
 <p>也可以参考这篇帖子进行安装使用： <a href="https://chuansongme.com/n/1009525252762" target="_blank" rel="noopener">https://chuansongme.com/n/1009525252762</a> </p>
 <p>到此环境差不多安装完了。</p>
+<h1 id="IDA插件"><a href="#IDA插件" class="headerlink" title="IDA插件"></a>IDA插件</h1><p>安装mipsrop插件，现在支持IDA7.0+</p>
+<pre><code>https://github.com/devttys0/ida/tree/master/plugins/mipsrop</code></pre><p>下载之后放在ida的plugins中，我用的IDA7.1</p>
+<p><img src="mipsrop.png" alt=""></p>
+<p>也有师傅改了之前的mipsrop以支持IDA6.x和IDA7.x</p>
+<pre><code>https://github.com/fuzzywalls/ida</code></pre><h1 id="调试工具"><a href="#调试工具" class="headerlink" title="调试工具"></a>调试工具</h1><p>首先是安装pwndbg，peda对于mips的动态调试没有太好的支持。pwndbg的安装命令： </p>
+<pre class=" language-shell"><code class="language-shell">git clone https://github.com/pwndbg/pwndbg
+cd pwndbg
+./setup.sh</code></pre>
+<p>接着是安装<code>gdb-multiarch</code>，安装命令：</p>
+<pre><code>sudo apt-get install gdb-multiarch</code></pre><p>安装完毕后，整个远程动态调试的过程为：</p>
+<ol>
+<li>使用命令<code>qemu-mipsel -g 1234 -L /Your_Path/buildroot/output/target/ demo将程序运行起来，</code>-g 1234`的意思表示为监听端口1234，用于远程调试。</li>
+<li>使用<code>gdb-multiarch ./demo</code>来开启gdb。</li>
+<li>进入gdb后，使用命令<code>target remote 127.0.0.1:1234</code>，即开始调试程序。</li>
+</ol>
+<p>用gdb-multiarch调试，相较于ida远程调试来说，对于用习惯了gdb调试的人来说应该会方便不少，而且还有pwndbg的支持。</p>
 <h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p> <a href="https://xz.aliyun.com/t/3826" target="_blank" rel="noopener">https://xz.aliyun.com/t/3826</a> </p>
 <p> <a href="https://xz.aliyun.com/t/462" target="_blank" rel="noopener">https://xz.aliyun.com/t/462</a> </p>
-</li>
-</ol>
 <script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
@@ -237,7 +256,7 @@ demo: ELF 32-bit LSB executable, MIPS, MIPS32 version 1 (SYSV), statically linke
     </div>
     
         <div class='side'>
-			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#binwalk"><span class="toc-number">2.</span> <span class="toc-text">binwalk</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#qemu"><span class="toc-number">3.</span> <span class="toc-text">qemu</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu安装"><span class="toc-number">3.1.</span> <span class="toc-text">qemu安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu网络配置"><span class="toc-number">3.2.</span> <span class="toc-text">qemu网络配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu-mips对应包下载"><span class="toc-number">3.3.</span> <span class="toc-text">qemu-mips对应包下载</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#buildroot"><span class="toc-number">4.</span> <span class="toc-text">buildroot</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Ghidra"><span class="toc-number">5.</span> <span class="toc-text">Ghidra</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#安装条件"><span class="toc-number">5.1.</span> <span class="toc-text">安装条件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#下载地址"><span class="toc-number">5.2.</span> <span class="toc-text">下载地址</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Firmadyne"><span class="toc-number">6.</span> <span class="toc-text">Firmadyne</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考资料"><span class="toc-number">7.</span> <span class="toc-text">参考资料</span></a></li></ol>	
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#binwalk"><span class="toc-number">2.</span> <span class="toc-text">binwalk</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#qemu"><span class="toc-number">3.</span> <span class="toc-text">qemu</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu安装"><span class="toc-number">3.1.</span> <span class="toc-text">qemu安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu网络配置"><span class="toc-number">3.2.</span> <span class="toc-text">qemu网络配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu-mips对应包下载"><span class="toc-number">3.3.</span> <span class="toc-text">qemu-mips对应包下载</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#buildroot"><span class="toc-number">4.</span> <span class="toc-text">buildroot</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Ghidra"><span class="toc-number">5.</span> <span class="toc-text">Ghidra</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#安装条件"><span class="toc-number">5.1.</span> <span class="toc-text">安装条件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#下载地址"><span class="toc-number">5.2.</span> <span class="toc-text">下载地址</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Firmadyne"><span class="toc-number">6.</span> <span class="toc-text">Firmadyne</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#IDA插件"><span class="toc-number">7.</span> <span class="toc-text">IDA插件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#调试工具"><span class="toc-number">8.</span> <span class="toc-text">调试工具</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考资料"><span class="toc-number">9.</span> <span class="toc-text">参考资料</span></a></li></ol>	
         </div>
     
 </div>

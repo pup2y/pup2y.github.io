@@ -1,6 +1,113 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>ubuntu16.04的网络桥接配置</title>
+    <url>/2020/04/07/ubuntu16-04-de-wang-luo-qiao-jie-pei-zhi/</url>
+    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>为什么会记录这个过程，因为昨天想起了路由器有个类似与metasploit的工具<a href="https://github.com/threat9/routersploit" target="_blank" rel="noopener">routersploit</a>，之前在ubuntu18.04上装过，好像用了出现问题没跑起来。这次在16.04上安装，并结合firmadyne对其进行测试。对于DIR-815仿真起来之后，routersploit能够扫描到其中的一个洞，但是其他的洞没有payload。然后我用routersploit扫描家里TP-link路由器出现问题了，当时我以为虚拟机用NAT模式，导致在192.168.91.0/24网段，但是路由器地址是192.168.0.1。想着配置虚拟机在192.168.0.0/24网段不就行了。我真是个机灵鬼，结果发现并不是这个问题。不过也学习了一波虚拟机网络配置三种模式。</p>
+<h1 id="routersploit"><a href="#routersploit" class="headerlink" title="routersploit"></a>routersploit</h1><p>Exploitation Framework for Embedded Devices，针对嵌入式设备的利用框架。具体里面的架构没有仔细研究，目前只停留在使用阶段。使用界面是一个命令交互式界面。目前最新的版本是3.4.1，里面有132个exploits，32个payloads。当然可以自己扩展。</p>
+<p><img src="routersploit.png" alt=""></p>
+<p>routersploit的使用步骤在github上的一个演示视频中有演示。总结起来：</p>
+<h2 id="扫描目标查找当前漏洞库中存在的漏洞"><a href="#扫描目标查找当前漏洞库中存在的漏洞" class="headerlink" title="扫描目标查找当前漏洞库中存在的漏洞"></a>扫描目标查找当前漏洞库中存在的漏洞</h2><pre class=" language-shell"><code class="language-shell">use scanners/autopwn #选择自动扫描模式
+set target 192.168.0.1 #设置目标
+run</code></pre>
+<p><img src="vulnerablity.png" alt=""></p>
+<h2 id="显示目标的漏洞，选择exploit"><a href="#显示目标的漏洞，选择exploit" class="headerlink" title="显示目标的漏洞，选择exploit"></a>显示目标的漏洞，选择exploit</h2><pre class=" language-sh"><code class="language-sh">use exploits/routers/dlink/dir_8xx_password_disclosure #选择exploit
+set target 192.168.0.1 #设定目标这里需要重新设置不然show options显示目标为空
+check #再次检测目标是否存在该漏洞，若存在会显示[+] Target is vulnerable
+run</code></pre>
+<p>该exploit是泄漏dir_8xx的默认密码。</p>
+<p><img src="password_disclosure.png" alt=""></p>
+<p>本次仿真的目标是D-LINK DIR-859路由器。</p>
+<p><img src="DIR859.png" alt=""></p>
+<p>不需要密码就能登陆。</p>
+<p><img src="login.png" alt=""></p>
+<h2 id="选择攻击载荷"><a href="#选择攻击载荷" class="headerlink" title="选择攻击载荷"></a>选择攻击载荷</h2><pre class=" language-shell"><code class="language-shell">show payloads
+set payload xxxx
+set lhost 本机ip
+run</code></pre>
+<p><img src="show_payloads.png" alt=""></p>
+<p>但是会在选择攻击载荷的时候会遇到没有Payload的情况，可以自己编写扩展进去。或者根本就利用不起来，下面的情况就是利用不起来。</p>
+<h1 id="测试家用实体路由器遇到的问题"><a href="#测试家用实体路由器遇到的问题" class="headerlink" title="测试家用实体路由器遇到的问题"></a>测试家用实体路由器遇到的问题</h1><p>利用routersploit测试TP-Link TL-WR886N型号实体路由器时（web服务器访问地址也是192.168.0.1）</p>
+<p><img src="TL-WR886N.png" alt=""></p>
+<p>扫描出存在漏洞，但是无法利用。</p>
+<p><img src="set_payload.png" alt=""></p>
+<p>github该项目上同样有许多人提出这个<a href="https://github.com/threat9/routersploit/issues/550" target="_blank" rel="noopener">issue</a>(Could not set up HTTP server on lhost / can’t transfer payload)。</p>
+<p>我想着是哪里出了问题，之前ubuntu虚拟机的ip是利用NAT模式设置的网络，所以IP是192.168.91.0/24网段的，我以为是IP不在一个网段导致的，所以就想着改下IP。就学习了VM虚拟机配置网络的3种方式。以下内容参考<a href="https://blog.csdn.net/dif90304/article/details/101758657?depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1&amp;utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1" target="_blank" rel="noopener">Vmware虚拟机三种网络模式详解</a></p>
+<h1 id="VMware-三种网络工作模式"><a href="#VMware-三种网络工作模式" class="headerlink" title="VMware 三种网络工作模式"></a>VMware 三种网络工作模式</h1><p>vmware为我们提供了三种网络工作模式，它们分别是：<strong>Bridged（桥接模式）</strong>、<strong>NAT（网络地址转换模式）</strong>、<strong>Host-Only（仅主机模式）</strong>。 </p>
+<p>打开vmware虚拟机，我们可以在选项栏的“编辑”下的“虚拟网络编辑器”中看到VMnet0（桥接模式）、VMnet1（仅主机模式）、VMnet8（NAT模式）。其实看到的VMnet0表示的是用于桥接模式下的虚拟交换机；VMnet1表示的是用于仅主机模式下的虚拟交换机；VMnet8表示的是用于NAT模式下的虚拟交换机。 </p>
+<p><img src="%E8%99%9A%E6%8B%9F%E7%BD%91%E7%BB%9C%E7%BC%96%E8%BE%91%E5%99%A8.png" alt=""></p>
+<p>同时，在主机上对应的有VMware Network Adapter VMnet1和VMware Network Adapter VMnet8两块虚拟网卡，它们分别作用于仅主机模式与NAT模式下。在“网络连接”中我们可以看到这两块虚拟网卡，如果将这两块卸载了，可以在vmware的“编辑”下的“虚拟网络编辑器”中点击“还原默认设置”，可重新将虚拟网卡还原。 </p>
+<p><img src="%E4%B8%BB%E6%9C%BA%E4%B8%8A%E7%9A%84%E7%BD%91%E5%8D%A1.png" alt=""></p>
+<h2 id="桥接模式"><a href="#桥接模式" class="headerlink" title="桥接模式"></a>桥接模式</h2><p>桥接模式就是将主机网卡与虚拟机虚拟的网卡利用虚拟网桥进行通信。在桥接的作用下，类似于把物理主机虚拟为一个交换机，所有桥接设置的虚拟机连接到这个交换机的一个接口上，物理主机也同样插在这个交换机当中，所以所有桥接下的网卡与网卡都是交换模式的，相互可以访问而不干扰。在桥接模式下，虚拟机ip地址需要与主机在同一个网段，如果需要联网，则网关与DNS需要与主机网卡一致。其网络结构如下图所示： </p>
+<p><img src="%E6%A1%A5%E6%8E%A5%E6%A8%A1%E5%BC%8F.png" alt=""></p>
+<h3 id="设置桥接模式"><a href="#设置桥接模式" class="headerlink" title="设置桥接模式"></a>设置桥接模式</h3><ol>
+<li><p>在物理机上：网络共享中心-&gt;本地连接-&gt;属性-&gt;勾选桥接模式协议 </p>
+<p><img src="%E6%A1%A5%E6%8E%A5%E6%A8%A1%E5%BC%8F%E5%8D%8F%E8%AE%AE.png" alt=""></p>
+</li>
+<li><p>在Vmware上 虚拟机-&gt;设置-&gt;网络适配器-&gt;勾选桥接模式 </p>
+<p><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%A1%A5%E6%8E%A5%E6%A8%A1%E5%BC%8F.png" alt=""></p>
+</li>
+<li><p>Vmware 编辑-&gt;虚拟网络编辑器-&gt;更改设置-&gt;选中桥接模式</p>
+<p><img src="%E9%80%89%E6%8B%A9%E7%BD%91%E5%8D%A11.png" alt=""></p>
+<p>（选择好桥接的网卡，我之前选择的自动导致网络无法连接）</p>
+<p><img src="%E9%80%89%E6%8B%A9%E7%BD%91%E5%8D%A1.png" alt=""></p>
+</li>
+<li><p>进入虚拟机更改网卡配置</p>
+<p>物理机IP信息（这张图是别人的图不是我自己的图）</p>
+<p><img src="%E7%89%A9%E7%90%86%E6%9C%BAIP%E4%BF%A1%E6%81%AF.png" alt=""></p>
+<ul>
+<li><p>更改IP</p>
+<p><code>sudo vim /etc/network/interfaces</code><strong>注意这个ip的网段（子网）要跟你的物理机是一样的。</strong> （下面的图也是比人的图，可能跟上面那张图不匹配，但是意思没错）</p>
+<p><img src="interface.png" alt=""></p>
+</li>
+<li><p>设置DNS文件</p>
+<p><code>sudo vim /etc/resolv.conf</code><strong>DNS服务器一定要一样</strong></p>
+<p><img src="DNS%E9%85%8D%E7%BD%AE.png" alt=""></p>
+</li>
+<li><p>重启网络</p>
+<p><code>sudo /etc/init.d/networking restart</code></p>
+<p>ping <a href="http://www.baidu.com" target="_blank" rel="noopener">www.baidu.com</a> 试试能否成功！</p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="NAT-网络地址转换"><a href="#NAT-网络地址转换" class="headerlink" title="NAT(网络地址转换)"></a>NAT(网络地址转换)</h2><p>如果你的网络ip资源紧缺，但是又希望虚拟机能够联网，这时候NAT模式是最好的选择。NAT模式借助虚拟NAT设备和虚拟DHCP服务器，使得虚拟机可以联网。其网络结构如下图所示： </p>
+<p><img src="NAT%E6%A8%A1%E5%BC%8F.png" alt=""></p>
+<p>在NAT模式中，主机网卡直接与虚拟NAT设备相连，然后虚拟NAT设备与虚拟DHCP服务器一起连接在虚拟交换机VMnet8上，这样就实现了虚拟机联网。此时主机如果卸载掉VMnet8，虚拟机也能连上外网，但是虚拟机无法跟主机通信。*<em>VMware Network Adapter VMnet8虚拟网卡主要是为了实现主机与虚拟机之间的通信。 *</em></p>
+<p>而且使用NAT模式时，虚拟机能够访问在同一片局域网（连接同一个路由器）中的其他主机，但是其他主机无法访问虚拟机。像下图（2011年一个博主发的，理解上有点偏差），用这图的意思就是想说，使用Vmnet8虚拟交换机，此时虚拟机可以通过主机访问其他主机，其他主机不能访问虚拟机。其网络拓扑如图2所示，使用NAT方式，A1，A2可以访问B，但B不可以访问A1，A2。但A，A1，A2可以互访。</p>
+<p><img src="NAT%E6%A8%A1%E5%BC%8F2.png" alt=""></p>
+<h2 id="Host-Only（仅主机模式）"><a href="#Host-Only（仅主机模式）" class="headerlink" title="Host-Only（仅主机模式）"></a>Host-Only（仅主机模式）</h2><p>Host-Only模式其实就是NAT模式去除了虚拟NAT设备，然后使用VMware Network Adapter VMnet1虚拟网卡连接VMnet1虚拟交换机来与虚拟机通信的，Host-Only模式将虚拟机与外网隔开，使得虚拟机成为一个独立的系统，只与主机相互通讯。其网络结构如下图所示： </p>
+<p><img src="%E4%BB%85%E4%B8%BB%E6%9C%BA%E6%A8%A1%E5%BC%8F1.png" alt=""></p>
+<p> 通过上图，可以发现，如果要使得虚拟机能联网，可以将主机网卡共享给VMware Network Adapter VMnet1网卡，从而达到虚拟机联网的目的。 具体配置可以参考<a href="https://blog.csdn.net/dif90304/article/details/101758657?depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1&amp;utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1" target="_blank" rel="noopener">这篇文章</a></p>
+<p>我个人应该不会设置成仅主机模式之后用它来连外网。</p>
+<p>最终我将我的一个ubuntu16.04虚拟机配置成桥接模式，让其能够跟统一个局域网中的其他主机互访，让后用routersploit测试还是出现之前的问题。</p>
+<p><img src="%E6%B5%8B%E8%AF%95%E5%A4%B1%E8%B4%A5.png" alt=""></p>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p> <a href="https://blog.csdn.net/shuxiao9058/article/details/7051463" target="_blank" rel="noopener">https://blog.csdn.net/shuxiao9058/article/details/7051463</a> </p>
+<p> <a href="https://blog.csdn.net/dif90304/article/details/101758657?depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1&amp;utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1" target="_blank" rel="noopener">Vmware虚拟机三种网络模式详解</a></p>
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>]]></content>
+      <categories>
+        <category>ubuntu</category>
+      </categories>
+  </entry>
+  <entry>
     <title>DIR-815 经典溢出漏洞分析</title>
     <url>/2020/04/02/dir-815-jing-dian-yi-chu-lou-dong-fen-xi/</url>
     <content><![CDATA[<script>
@@ -142,10 +249,15 @@ sleep 3</code></pre>
 <span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
     <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"demo\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span></code></pre>
-<p>利用<code>mipsel-linux-gcc demo.c -static -o demo</code>得到是小端文件</p>
+<p>利用<code>mipsel-linux-gcc demo.c -static -o demo</code>得到是小端文件，并且能直接运行。</p>
 <pre class=" language-shell"><code class="language-shell"> ~/Desktop/IoT :  mipsel-linux-gcc demo.c -static -o demo
  ~/Desktop/IoT :  file demo
 demo: ELF 32-bit LSB executable, MIPS, MIPS32 version 1 (SYSV), statically linked, not stripped</code></pre>
+<p>如果没有加<code>-static</code>将需要动态链接库</p>
+<p><img src="%E9%9C%80%E8%A6%81%E9%93%BE%E6%8E%A5%E5%BA%93.png" alt=""></p>
+<p>这时我们只需要找到该库，使用<code>qemu-mipsel -L /Your_Path/buildroot/output/target/ hello</code>即可运行。 </p>
+</li>
+</ol>
 <h1 id="Ghidra"><a href="#Ghidra" class="headerlink" title="Ghidra"></a>Ghidra</h1><p> Ghidra是由美国国家安全局（NSA）研究部门开发的软件逆向工程（SRE）套件，用于支持网络安全任务。  该反汇编工具类似于我们常用的IDA，不过其基于JAVA开发，是一款适用于Windows、Mac和Linux的跨平台反汇编工具，用户还可以使用Java或Python开发自己的Ghidra插件或者脚本。 </p>
 <h2 id="安装条件"><a href="#安装条件" class="headerlink" title="安装条件"></a>安装条件</h2><p>硬件条件:4GB内存;1GB硬盘空间</p>
 <p>软件条件:Java 11+</p>
@@ -157,10 +269,24 @@ demo: ELF 32-bit LSB executable, MIPS, MIPS32 version 1 (SYSV), statically linke
 <p>github传送门： <a href="https://github.com/firmadyne/firmadyne" target="_blank" rel="noopener">https://github.com/firmadyne/firmadyne</a> 里面有详细的安装和使用说明。</p>
 <p>也可以参考这篇帖子进行安装使用： <a href="https://chuansongme.com/n/1009525252762" target="_blank" rel="noopener">https://chuansongme.com/n/1009525252762</a> </p>
 <p>到此环境差不多安装完了。</p>
+<h1 id="IDA插件"><a href="#IDA插件" class="headerlink" title="IDA插件"></a>IDA插件</h1><p>安装mipsrop插件，现在支持IDA7.0+</p>
+<pre><code>https://github.com/devttys0/ida/tree/master/plugins/mipsrop</code></pre><p>下载之后放在ida的plugins中，我用的IDA7.1</p>
+<p><img src="mipsrop.png" alt=""></p>
+<p>也有师傅改了之前的mipsrop以支持IDA6.x和IDA7.x</p>
+<pre><code>https://github.com/fuzzywalls/ida</code></pre><h1 id="调试工具"><a href="#调试工具" class="headerlink" title="调试工具"></a>调试工具</h1><p>首先是安装pwndbg，peda对于mips的动态调试没有太好的支持。pwndbg的安装命令： </p>
+<pre class=" language-shell"><code class="language-shell">git clone https://github.com/pwndbg/pwndbg
+cd pwndbg
+./setup.sh</code></pre>
+<p>接着是安装<code>gdb-multiarch</code>，安装命令：</p>
+<pre><code>sudo apt-get install gdb-multiarch</code></pre><p>安装完毕后，整个远程动态调试的过程为：</p>
+<ol>
+<li>使用命令<code>qemu-mipsel -g 1234 -L /Your_Path/buildroot/output/target/ demo将程序运行起来，</code>-g 1234`的意思表示为监听端口1234，用于远程调试。</li>
+<li>使用<code>gdb-multiarch ./demo</code>来开启gdb。</li>
+<li>进入gdb后，使用命令<code>target remote 127.0.0.1:1234</code>，即开始调试程序。</li>
+</ol>
+<p>用gdb-multiarch调试，相较于ida远程调试来说，对于用习惯了gdb调试的人来说应该会方便不少，而且还有pwndbg的支持。</p>
 <h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p> <a href="https://xz.aliyun.com/t/3826" target="_blank" rel="noopener">https://xz.aliyun.com/t/3826</a> </p>
 <p> <a href="https://xz.aliyun.com/t/462" target="_blank" rel="noopener">https://xz.aliyun.com/t/462</a> </p>
-</li>
-</ol>
 <script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
