@@ -1,7 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>ubuntu16.04的网络桥接配置</title>
+    <title>An Efficient Greybox Fuzzing Scheme for Linux-based IoT Programs Through Binary Static Analysis</title>
+    <url>/2020/04/16/lun-wen-yue-du-bi-ji/</url>
+    <content><![CDATA[<p>论文链接：</p>
+<p><a href="https://ieeexplore.ieee.org/abstract/document/8958740" target="_blank" rel="noopener">https://ieeexplore.ieee.org/abstract/document/8958740</a> </p>
+<p>本文发表在  <a href="https://ieeexplore.ieee.org/xpl/conhome/8955479/proceeding" target="_blank" rel="noopener">2019 IEEE 38th International Performance Computing and Communications Conference (IPCCC)</a> ，第一作者是来自中国科学院大学网络安全学院的郑尧文</p>
+<h1 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h1><p>随着物联网技术的普及，IoT设备的安全性受到越来越多人的关注，当前很多IoT设备例如网络摄像头和路由器采用阉割版或者轻微改动的linux内核作为它们的操作系统。由于Linux系统的开源性，很多攻击者对其很熟悉，所以该类型IoT设备如果存在漏洞的话容易被攻击。Fuzzing作为当前最为流行的漏洞挖掘测试技术之一。由于IoT设备的特性（一般无源码，需要特定的运行环境），传统Fuzzing技术无法直接应用于IoT设备程序。</p>
+<p>本文提出了一种有效的灰盒模糊测试方案，该方案由两步骤组成：二进制静态分析和IoT程序灰盒模糊测试。二进制静态分析为之后的高效Fuzzing提供有效的输入，IoT程序灰盒模糊测试是基于IoT内核Fuzzer进行改进使其适用于IoT程序。</p>
+<p>作者实现了原型系统并且实验结果表明该系统能够发现真实的基于Linux的IoT程序漏洞。</p>
+<h1 id="设计与实现"><a href="#设计与实现" class="headerlink" title="设计与实现"></a>设计与实现</h1><p>整个系统分为两个部分：</p>
+<h2 id="（1）二进制静态分析"><a href="#（1）二进制静态分析" class="headerlink" title="（1）二进制静态分析"></a>（1）二进制静态分析</h2><p>其中第一第二步是从IoT固件中的目标程序中获取候选的关键字，第三四五六步则是分析程序是如何解析和运行候选关键字，如果候选关键字能够提高代码的覆盖率则将其作为“fuzz keywords”。</p>
+<p><img src="%E4%BA%8C%E8%BF%9B%E5%88%B6%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90%E6%A1%86%E6%9E%B6.png" alt=""></p>
+<p>step1：使用binwalk工具从IoT固件中获取二进制目标程序。</p>
+<p>step2：从二进制目标程序的.data和.rodata段中找出所有可读的字符作为候选关键字。</p>
+<p>本文使用了污点分析技术，将指向存储可读变量内存地址的指针作为Taint source，将库函数中内存和字符串比较APIs作为Taint sink。</p>
+<p>step3：块粒度污点，分析本文将污点分析过程分解为块粒度。构建了一个队列来存储为分析的块，队列中初始块是包含装载当前正在分析的字符串的指令的块。对于每个出队列的块，执行块粒度污点分析。采用了广度优先搜索（<strong>breadth-first-search</strong>）模式。</p>
+<p>step4：块转换分析，以确定后继代码块是否进入库函数还是普通代码块，如果是普通代码块则将其加入队列中step3，如果进入了库函数则进入step5。</p>
+<p>step5：库函数分析，如果该库函数被定义为Taint sink，则进入step6。否则将根据库函数生成污点流summary完成污点传播分析，并将后继块加入到队列回到step3。</p>
+<p>step6：库函数Taint sink分析，判断是否污点分析是否结束。获取step3的污染寄存器以及Taint sink相关寄存器，如果step3的污染寄存器包含在Taint sink相关寄存器中则将当前分析的候选字符串作为fuzz keywords。</p>
+<p>库函数生成污点流summary：对库函数进行数据流分析，使用该方法只需要对每个库函数执行一遍库函数分析，而不用像其他普通函数一样进行过程间污点分析。</p>
+<p><img src="%E5%BA%93%E5%87%BD%E6%95%B0%E5%B1%9E%E6%80%A7.png" alt=""></p>
+<h2 id="（2）IoT程序灰盒Fuzzing"><a href="#（2）IoT程序灰盒Fuzzing" class="headerlink" title="（2）IoT程序灰盒Fuzzing"></a>（2）IoT程序灰盒Fuzzing</h2><p>修改全系统灰盒fuzzer（TriforceAFL）使其支持IoT程序灰盒Fuzzing，因为TriforceAFL在执行过程中缺少实时监控器以及对特定进程的准确代码覆盖率收集，所以对IoT程序的Fuzzing并不支持。本文在原有组件的基础上修改了监控组件使其使用于IoT程序。</p>
+<p><img src="IoT%E7%81%B0%E7%9B%92%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6.png" alt=""></p>
+<p>（1）工作流程：首先开始IoT固件仿真包括boot操作系统，同时调用一个fuzz驱动。当系统启动完成之后，fuzz驱动会启动AFL fork服务器，该服务器将派生一个子进程并在其中执行后续操作。在子进程中，驱动会从fuzz引擎中获取一个新的输入，将这个输入喂给目标系统调用，当系统调用结束时退出到父进程。</p>
+<p>a)fuzz引擎：使用静态分析获得keywords，使其参与输入生成。因为<strong>AFL通过启用- x模式，将keywords作为字典参与输入的生成</strong>。其他的完全遵从AFL的输入生成策略。最开始种子池中仅包含用户提供的输入，fuzz引擎会从中选择一个进行变异生出输入，并将其喂给目标系统调用，随着Fuzzing迭代的进行，那些能够达到新得代码覆盖的输入被存储作为种子池中的新种子。</p>
+<p>b)fork模式：工作流程中提到fuzz驱动会启动AFL fork服务器来,并在fork出的虚拟机中进行接下来的一些列操作。这意味着当一个测试用例结束时，Fuzzing进程会回滚到fork点进行下一次迭代。<strong>fork点是网络相关系统调用</strong>，通过hook这些系统调用完成输入feeding。</p>
+<p>c)代码覆盖率：对QEMU系统模式中的分支转换进行插桩，更具体的说是在系统调用的每个代码块执行中，使用当前程序计数器(PC)对最后一个代码块的PC进行编码，然后将值存储在fuzz引擎的bitmap中。当系统调用完成时，fuzz引擎会将bitmap与以前的累积bitmap进行比较，确定是否达到新的代码覆盖。</p>
+<p> 2）IoT程序的实时监控器</p>
+<p>a)进程监控器：作者遍历Linux内核中的任务结构(task structure)来监控进行的开始和结束。当一个新任务开始时，能够得到的任务信息包括：名字，进程号等，如果等于目标程序的名字，监控器则通知fuzzer目标程序启动起来了，可以进行fork和后续操作。同样的当任务信息中的目标程序信息消失，则说明目标程序终止了。</p>
+<p>b)系统调用监控：在系统调用异常之后立即插桩并将其标记为系统调用的起始点，同时获得系统调用信息，例如系统调用号。在进入系统调入之前计入当前PC和栈指针，之后在每个代码块的结束点插桩获得PC和栈指针，与之前的记录进行比较，如果相同说明系统调用结束并返回目标进程。本文监控网络相关的系统调用。</p>
+<p>c)上下文分析：当一个新的进程创建的时候，操作系统会设置页面全局目录(PGD)，不同进程的PGD不同，所以可以通过PGD来鉴别进程。</p>
+<h1 id="实验评估"><a href="#实验评估" class="headerlink" title="实验评估"></a>实验评估</h1><p>本系统的二进制分析模块是基于IDAPython编写的python代码，Fuzzing模块是基于TriforceAFL进行修改的。系统仿真是借助Firmadyne工具，所以从Firmadyne的数据库中选取了6个固件进行测试。对其中的HTTP服务进行Fuzzing，从中选取了7个http相关的程序。</p>
+<p><img src="%E6%B5%8B%E8%AF%95%E7%A8%8B%E5%BA%8F%E4%BF%A1%E6%81%AF.png" alt=""></p>
+<p>首先对每个IoT程序进行二进制静态分析获取他们的fuzz keywords。然后构造正常的http或者cgi请求作为初始种子进行Fuzzing。</p>
+<p>本文随后与AFL和TriforceAFL进行比较（两者开源），同时为了验证本文的设计提高了效率，将fork引擎的fuzz keywords删除，采用随机变异的方式进行实验。为了让实验更让人信服，对每个实验重复进行5次持续24小时。</p>
+<p>实验结果表明确实能够发现已存在的漏洞，以及一个未知漏洞。这验证了实验的有效性。同时表明了TriforceAFL和AFL的缺陷。</p>
+<p><img src="%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C.png" alt=""></p>
+<p>为了证明二进制分析得到的keywords提高了效率，做了以下比较。发现在相同时间内确实能够发现更多的Crash和paths。</p>
+<p><img src="%E6%9C%89%E6%95%88%E6%80%A7%E9%AA%8C%E8%AF%81.png" alt=""></p>
+<p><img src="path%E5%8F%91%E7%8E%B0%E6%9B%B4%E5%A4%9A.png" alt=""></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>通过对IoT程序进行二进制静态分析得到的keywords确实能够提高模糊测试的效率，同时对TriforceAFL进行相应改进使其适应于IoT程序之后能够更加准确的监控程序运行，从而获取代码覆盖率。</p>
+<p>存在的局限性：</p>
+<p>1）二进制静态分析：本文定义的Taint sink是uClibc中的字符串和内存比较函数。而有些比较操作可能在二进制文件本身实现，没有调用库函数。还有些厂家使用自己定义的库以及库函数。这些是本文没有考虑到情况。</p>
+<p>2）IoT固件仿真：本文的固件仿真是基于Firmadyne进行的，所以CPU架构局限于MIPS小端，MIPS大端和ARM。同时设备类型局限于路由器和摄像头。</p>
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>]]></content>
+      <categories>
+        <category>IoT</category>
+      </categories>
+      <tags>
+        <tag>Binary Static Analysis</tag>
+        <tag>Greybox Fuzzing</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>FIRM-AFL总结</title>
+    <url>/2020/04/08/firm-afl-zong-jie/</url>
+    <content><![CDATA[<p>系统模式只是记录fork点，然后以便回滚，以及提供环境变量，将需要的页映射进内存中。</p>
+<p>对于AFL改动的地方主要就是FORK的地方。</p>
+<p>还有尽管是对busybox fuzz但是在运行的时候会unmap掉这些内存页，将真正fuzz的对象映射进来，这块逻辑体现在了FIRM-AFL/uer_mode/linux-user/main.c中原来的是在afl-2.52b/qemu_mode/qemu-2.10.0/linux-user/main.c中</p>
+<p>直接拼接AFL和QEMU系统模式的工具是Triforce-AFL</p>
+<p>现在最主要的事，还是找到自己要解决什么问题！工具不是最主要的，主要的还是找问题，解决它，不是结局的很完美也没关系。</p>
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>]]></content>
+  </entry>
+  <entry>
+    <title>VM虚拟机ubuntu16.04的网络桥接配置</title>
     <url>/2020/04/07/ubuntu16-04-de-wang-luo-qiao-jie-pei-zhi/</url>
     <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>为什么会记录这个过程，因为昨天想起了路由器有个类似与metasploit的工具<a href="https://github.com/threat9/routersploit" target="_blank" rel="noopener">routersploit</a>，之前在ubuntu18.04上装过，好像用了出现问题没跑起来。这次在16.04上安装，并结合firmadyne对其进行测试。对于DIR-815仿真起来之后，routersploit能够扫描到其中的一个洞，但是其他的洞没有payload。然后我用routersploit扫描家里TP-link路由器出现问题了，当时我以为虚拟机用NAT模式，导致在192.168.91.0/24网段，但是路由器地址是192.168.0.1。想着配置虚拟机在192.168.0.0/24网段不就行了。我真是个机灵鬼，结果发现并不是这个问题。不过也学习了一波虚拟机网络配置三种模式。</p>
 <h1 id="routersploit"><a href="#routersploit" class="headerlink" title="routersploit"></a>routersploit</h1><p>Exploitation Framework for Embedded Devices，针对嵌入式设备的利用框架。具体里面的架构没有仔细研究，目前只停留在使用阶段。使用界面是一个命令交互式界面。目前最新的版本是3.4.1，里面有132个exploits，32个payloads。当然可以自己扩展。</p>
@@ -133,7 +232,127 @@ run</code></pre>
   <entry>
     <title>Linux以及qemu网络配置的学习</title>
     <url>/2020/04/02/linux-yi-ji-qemu-wang-luo-pei-zhi-de-xue-xi/</url>
-    <content><![CDATA[<script>
+    <content><![CDATA[<p>最近一直在使用firmadyne仿真固件，因为firmadyne主要还是利用qemu的系统模式加载预先编译好的Linux内核将固件文件系统托起，从而模拟Linux系统的嵌入式设备的运行。在firmadyne推断网络配置之后生成run.sh文件。其中有关配置网卡部分，以便qemu与宿主机进行通信。在复现CVE进行仿真的时候会出现尽管配置好网卡但是无法通信的问题，所以对Linux以及Qemu的网络通信配置进行学习。</p>
+<h1 id="Qemu与外部网络通信"><a href="#Qemu与外部网络通信" class="headerlink" title="Qemu与外部网络通信"></a>Qemu与外部网络通信</h1><h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>为了使虚拟机能够与外界通信，Qemu需要为虚拟机提供网络设备。命令行上用-net nic为虚拟机创建虚拟机网卡。例如，qemu的命令行选项<code>-net nic,model=pcnet</code> 表示为虚拟机添加一块pcnet型的以太网卡。如果省略model参数则qemu会默认选择一种 e1000 网卡类型。</p>
+<p>有了虚拟网络设备，下面的问题是如何用这些设备来联网。每个qemu的运行实例是宿主机中的一个进程，而每个这样的进程中可以虚拟一些VLAN，虚拟机网络设备接入这些VLAN中。当某个VLAN上连接的网络设备发送数据帧，与它在同一个VLAN中的其它网路设备都能接收到数据帧。上面的例子中对虚拟机的pcnet网卡没有指定其连接的VLAN号，那么qemu默认会将该网卡连入vlan0。下面这个例子更具一般性：</p>
+<p><code>-net nic,model=pcnet -net nic,model=rtl8139,vlan=1, -net nic,model=ne2k_pci,vlan=1</code></p>
+<p>该命令为虚拟机创建了三块网卡，其中第一块网卡类型是pcnet，连入vlan0；第二块网卡类型是 rtl8139，第三块网卡类型是ne2k_pci，这两块都连入vlan1，所以第二块网卡与第三块网卡可以互相通信，但它们与第一块网卡不能直接通信。 </p>
+<p>各个VLAN通过qemu提供的4种通信方式与外界联网：</p>
+<p>使用用户模式的客户机可以连通宿主机及外部网络。用户模式网络完全由QEMU模拟实现整个TCP/IP协议栈，并且使用这个协议栈提供一个虚拟的NAT网络。它不依赖于宿主机上的网络工具组件，如bridge-utils、tunctl、dnsmasq、iptables等，因此也不需要root用户权限。</p>
+<ol>
+<li><p>User mode stack：使用用户模式的客户机可以连通宿主机及外部网络，外部网络不能主动与虚拟机通信。这种方式<strong>由QEMU实现整个TCP/IP协议栈</strong>，并且使用这个协议栈提供一个<strong>虚拟的NAT网络</strong>。负责在虚拟机VLAN和外部网络之间转发数据。它不依赖于宿主机上的网络工具组件，如bridge-utils、tunctl、dnsmasq、iptables等，因此也不需要root用户权限。当然，用户模式网络的缺陷也是明显的：<strong>因其在QEMU内部实现所有网络协议栈，相对性能较差。</strong> 虚拟机VLAN中的各个网络接口只能置于<strong>10.0.2.0</strong>子网中，此外，可以用<code>-redir</code>选项为宿主机和虚拟机的两个TCP或UDP端口建立映射，实现宿主机和虚拟机在特殊要求下的通信（例如X-server或ssh）。<strong>这种方式实现虚拟机上网很简单，类似vmware里的nat,qemu启动时加入-net user选项，虚拟机里使用dhcp方式， (如果没有指定<code>-net xx</code>这是默认配置)。</strong></p>
+</li>
+<li><p>socket：这种方式又分为TCP和UDP两种类型。<br>（1）TCP：为一个VLAN创建一个套接字，让该套接字在指定的TCP端口上监听，而其他VLAN连接到该套接字上，从而将多个VLAN连接起来。缺点在于<strong>如果监听套接字所在qemu进程崩溃，整个连接就无法工作</strong>。监听套接字所在VLAN通过<code>-net socket,listen</code>选项启用，其他VLAN通过<code>-net socket,connect</code>选项启用。<br>（2）UDP：所有VLAN连接到一个多播套接字上，从而使多个VLAN通过一个总线通信。所有VLAN都通过<code>-net socket,mcast</code>选项启用。</p>
+<p>通过参数<code>-netdev socket</code> (或<code>-nic socket</code>或<code>-net socket</code>) 可以实现多个虚拟机之间的互联。 </p>
+</li>
+<li><p>TAP：这种方式首先需要在宿主机中创建并配置<strong>一个TAP设备</strong>，qemu进程将该TAP设备连接到虚拟机VLAN中。其次，为了实现虚拟机与外部网络的通信，在宿主机中通常还要<strong>创建并配置一个网桥</strong>，并将宿主机的网络接口（通常是eth0）作为<strong>该网桥的一个接口</strong>。最后，只要将<strong>TAP设备作为网桥的另一个接口</strong>，虚拟机VLAN<strong>通过TAP设备</strong>就可以与外部网络完全通信了。这是因为，宿主机的eth0接口作为网桥的接口，与外部网络连接；TAP设备作为网桥的另一个接口，与虚拟机VLAN连接，这样两个网络就连通了。此时，网桥在这两个网络之间转发数据帧。<br>这里有两个问题需要注意：<br>（1）网桥的转发工作需要得到内核的支持，所以在编译宿主机内核时需要选择与桥接相关的配置选项。<br>（2）<strong>当宿主机eth0接口作为网桥接口时，不能为其配置IP地址，而要将IP地址配置给网桥。</strong><br>TAP方式由<code>-net tap</code>选项启用。</p>
+</li>
+<li><p>VDE：这种方式首先要启动一个VDE进程，该进程打开一个TAP设备，然后各个虚拟机VLAN与VDE进程连接，这样各个VLAN就可以通过TAP设备连接起来。VDE进程通过执行<code>vde_switch</code>命令启动，各个VLAN所在qemu进程通过执行<code>veqe</code>命令启动，这些VLAN就可以与VDE进程连接了。</p>
+<p>以上四种通信方式中，socket方式和VDE方式用于虚拟机VLAN之间的连接，而user mode stack方式与外部网路的通信比较有限，<strong>Firmadyne中也是利用TAP方式配置qemu网络</strong>，所以下面主要讨论TAP方式的配置。 </p>
+</li>
+</ol>
+<h2 id="qemu网络配置（TAP方式）"><a href="#qemu网络配置（TAP方式）" class="headerlink" title="qemu网络配置（TAP方式）"></a>qemu网络配置（TAP方式）</h2><p>参照 <a href="https://zh.wikipedia.org/wiki/TUN与TAP" target="_blank" rel="noopener">wiki</a> 对TAP/TUN介绍。<strong>TUN/TAP是操作系统内核支持的网络虚拟设备</strong>，这种网络设备完全由的软件实现。与网络硬件设备不同，TUN/TAP负责<strong>在内核协议栈与用户进程之间传送协议数据单元</strong>。TUN与TAP的区别在于，TUN工作在网络层，而TAP则工作在数据链路层。具体在运行TCP/IP的以太网中，TUN与应用程序交换IP包，而TAP与应用程序交换以太帧。所以TUN通常涉及路由，而TAP则常用于网络桥接。TUN/TAP的典型应用包括：虚拟私有网络OpenVPN、OpenSSH 以及虚拟机器QEMU、KVM。 </p>
+<h3 id="具体配置过程"><a href="#具体配置过程" class="headerlink" title="具体配置过程"></a>具体配置过程</h3><ol>
+<li><p>首先确定你的机器支持 TAP/TUN 虚拟设备</p>
+</li>
+<li><p>安装两个配置网络所需软件包： </p>
+<pre class=" language-sh"><code class="language-sh">apt-get install bridge-utils        # 虚拟网桥工具
+apt-get install uml-utilities       # UML（User-mode linux）工具</code></pre>
+</li>
+<li><p>配置虚拟网桥的操作（假设系统启动后eth0已经启动，并且从DHCP获得IP地址）</p>
+<p>一次性操作，每次重启失效。最好写一个脚本，重启之后可以批处理。</p>
+<pre class=" language-sh"><code class="language-sh">ifconfig &lt;你的网卡名称(能上网的那张)&gt; down    # 首先关闭宿主机网卡接口
+brctl addbr br0                     # 添加一座名为 br0 的网桥
+brctl addif br0 &lt;你的网卡名称&gt;        # 在 br0 中添加一个接口
+brctl stp br0 off                   # 如果只有一个网桥，则关闭生成树协议
+brctl setfd br0 1                   # 设置 br0 的转发延迟
+brctl sethello br0 1                # 设置 br0 的 hello 时间
+ifconfig br0 0.0.0.0 promisc up     # 启用 br0 接口
+ifconfig &lt;你的网卡名称&gt; 0.0.0.0 promisc up    # 启用网卡接口，作为网桥的一端
+dhclient br0                        # 从 dhcp 服务器获得 br0 的 IP 地址
+brctl show br0                      # 查看虚拟网桥列表
+brctl showstp br0                   # 查看 br0 的各接口信息
+
+#在没有dhcp服务器的网络中也可以用ifconfig命令为br0接口配置一个静态IP地址：
+ifconfig br0 192.168.0.22 netmask 255.255.255.0
+route add -net 0.0.0.0 netmask 0.0.0.0 gw 192.168.0.254</code></pre>
+<p>永久性操作，启动时自动配置。</p>
+<p>在之前的文章<a href="https://pup2y.github.io/2020/03/30/lu-you-qi-lou-dong-wa-jue-huan-jing-da-jian/">路由器漏洞挖掘环境搭建</a>有提到在 /etc/network/interfaces 文件中配置网桥br0。</p>
+<pre class=" language-sh"><code class="language-sh">auto lo # linux中的回环网卡
+iface lo inet loopback
+auto ens33 # ubuntu16.04上网网卡
+iface ens33 inet manual #其实可以设置为dhcp启动不影响
+up ifconfig ens33 0.0.0.0 up
+auto br0 #增加网桥
+iface br0 inet dhcp #网桥的IP地址从dhcp服务器获得
+  bridge_ports ens33 #网桥
+  bridge_maxwait 0</code></pre>
+</li>
+<li><p>配置TAP设备作为网桥br0的另一端的操作：</p>
+<p>可以把一下命令也写/etc/network/interfaces文件中。 </p>
+<pre class=" language-sh"><code class="language-sh">tunctl -t tap0 -u root              # 创建一个 tap0 接口，只允许 root 用户访问
+brctl addif br0 tap0                # 在虚拟网桥中增加一个 tap0 接口
+ifconfig tap0 0.0.0.0 promisc up    # 启用 tap0 接口
+brctl showstp br0                   # 显示 br0 的各个接口</code></pre>
+<p>也可以在/etc/qemu-ifup（qemu启动时会运行的文件）中添加命令：</p>
+<pre class=" language-sh"><code class="language-sh">#! /bin/sh
+echo "Executing /etc/qemu-ifup"
+echo "bridge networking"
+echo "Bringing up $1 for bridge mode" #$1一般指tap0
+sudo /sbin/ifconfig $1 0.0.0.0 promisc up #启用tap0接口
+echo "Adding $1 to br0"
+sudo /sbin/brctl addif br0 $1 #在网桥中增加tap0接口
+sleep 3</code></pre>
+</li>
+<li><p>利用qemu系统模式启动镜像，指定网络连接模式是 TAP 即可。 </p>
+<pre class=" language-sh"><code class="language-sh">sudo qemu-system-mips -M malta -kernel vmlinux-2.6.32-5-4kc-malta -hda debian_squeeze_mips_standard.qcow2 -append "root=/dev/sda1 console=tty0" -net nic,macaddr=00:16:3e:00:00:01 -net tap</code></pre>
+<p>参数含义：-net nic 表示希望 QEMU 在虚拟机中创建一张虚拟网卡，-net tap 表示连接类型为 TAP。默认选择tap0以及启动调用脚本 /etc/qemu-ifup。</p>
+<pre class=" language-sh"><code class="language-sh">-net tap,ifname=tap0,script=no,downscript=no</code></pre>
+<p>可以更具体指定网卡接口名称(就是刚才创建的 tap0，相当于把虚拟机接入网桥)。script 和 downscript 两个选项的作用是告诉 QEMU 在启动系统的时候是否调用脚本自动配置网络环境，如果这两个选项为空，那么 QEMU 启动和退出时会自动选择第一个不存在的 tap 接口(通常是 tap0)为参数，调用脚本 /etc/qemu-ifup 和 /etc/qemu-ifdown。</p>
+</li>
+<li><p>在ubuntu16.04上演示：</p>
+<p>在 /etc/network/interfaces 文件中配置网桥br0，在/etc/qemu-ifup中配置tap0。</p>
+<p>在qemu启动虚拟机之前，<code>ifconfig -a</code>查看网卡信息，此时已经有网桥br0了。</p>
+<p><img src="ifconfig.png" alt=""> </p>
+<p>启动qemu时，自动调用/etc/qemu-ifup，启用tap0网卡并接入网桥中。这时<code>ifconfig</code>可以看见多了tap0网卡。</p>
+<p><img src="%E5%90%AF%E5%8A%A8qemu.png" alt=""></p>
+<p>使用root/root登入qemu虚拟机<code>ifconfig</code>查看网卡信息。</p>
+<p><img src="qemu_ifconfig.png" alt=""></p>
+<p>发现eth1网卡的ip地址为192.168.0.101，<code>cat /etc/network/interfaces</code>发现eth1是通过dhcp服务器分配ip地址的。</p>
+<p><img src="qemu%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%BD%91%E5%8D%A1%E9%85%8D%E7%BD%AE.png" alt=""></p>
+<p><code>ping www.baidu.com</code>能够ping通说明配置成功了。</p>
+<p><img src="ping%E7%99%BE%E5%BA%A6.png" alt=""></p>
+<p><code>brctl show br0</code>查看br0网桥列表，<code>brctl showstp br0</code>查看br0网桥的各接口信息。可以看到网桥连着两块网卡tap0和ens33。</p>
+<p><img src="%E7%BD%91%E6%A1%A5%E5%90%84%E6%8E%A5%E5%8F%A3%E4%BF%A1%E6%81%AF.png" alt=""></p>
+</li>
+</ol>
+<h1 id="Firmadyne中配置网卡部分"><a href="#Firmadyne中配置网卡部分" class="headerlink" title="Firmadyne中配置网卡部分"></a>Firmadyne中配置网卡部分</h1><p>文件：/firmadyne/scratch/x/run.sh(x是对应固件的编号，如果下载了schema并导入了postgresql数据库的话，则是按照数据库中的编号)</p>
+<pre class=" language-sh"><code class="language-sh">···
+#配置网卡过程
+TAPDEV_0=tap${IID}_0
+HOSTNETDEV_0=${TAPDEV_0}
+echo "Creating TAP device ${TAPDEV_0}..."
+sudo tunctl -t ${TAPDEV_0} -u ${USER}
+
+echo "Initializing VLAN..."
+HOSTNETDEV_0=${TAPDEV_0}.1
+sudo ip link add link ${TAPDEV_0} name ${HOSTNETDEV_0} type vlan id 1
+sudo ip link set ${TAPDEV_0} up
+
+echo "Bringing up TAP device..."
+sudo ip link set ${HOSTNETDEV_0} up
+sudo ip addr add 192.168.0.2/24 dev ${HOSTNETDEV_0}
+
+echo "Adding route to 192.168.0.1..."
+sudo ip route add 192.168.0.1 via 192.168.0.1 dev ${HOSTNETDEV_0}
+···
+
+# 利用qemu系统模式进行仿真
+ ${QEMU} -m 256 -M ${QEMU_MACHINE} -kernel ${KERNEL} \
+    -drive if=ide,format=raw,file=${IMAGE} -append "root=${QEMU_ROOTFS} console=ttyS0 nandsim.parts=64,64,64,64,64,64,64,64,64,64 rdinit=/firmadyne/preInit.sh rw debug ignore_loglevel print-fatal-signals=1 user_debug=31 firmadyne.syscall=0" \
+    -nographic \
+    -netdev tap,id=net0,ifname=${TAPDEV_0},script=no -device e1000,netdev=net0 -netdev socket,id=net1,listen=:2001 -device e1000,netdev=net1 -netdev socket,id=net2,listen=:2002 -device e1000,netdev=net2 -netdev socket,id=net3,listen=:2003 -device e1000,netdev=net3 | tee ${WORK_DIR}/qemu.final.serial.log</code></pre>
+<script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
             if (!el.dataset.src) { return; }
@@ -152,6 +371,10 @@ run</code></pre>
             document.body.appendChild(img);
           });
       </script>]]></content>
+      <categories>
+        <category>qemu</category>
+        <category>linux</category>
+      </categories>
   </entry>
   <entry>
     <title>路由器漏洞挖掘环境搭建</title>
@@ -165,7 +388,9 @@ cd binwalk
 sudo ./deps.sh
 sudo python ./setup.py install</code></pre>
 <h1 id="qemu"><a href="#qemu" class="headerlink" title="qemu"></a>qemu</h1><h2 id="qemu安装"><a href="#qemu安装" class="headerlink" title="qemu安装"></a>qemu安装</h2><p>这里没有自己编译qemu，直接使用系统提供的版本，ubuntu16.04一般是qemu2.5</p>
-<pre class=" language-shell"><code class="language-shell">sudo apt-get install qemu </code></pre>
+<pre class=" language-shell"><code class="language-shell">sudo apt-get install qemu 
+sudo apt-get install qemu-user-static
+sudo apt-get install qemu-system</code></pre>
 <h2 id="qemu网络配置"><a href="#qemu网络配置" class="headerlink" title="qemu网络配置"></a>qemu网络配置</h2><pre class=" language-shell"><code class="language-shell">sudo apt-get install bridge-utils #虚拟网桥工具
 sudo apt-get install uml-utilities # UML（User-mode linux）工具</code></pre>
 <p><code>sudo vi /etc/network/interfaces</code></p>
@@ -215,7 +440,7 @@ sleep 3</code></pre>
 <pre class=" language-shell"><code class="language-shell">tar -zxvf buildroot-2019.02.tar.gz</code></pre>
 </li>
 <li><p>进入安装包，配置   </p>
-<pre class=" language-shell"><code class="language-shell">cd buildroot-2019.02 && make clean && make menuconfig</code></pre>
+<pre class=" language-shell"><code class="language-shell">cd buildroot-2019.02 &amp;&amp; make clean &amp;&amp; make menuconfig</code></pre>
 </li>
 <li><p>进入配置界面</p>
 <p><img src="%E9%85%8D%E7%BD%AE%E7%95%8C%E9%9D%A2.png" alt=""></p>
@@ -244,7 +469,7 @@ sleep 3</code></pre>
 <p>最后<code>source /etc/profile</code></p>
 </li>
 <li><p>检验是否能编译生成mipsel文件</p>
-<pre class=" language-c"><code class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h></span></span>
+<pre class=" language-c"><code class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h&gt;</span></span>
 
 <span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
     <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"demo\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
