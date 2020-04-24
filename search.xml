@@ -387,10 +387,94 @@ cd binwalk
 # 对于Debian/Ubuntu的用户而言，很多依赖项都可以通过deps.sh安装
 sudo ./deps.sh
 sudo python ./setup.py install</code></pre>
-<h1 id="qemu"><a href="#qemu" class="headerlink" title="qemu"></a>qemu</h1><h2 id="qemu安装"><a href="#qemu安装" class="headerlink" title="qemu安装"></a>qemu安装</h2><p>这里没有自己编译qemu，直接使用系统提供的版本，ubuntu16.04一般是qemu2.5</p>
-<pre class=" language-shell"><code class="language-shell">sudo apt-get install qemu 
+<p> 下载源代码自己编译 </p>
+<pre><code>`sudo apt-get install git build-essential autoconfsudo git clone https://github.com/devttys0/binwalk.gitsudo apt-get install libqt4-opengl python-qt4 python-qt4-gl python-numpy python-scipy python-pipsudo pip install pyqtgraphsudo apt-get install zlib1g-dev liblzma-dev liblzo2-dev git clone https://github.com/devttys0/sasquatchcd sasquatch &amp;&amp; sudo make &amp;&amp; sudo make installsudo python setup.py install`</code></pre><h1 id="安装sasquatch"><a href="#安装sasquatch" class="headerlink" title="安装sasquatch"></a>安装sasquatch</h1><p>一般现在binwalk完全安装时会自动带上这个sasquatch，输入这三条命令就可以了 </p>
+<pre class=" language-text"><code class="language-text">sudo apt-get install zlib1g-dev liblzma-dev liblzo2-dev
+sudo git clone https://github.com/devttys0/sasquatch
+cd sasquatch && sudo make && sudo make install</code></pre>
+<h1 id="qemu"><a href="#qemu" class="headerlink" title="qemu"></a>qemu</h1><h2 id="qemu安装"><a href="#qemu安装" class="headerlink" title="qemu安装"></a>qemu安装</h2><p>下面的步骤完全参照知世师傅的<a href="[https://nightrainy.github.io/2019/11/04/%E8%B7%AF%E7%94%B1%E5%99%A8%E7%A0%B4%E8%A7%A3%E5%88%9D%E6%8E%A2%E4%B9%8B%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/](https://nightrainy.github.io/2019/11/04/路由器破解初探之环境搭建/)">博客内容</a></p>
+<ol>
+<li>直接安装qemu，直接使用系统提供的版本，ubuntu16.04一般是qemu2.5</li>
+</ol>
+<pre class=" language-shell"><code class="language-shell">sudo apt install libglib2.0-dev libgcrypt20-dev autoconf automake libtool 
+sudo apt-get install libglib2.0 libglib2.0-dev
+sudo apt install -y pkg-config
+sudo apt install -y libpixman-1-dev
+sudo apt install -y libfdt-dev
+sudo apt install libsdl2-dev  
+sudo apt install libsnappy-dev
+sudo apt install libgtk-3-dev
+sudo apt install libjpeg-turbo8-dev
+sudo apt install libcurl4-openssl-dev
+sudo apt install libspice-server-dev
+sudo apt-get install qemu 
 sudo apt-get install qemu-user-static
 sudo apt-get install qemu-system</code></pre>
+<ol start="2">
+<li><p>自己编译</p>
+<ol>
+<li><p>git </p>
+<pre class=" language-sh"><code class="language-sh">git clone git://git.qqmu-project.org/qemu.git/qemu.git
+git submodule update --init pixman
+git submodule update --init dtc
+sudo apt install libglib2.0-dev libgcrypt20-dev autoconf automake libtool 
+sudo apt-get install libglib2.0 libglib2.0-dev
+sudo apt install -y pkg-config
+sudo apt install -y libpixman-1-dev
+sudo apt install -y libfdt-dev
+sudo apt install libsdl2-dev  
+sudo apt install libsnappy-dev
+sudo apt install libgtk-3-dev
+sudo apt install libjpeg-turbo8-dev
+sudo apt install libcurl4-openssl-dev
+sudo apt install libspice-server-dev
+sudo ./configure --static && sudo make -j8 && sudo make install
+注: 使用configure 使用static参数的时候,依赖可能会根据不同环境导致依赖缺失,可以根据报错来解决依赖问题
+</code></pre>
+</li>
+<li><p>wget</p>
+<p> 可根据需求不同来选择不同的版本 </p>
+<pre class=" language-sh"><code class="language-sh">sudo apt install libglib2.0-dev libgcrypt20-dev autoconf automake libtool 
+sudo apt-get install libglib2.0 libglib2.0-dev
+sudo apt install -y pkg-config
+sudo apt install -y libpixman-1-dev
+sudo apt install -y libfdt-dev
+sudo apt install libsdl2-dev  
+sudo apt install libsnappy-dev
+sudo apt install libgtk-3-dev
+sudo apt install libjpeg-turbo8-dev
+sudo apt install libcurl4-openssl-dev
+sudo apt install libspice-server-dev
+sudo arm-softmmu
+wget https://download.qemu.org/qemu-4.1.0.tar.xz
+tar xvJf qemu-4.1.0.tar.xz
+cd qemu-4.1.0
+sudo ./configure --target-list=arm-softmmu,mips-softmmu,mipsel-softmmu --audio-drv-list=alsa,pa
+sudo make -j8
+sudo make install</code></pre>
+</li>
+<li><p>这里贴出官方的安装教程</p>
+<ol>
+<li><p>To download and build QEMU 4.1.0:</p>
+<pre><code>wget https://download.qemu.org/qemu-4.1.0.tar.xz
+tar xvJf qemu-4.1.0.tar.xz
+cd qemu-4.1.0
+./configure
+make</code></pre></li>
+<li><p>To download and build QEMU from git:</p>
+<pre><code>git clone https://git.qemu.org/git/qemu.git
+cd qemu
+git submodule init
+git submodule update --recursive
+./configure
+make</code></pre></li>
+<li><p>Debian/Ubuntu:</p>
+<pre><code>apt-get install qemu</code></pre></li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
 <h2 id="qemu网络配置"><a href="#qemu网络配置" class="headerlink" title="qemu网络配置"></a>qemu网络配置</h2><pre class=" language-shell"><code class="language-shell">sudo apt-get install bridge-utils #虚拟网桥工具
 sudo apt-get install uml-utilities # UML（User-mode linux）工具</code></pre>
 <p><code>sudo vi /etc/network/interfaces</code></p>
@@ -440,7 +524,7 @@ sleep 3</code></pre>
 <pre class=" language-shell"><code class="language-shell">tar -zxvf buildroot-2019.02.tar.gz</code></pre>
 </li>
 <li><p>进入安装包，配置   </p>
-<pre class=" language-shell"><code class="language-shell">cd buildroot-2019.02 &amp;&amp; make clean &amp;&amp; make menuconfig</code></pre>
+<pre class=" language-shell"><code class="language-shell">cd buildroot-2019.02 && make clean && make menuconfig</code></pre>
 </li>
 <li><p>进入配置界面</p>
 <p><img src="%E9%85%8D%E7%BD%AE%E7%95%8C%E9%9D%A2.png" alt=""></p>
@@ -469,7 +553,7 @@ sleep 3</code></pre>
 <p>最后<code>source /etc/profile</code></p>
 </li>
 <li><p>检验是否能编译生成mipsel文件</p>
-<pre class=" language-c"><code class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h&gt;</span></span>
+<pre class=" language-c"><code class="language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;stdio.h></span></span>
 
 <span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
     <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"demo\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -488,17 +572,43 @@ demo: ELF 32-bit LSB executable, MIPS, MIPS32 version 1 (SYSV), statically linke
 <p>软件条件:Java 11+</p>
 <h2 id="下载地址"><a href="#下载地址" class="headerlink" title="下载地址"></a>下载地址</h2><p>百度盘下载地址：<a href="https://pan.baidu.com/s/1zHWilk5NiTuzDItQhI8nnQ" target="_blank" rel="noopener">https://pan.baidu.com/s/1zHWilk5NiTuzDItQhI8nnQ</a> （提取码 ：8upz） </p>
 <p>github地址： <a href="https://github.com/NationalSecurityAgency/Ghidra" target="_blank" rel="noopener">https://github.com/NationalSecurityAgency/Ghidra</a> </p>
-<p>项目主页： <a href="https://Ghidra-sre.org" target="_blank" rel="noopener">https://Ghidra-sre.org</a> </p>
+<p>项目主页： <a href="https://Ghidra-sre.org" target="_blank" rel="noopener">https://Ghidra-sre.org</a> 可以直接从上面下载最新的ghidra</p>
 <p><a href="https://www.secrss.com/articles/8829" target="_blank" rel="noopener">NSA开源逆向工具Ghidra入门使用教程</a></p>
+<p>在Ubuntu16.04中同样可以建立一个软链接进行快捷键启动。</p>
+<pre class=" language-sh"><code class="language-sh">ln -s /home/yourname/project/ghidra_9.1.2_PUBLIC_20200212/ghidra_9.1.2_PUBLIC/ghidraRun /usr/bin/ghidra</code></pre>
+<h2 id="Ghidra插件使用"><a href="#Ghidra插件使用" class="headerlink" title="Ghidra插件使用"></a>Ghidra插件使用</h2><p>可以学习Freebuf上平安银河实验室提供的免费<a href="https://live.freebuf.com/detail/719e1138a016a5bffbfe0daeb4533b4f" target="_blank" rel="noopener">公开课</a>，然后其中的插件可以参照平安银河实验室写的Ghidra_scripts<a href="https://github.com/PAGalaxyLab/ghidra_scripts" target="_blank" rel="noopener">https://github.com/PAGalaxyLab/ghidra_scripts</a> </p>
 <h1 id="Firmadyne"><a href="#Firmadyne" class="headerlink" title="Firmadyne"></a>Firmadyne</h1><p>Firmadyne是一个基于qemu的Linux嵌入式系统自动仿真工具。利用它可以主要可以模拟路由器固件的运行。它拥有自己自己预编译好的mips架构Linux内核。</p>
 <p>github传送门： <a href="https://github.com/firmadyne/firmadyne" target="_blank" rel="noopener">https://github.com/firmadyne/firmadyne</a> 里面有详细的安装和使用说明。</p>
 <p>也可以参考这篇帖子进行安装使用： <a href="https://chuansongme.com/n/1009525252762" target="_blank" rel="noopener">https://chuansongme.com/n/1009525252762</a> </p>
 <p>到此环境差不多安装完了。</p>
-<h1 id="IDA插件"><a href="#IDA插件" class="headerlink" title="IDA插件"></a>IDA插件</h1><p>安装mipsrop插件，现在支持IDA7.0+</p>
-<pre><code>https://github.com/devttys0/ida/tree/master/plugins/mipsrop</code></pre><p>下载之后放在ida的plugins中，我用的IDA7.1</p>
+<h1 id="IDA及其插件"><a href="#IDA及其插件" class="headerlink" title="IDA及其插件"></a>IDA及其插件</h1><p>如果想把IDA直接安装在linux中需要安装wine， 工作目录在~/.wine。 </p>
+<h2 id="wine安装和使用"><a href="#wine安装和使用" class="headerlink" title="wine安装和使用"></a>wine安装和使用</h2><pre><code>`sudo apt-get install wine`</code></pre><h2 id="wine中安装使用IDA"><a href="#wine中安装使用IDA" class="headerlink" title="wine中安装使用IDA"></a>wine中安装使用IDA</h2><p>直接安装或者将安装好的IDA整个包拖进ubuntu16.04，然后用<code>wine idaq.exe</code>就能启动起来，但是会出现缺少python27.dll</p>
+<pre class=" language-text"><code class="language-text">module:import_dll Loading library python27.dll (which is needed by L"Z:\\home\\anciety\\ida\\plugins\\python.plw") failed (error c000007b).</code></pre>
+<p>在宿主机找到该文件并放在IDA的根目录下，还是出现同样的问题，网上还说从<a href="https://www.dllme.com/dll/files/python27_dll.html下载一个python27.dll放在IDA根目录下，但是之后再启动，会出现`IDAPython" target="_blank" rel="noopener">https://www.dllme.com/dll/files/python27_dll.html下载一个python27.dll放在IDA根目录下，但是之后再启动，会出现`IDAPython</a>: importing “site” failed<code>问题， 解决方法就是需要设置一个环境变量，如果在</code>/usr/bin`下写了一个脚本来启动ida，那么解决方法比较简单，也不会影响linux，否则如果直接设置环境变量会影响linux的python运行。 </p>
+<p>脚本:</p>
+<pre class=" language-shell"><code class="language-shell">#!/bin/bash
+export PYTHONPATH=/usr/lib/python2.7 && wine yourpath/idaq.exe</code></pre>
+<p>如果上面方法还是报错，网上找到解决方案是在wine里面重新安装python2.7。</p>
+<pre class=" language-sh"><code class="language-sh">curl -O https://www.python.org/ftp/python/2.7.15/python-2.7.15.msi
+wine msiexec /i python-2.7.15.msi</code></pre>
+<p>解决上述问题之后，写一个快捷命令启动脚本idaq</p>
+<pre class=" language-sh"><code class="language-sh">#!/bin/bash
+wine yourpath/idaq.exe</code></pre>
+<p>之后建立一个软连接以方便在任何窗口输入idaq迅速启动</p>
+<pre class=" language-sh"><code class="language-sh">ln -s pathof上面的快捷脚本 /usr/bin/idaq</code></pre>
+<p>同样给idaq64.exe建立一个启动脚本和软连接。</p>
+<h2 id="安装keypatch-py插件"><a href="#安装keypatch-py插件" class="headerlink" title="安装keypatch.py插件"></a>安装keypatch.py插件</h2><p>主要问题是安装keystone, 在<a href="http://www.keystone-engine.org/download/" target="_blank" rel="noopener">http://www.keystone-engine.org/download/</a> 下载32位keystone-0.9.1-python-win32.msi下载并安装，应该能使用keypatch.py插件，但是有时还是会爆出缺少msvcp120.dll和msvcr120.dll动态链接库的问题，直接在主机找到并复制到IDA根目录就能解决。</p>
+<p>还有很多运行错误包括缺少DLL都可以从本机找到放进IDA根目录解决，其他运行错误根据提示进行相应的解决。</p>
+<h2 id="安装mipsrop等插件"><a href="#安装mipsrop等插件" class="headerlink" title="安装mipsrop等插件"></a>安装mipsrop等插件</h2><p>安装mipsrop插件，以方便IDA调试，现在支持IDA7.0+</p>
+<pre><code>https://github.com/devttys0/ida/tree/master/plugins/mipsrop</code></pre><p>把下载的ida/plugins目录下所有后缀为:,py“d的文件复制到IDA pro插件目录：</p>
+<pre class=" language-sh"><code class="language-sh">sudo cp –r `find /home/yale/a/ida/plugins –iname *.py` /home/yale/ida/ida/plugins/</code></pre>
+<p>将scrpit复制到idapro根目录下</p>
+<pre class=" language-text"><code class="language-text">sudo mkdir /home/yale/ida/ida/plugins/scripts
+sudo cp –r ida/scripts ida/scripts/</code></pre>
+<p>下载之后放在ida的plugins中，我本机用的IDA7.1，wine虚拟机用的IDA6.8都能正常使用</p>
 <p><img src="mipsrop.png" alt=""></p>
 <p>也有师傅改了之前的mipsrop以支持IDA6.x和IDA7.x</p>
-<pre><code>https://github.com/fuzzywalls/ida</code></pre><h1 id="调试工具"><a href="#调试工具" class="headerlink" title="调试工具"></a>调试工具</h1><p>首先是安装pwndbg，peda对于mips的动态调试没有太好的支持。pwndbg的安装命令： </p>
+<pre><code>https://github.com/fuzzywalls/ida</code></pre><h1 id="调试工具gdb-multiarch、pwndbg"><a href="#调试工具gdb-multiarch、pwndbg" class="headerlink" title="调试工具gdb-multiarch、pwndbg"></a>调试工具gdb-multiarch、pwndbg</h1><p>首先是安装pwndbg，peda对于mips的动态调试没有太好的支持。pwndbg的安装命令： </p>
 <pre class=" language-shell"><code class="language-shell">git clone https://github.com/pwndbg/pwndbg
 cd pwndbg
 ./setup.sh</code></pre>
