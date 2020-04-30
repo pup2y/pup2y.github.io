@@ -592,7 +592,8 @@ demo: ELF 32-bit LSB executable, MIPS, MIPS32 version 1 (SYSV), statically linke
 <p>也可以参考这篇帖子进行安装使用： <a href="https://chuansongme.com/n/1009525252762" target="_blank" rel="noopener">https://chuansongme.com/n/1009525252762</a> </p>
 <p>到此环境差不多安装完了。</p>
 <h1 id="IDA及其插件"><a href="#IDA及其插件" class="headerlink" title="IDA及其插件"></a>IDA及其插件</h1><p>如果想把IDA直接安装在linux中需要安装wine， 工作目录在~/.wine。 </p>
-<h2 id="wine安装和使用"><a href="#wine安装和使用" class="headerlink" title="wine安装和使用"></a>wine安装和使用</h2><pre><code>sudo apt-get install wine</code></pre><h2 id="wine中安装使用IDA"><a href="#wine中安装使用IDA" class="headerlink" title="wine中安装使用IDA"></a>wine中安装使用IDA</h2><p>直接安装或者将安装好的IDA整个包拖进ubuntu16.04，然后用<code>wine idaq.exe</code>就能启动起来，但是会出现缺少python27.dll</p>
+<h2 id="wine安装和使用"><a href="#wine安装和使用" class="headerlink" title="wine安装和使用"></a>wine安装和使用</h2><pre class=" language-sh"><code class="language-sh">sudo apt-get install wine</code></pre>
+<h2 id="wine中安装使用IDA"><a href="#wine中安装使用IDA" class="headerlink" title="wine中安装使用IDA"></a>wine中安装使用IDA</h2><p>直接安装或者将安装好的IDA整个包拖进ubuntu16.04，然后用<code>wine idaq.exe</code>就能启动起来，但是会出现缺少python27.dll</p>
 <pre class=" language-text"><code class="language-text">module:import_dll Loading library python27.dll (which is needed by L"Z:\\home\\anciety\\ida\\plugins\\python.plw") failed (error c000007b).</code></pre>
 <p>在宿主机找到该文件并放在IDA的根目录下，还是出现同样的问题，网上还说从<a href="https://www.dllme.com/dll/files/python27_dll.html下载一个python27.dll放在IDA根目录下，但是之后再启动，会出现`IDAPython" target="_blank" rel="noopener">https://www.dllme.com/dll/files/python27_dll.html下载一个python27.dll放在IDA根目录下，但是之后再启动，会出现`IDAPython</a>: importing “site” failed<code>问题， 解决方法就是需要设置一个环境变量，如果在</code>/usr/bin`下写了一个脚本来启动ida，那么解决方法比较简单，也不会影响linux，否则如果直接设置环境变量会影响linux的python运行。 </p>
 <p>脚本:</p>
