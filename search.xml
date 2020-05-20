@@ -317,7 +317,7 @@ LAB_00407e48<span class="token punctuation">:</span>
                     <span class="token comment" spellcheck="true">/* WARNING: Could not recover jumptable at 0x00407ebc. Too many branches */</span>
                     <span class="token comment" spellcheck="true">/* WARNING: Treating indirect jump as call */</span>
     <span class="token function">sobj_del</span><span class="token punctuation">(</span>strings_new_addr<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">return</span><span class="token punctuation">;</span><span class="token comment" spellcheck="true">//</span>
+    <span class="token keyword">return</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
   <span class="token keyword">return</span><span class="token punctuation">;</span>
 LAB_00407ec4<span class="token punctuation">:</span>
@@ -339,7 +339,7 @@ LAB_00407e40<span class="token punctuation">:</span>
 <p>s1=3第四个状态，比较s2 = 0x42e048中0x14处的内容是不是’uid’。不是则跳过该字符，并且s1=0重新开始。如果s2 = 0x42e048中0x14处的内容是’uid’。则通过sobj_get_string()将s3中0x14处堆的字符串地址作为返回值给v0。   </p>
 <p>之后通过sobj_add_string()将v0的内容给s6的0x14处。到此完成了uid中的内容的获取。最后就是利用sobj_del()将s2、s3中的内容给释放并清空。   </p>
 <p>函数返回时，uid的内容存储在之前sobj_new()的结构体s5=0x42e008的0x14处。</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>其实这算第一次这样仔细的阅读并调试汇编源码（虽然还是借助了ghidra的反汇编功能进行理解），我还是太菜了，导致整个过程还是花了挺多时间的，但是现在看来感觉还是挺值的，因为整个流程下来我对MIPS汇编代码理解以及寄存器的使用还有gdb、IDA的联调有了相对熟练的掌握，为以后静态和动态分析开一个好头吧！然后这篇文章的目的也是为了整理梳理整个思路然后以文字的形式记录下来。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>其实这算第一次这样仔细的阅读并调试汇编源码（虽然还是借助了ghidra的反汇编功能进行理解），还是太菜了呀，整个过程还是花了挺多时间的，但现在看来感觉还是挺值的，因为整个流程下来我对MIPS汇编代码理解以及寄存器的运用还有gdb、IDA的联调有了相对熟练的掌握，为以后静态和动态分析开一个好头吧！然后这篇文章的目的也是为了整理梳理整个思路然后以文字的形式记录下来。</p>
 <script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
