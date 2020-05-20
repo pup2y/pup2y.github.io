@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>D-Link中sobj类函数逆向分析</title>
+    <title>D-Link中sobj类函数逆向分析</title>
     <url>/2020/05/19/d-linkzhong-sobj-lei-han-shu-ni-xiang-fen-xi/</url>
     <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>之前调试漏洞的时候都是直接根据官方公告或者别人的帖子直接定位漏洞函数，没有具体分析程序中涉及到的其他也挺重要的函数，这样看起来速度挺快，其实之后还会遇到这些函数，所以还是要仔细分析这些函数。</p>
 <p>这次选择了D-Link路由器中的sobj类函数：sobj_new()、sobj_add_char()、sobj_strcmp()、sobj_add_string()、sobj_get_string()等进行分析。</p>
@@ -381,7 +381,9 @@ LAB_00407e40<span class="token punctuation">:</span>
 <p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cbinwalk.png" alt="">  </p>
 <h2 id="漏洞定位"><a href="#漏洞定位" class="headerlink" title="漏洞定位"></a>漏洞定位</h2><p>该漏洞的核心组件为hedwig.cgi，<code>find . -name '*cgi'</code>查找文件，并<code>ls -l ./htdocs/web/hedwig.cgi</code>发现hedwig.cgi是指向./htdocs/cgibin的符号链接，也就是说真正的漏洞代码在cgibin中。   </p>
 <p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cfind-name.png" alt=""></p>
-<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><p>由之前的漏洞介绍可以知道<code>HTTP_COOKIE</code>过长导致漏洞，分别用IDA和ghidracgibin这个文件，在string中进行搜索<code>HTTP_COOKIE</code>，可以找到有一个函数，就是<code>sess_get_uid</code>，分析一下这个函数，就是提取<code>HTTP_COOKIE</code>里面的<code>uid=</code>后面的部分，然后看一下交叉引用，找到了<code>hedwigcgi</code>这个<code>main</code>函数中，我们可以知道就是后面的<code>sprintf</code>函数引起了栈溢出，但是这个仔细看后面的代码，可以知道，后面还有一个<code>sprintf</code>函数，第四个参数同样是<code>HTTP_COOKIE</code>中<code>uid=</code>后面的内容，所以我们可以得出结论，这块也就是这个漏洞的漏洞点。如下面两张图所示 </p>
+<p>由之前的漏洞介绍可以知道<code>HTTP_COOKIE</code>过长导致漏洞，分别用IDA和ghidra打开cgibin这个文件，在string窗口中进行搜索<code>HTTP_COOKIE</code>，</p>
+<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Chttp_cookie.png" alt="">可以找到有一个函数，就是<code>sess_get_uid</code>，分析一下这个函数，就是提取<code>HTTP_COOKIE</code>里面的<code>uid=</code>后面的部分，</p>
+<p>然后看一下交叉引用，找到了<code>hedwigcgi_main</code>函数中，我们可以知道就是后面的<code>sprintf</code>函数引起了栈溢出，但是这个仔细看后面的代码，可以知道，后面还有一个<code>sprintf</code>函数，第四个参数同样是<code>HTTP_COOKIE</code>中<code>uid=</code>后面的内容，所以我们可以得出结论，这块也就是这个漏洞的漏洞点。如下面两张图所示 </p>
 <script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
@@ -406,7 +408,7 @@ LAB_00407e40<span class="token punctuation">:</span>
       </categories>
       <tags>
         <tag>dlink</tag>
-        <tag>dir-915</tag>
+        <tag>dir-815</tag>
       </tags>
   </entry>
   <entry>
