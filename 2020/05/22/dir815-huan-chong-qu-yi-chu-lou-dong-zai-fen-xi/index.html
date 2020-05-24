@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     <meta name="keywords" content="Fechin,"> 
-    <meta name="description" content="前言去年这个时候第一次分析这个漏洞，当时跟着0day那本书一步一步跟着调试和分析，主要是从qemu用户模式进行分析调试结果写的exp没有getshell，时隔一年再次分析，这次增加了qemu系统模式,"> 
+    <meta name="description" content="前言去年这个时候第一次分析这个漏洞，当时跟着0day那本书一步一步调试和分析，主要是从qemu用户模式进行分析调试结果写的exp没有getshell，时隔一年再次分析，这次增加了qemu系统模式分析,"> 
     <meta name="author" content="青云"> 
     <link rel="alternative" href="atom.xml" title="pup2y&#39;s world" type="application/atom+xml"> 
     <link rel="icon" href="/img/favicon.jpg"> 
@@ -69,7 +69,7 @@
 
         </div>
         <div class="content markdown">
-            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>去年这个时候第一次分析这个漏洞，当时跟着0day那本书一步一步跟着调试和分析，主要是从qemu用户模式进行分析调试结果写的exp没有getshell，时隔一年再次分析，这次增加了qemu系统模式分析调试以及Firmadyne仿真测试这次可以终于getshell了，这次分析较上次有了更多收获。</p>
+            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>去年这个时候第一次分析这个漏洞，当时跟着0day那本书一步一步调试和分析，主要是从qemu用户模式进行分析调试结果写的exp没有getshell，时隔一年再次分析，这次增加了qemu系统模式分析调试以及Firmadyne仿真测试这次可以终于getshell了，这次分析较上次有了更多收获。</p>
 <h1 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h1><blockquote>
 <p>Buffer overflow on “hedwig.cgi”<br>Another buffer overflow affects the “hedwig.cgi” CGI script. Unauthenticated remote attackers can invoke this CGI with an overly-long cookie value that can overflow a program buffer and overwrite the saved program address.</p>
 </blockquote>
@@ -809,7 +809,7 @@ f = open("exploit2",'wb+')
 f.write(payload)
 f.close()</code></pre>
 <p>生成的exploit2通过scp拷贝到mips虚拟机中并且<code>nano debug.sh</code>更改debug.sh运行得到shell。</p>
-<p><img src="ncvlp31337png" alt=""></p>
+<p><img src="ncvlp31337.png" alt=""></p>
 </li>
 </ol>
 <h2 id="利用HTTP报文获取shell"><a href="#利用HTTP报文获取shell" class="headerlink" title="利用HTTP报文获取shell"></a>利用HTTP报文获取shell</h2><p>其实现在mips虚拟机相当于一个开启了部分web服务的DIR815路由器，我们可以通过发送http报文获取shell。</p>
