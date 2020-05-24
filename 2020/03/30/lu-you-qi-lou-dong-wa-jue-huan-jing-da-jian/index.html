@@ -280,6 +280,92 @@ demo: ELF 32-bit LSB executable, MIPS, MIPS32 version 1 (SYSV), statically linke
 <p>github传送门： <a href="https://github.com/firmadyne/firmadyne" target="_blank" rel="noopener">https://github.com/firmadyne/firmadyne</a> 里面有详细的安装和使用说明。</p>
 <p>也可以参考这篇帖子进行安装使用： <a href="https://chuansongme.com/n/1009525252762" target="_blank" rel="noopener">https://chuansongme.com/n/1009525252762</a> </p>
 <p>到此环境差不多安装完了。</p>
+<p>安装完成之后，可以自己编写脚本来批量化手工的操作，这里修改了知世师傅的一个<a href="https://github.com/nightRainy/Auxiliary_tools/blob/master/iot/fastrun.py" target="_blank" rel="noopener">脚本</a>。</p>
+<pre class=" language-python"><code class="language-python"><span class="token comment" spellcheck="true">#!/usr/bin/env python3</span>
+
+<span class="token keyword">import</span> os
+<span class="token keyword">import</span> pexpect
+<span class="token keyword">import</span> sys
+<span class="token keyword">import</span> glob
+
+passd<span class="token operator">=</span><span class="token string">"firmadyne"</span>
+
+<span class="token keyword">def</span> <span class="token function">myinit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>len<span class="token punctuation">(</span>sys<span class="token punctuation">.</span>argv<span class="token punctuation">)</span><span class="token operator">==</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        sys<span class="token punctuation">.</span>exit<span class="token punctuation">(</span><span class="token string">"[+]Usage:sudo ./fastrun.py xxx.bin"</span><span class="token punctuation">)</span> 
+    <span class="token keyword">if</span> <span class="token operator">not</span> os<span class="token punctuation">.</span>path<span class="token punctuation">.</span>isfile<span class="token punctuation">(</span>sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        sys<span class="token punctuation">.</span>exit<span class="token punctuation">(</span><span class="token string">"[+]Please input the right file name"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">def</span> <span class="token function">fake_extractor</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"[*]Step1:extracting now ..."</span><span class="token punctuation">)</span>
+    sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token string">';'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token string">'&amp;&amp;'</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token string">'||'</span><span class="token punctuation">)</span>
+    extractor_cmd<span class="token operator">=</span><span class="token string">"sudo ./sources/extractor/extractor.py -b dlink -sql 127.0.0.1 -np -nk "</span> <span class="token operator">+</span>sys<span class="token punctuation">.</span>argv<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">+</span><span class="token string">" images"</span>
+    <span class="token comment" spellcheck="true">#extractor_cmd="sudo ./sources/extractor/extractor.py -b linksys -sql 127.0.0.1 -np -nk " +sys.argv[1] +" images"</span>
+    <span class="token comment" spellcheck="true">#extractor_cmd="sudo ./sources/extractor/extractor.py -b netgear -sql 127.0.0.1 -np -nk " +sys.argv[1] +" images"</span>
+    child <span class="token operator">=</span> pexpect<span class="token punctuation">.</span>spawn<span class="token punctuation">(</span>extractor_cmd<span class="token punctuation">,</span> timeout<span class="token operator">=</span>None<span class="token punctuation">)</span>
+    child<span class="token punctuation">.</span>expect<span class="token punctuation">(</span><span class="token string">"Database Image ID: "</span><span class="token punctuation">)</span>
+    image_id <span class="token operator">=</span> child<span class="token punctuation">.</span>readline<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    child<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>pexpect<span class="token punctuation">.</span>EOF<span class="token punctuation">)</span>
+    <span class="token keyword">return</span> image_id
+
+<span class="token keyword">def</span> <span class="token function">get_arch</span><span class="token punctuation">(</span>image_id<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"[*]Step2:getting arch now..."</span><span class="token punctuation">)</span>
+    get<span class="token operator">=</span><span class="token string">"sudo ./scripts/getArch.sh ./images/"</span> <span class="token operator">+</span> image_id <span class="token operator">+</span> <span class="token string">".tar.gz "</span>
+    arch<span class="token operator">=</span> pexpect<span class="token punctuation">.</span>spawn<span class="token punctuation">(</span>get<span class="token punctuation">,</span>timeout<span class="token operator">=</span>None<span class="token punctuation">)</span>
+    index<span class="token operator">=</span>arch<span class="token punctuation">.</span>expect<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"firmadyne:"</span><span class="token punctuation">,</span>pexpect<span class="token punctuation">.</span>EOF<span class="token punctuation">,</span>pexpect<span class="token punctuation">.</span>TIMEOUT<span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>index <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"[*]sendline password"</span><span class="token punctuation">)</span>
+        arch<span class="token punctuation">.</span>sendline<span class="token punctuation">(</span>passd<span class="token punctuation">)</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        arch<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        sys<span class="token punctuation">.</span>exit<span class="token punctuation">(</span><span class="token string">'[+]get arch failed!'</span><span class="token punctuation">)</span>
+    arch<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>pexpect<span class="token punctuation">.</span>EOF<span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"[*]Done!"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">def</span> <span class="token function">make_images</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"[*]Step3:making image now"</span><span class="token punctuation">)</span>
+    make<span class="token operator">=</span><span class="token string">'sudo ./scripts/makeImage.sh '</span> <span class="token operator">+</span> image_id
+    images<span class="token operator">=</span>pexpect<span class="token punctuation">.</span>spawn<span class="token punctuation">(</span>make<span class="token punctuation">,</span>timeout<span class="token operator">=</span>None<span class="token punctuation">)</span>
+    index<span class="token operator">=</span>images<span class="token punctuation">.</span>expect<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"firmadyne:"</span><span class="token punctuation">,</span>pexpect<span class="token punctuation">.</span>EOF<span class="token punctuation">,</span>pexpect<span class="token punctuation">.</span>TIMEOUT<span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>index<span class="token operator">==</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"[*]sendline password"</span><span class="token punctuation">)</span>
+        images<span class="token punctuation">.</span>sendline<span class="token punctuation">(</span>passd<span class="token punctuation">)</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        images<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        sys<span class="token punctuation">.</span>exit<span class="token punctuation">(</span><span class="token string">"[+]make images failed!"</span><span class="token punctuation">)</span>
+    images<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>pexpect<span class="token punctuation">.</span>EOF<span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"[*]Done!"</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">def</span> <span class="token function">set_net</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"[*]Step4:Setting inferNetwork now"</span><span class="token punctuation">)</span>
+    myset<span class="token operator">=</span><span class="token string">"sudo ./scripts/inferNetwork.sh "</span> <span class="token operator">+</span> image_id
+    net<span class="token operator">=</span>pexpect<span class="token punctuation">.</span>spawn<span class="token punctuation">(</span>myset<span class="token punctuation">,</span>timeout<span class="token operator">=</span>None<span class="token punctuation">)</span>
+    index<span class="token operator">=</span>net<span class="token punctuation">.</span>expect<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"firmadyne"</span><span class="token punctuation">,</span>pexpect<span class="token punctuation">.</span>EOF<span class="token punctuation">,</span>pexpect<span class="token punctuation">.</span>TIMEOUT<span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>index<span class="token operator">==</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"[*]sendline password"</span><span class="token punctuation">)</span>
+        net<span class="token punctuation">.</span>sendline<span class="token punctuation">(</span>passd<span class="token punctuation">)</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        net<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        sys<span class="token punctuation">.</span>exit<span class="token punctuation">(</span><span class="token string">"[+]make images failed!"</span><span class="token punctuation">)</span>
+    net<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>pexpect<span class="token punctuation">.</span>EOF<span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"[*]Done!"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">def</span> <span class="token function">run</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"[*]Step5:Running now!"</span><span class="token punctuation">)</span>
+    myrun<span class="token operator">=</span><span class="token string">"sudo ./scratch/"</span> <span class="token operator">+</span> image_id <span class="token operator">+</span> <span class="token string">"/run.sh"</span>
+    index<span class="token operator">=</span>pexpect<span class="token punctuation">.</span>spawn<span class="token punctuation">(</span>myrun<span class="token punctuation">,</span>timeout<span class="token operator">=</span>None<span class="token punctuation">)</span>
+    index<span class="token punctuation">.</span>interact<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"[*]Done!"</span><span class="token punctuation">)</span>
+
+
+<span class="token keyword">if</span> __name__<span class="token operator">==</span><span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    myinit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    image_id <span class="token operator">=</span> fake_extractor<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>decode<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    get_arch<span class="token punctuation">(</span>image_id<span class="token punctuation">)</span><span class="token comment" spellcheck="true">#bytes to strings</span>
+    make_images<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    set_net<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    run<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
 <h1 id="IDA及其插件"><a href="#IDA及其插件" class="headerlink" title="IDA及其插件"></a>IDA及其插件</h1><p>如果想把IDA直接安装在linux中需要安装wine， 工作目录在~/.wine。 </p>
 <h2 id="wine安装和使用"><a href="#wine安装和使用" class="headerlink" title="wine安装和使用"></a>wine安装和使用</h2><pre class=" language-sh"><code class="language-sh">sudo apt-get install wine</code></pre>
 <h2 id="wine中安装使用IDA"><a href="#wine中安装使用IDA" class="headerlink" title="wine中安装使用IDA"></a>wine中安装使用IDA</h2><p>直接安装或者将安装好的IDA整个包拖进ubuntu16.04，然后用<code>wine idaq.exe</code>就能启动起来，但是会出现缺少python27.dll</p>
@@ -310,6 +396,27 @@ sudo cp –r ida/scripts ida/scripts/</code></pre>
 <p><img src="mipsrop.png" alt=""></p>
 <p>也有师傅改了之前的mipsrop以支持IDA6.x和IDA7.x</p>
 <pre class=" language-text"><code class="language-text">https://github.com/fuzzywalls/ida</code></pre>
+<h1 id="gdbserver和gdb"><a href="#gdbserver和gdb" class="headerlink" title="gdbserver和gdb"></a>gdbserver和gdb</h1><p>可以从以下链接下载已经编译好的gdbsever</p>
+<p><a href="https://github.com/rapid7/embedded-tools/tree/master/binaries/gdbserver" target="_blank" rel="noopener">https://github.com/rapid7/embedded-tools/tree/master/binaries/gdbserver</a> </p>
+<p>自行编译，参考<a href="https://www.cnblogs.com/cslunatic/p/3635520.html" target="_blank" rel="noopener">文章</a></p>
+<pre class=" language-sh"><code class="language-sh">下载完后，进入/opt/目录，配置编译步骤如下：
+#tar jxvf gdb-8.1-tar-bz2
+#cd gdb-8.1
+#./configure --target=mips-linux --prefix=/usr/local/mipes-gdb –v
+（--target配置gdb的目标平台，--prefix配置安装路径，当然其他路径也可以，.跟下面配置一致即可，须在环境变量中声明，为直接在命令行启动mips-linux-gdb需要，可更改/etc/profile或~/.bash_profile或~/.bashrc，添加export PATH=$PATH:/usr/local/mips-gdb/bin，这样可以找到路径）
+#make
+#make install
+（生成mips-linux-gdb,并存入/usr/local/mips-gdb/bin/，查询确认下）
+也可以启动mips-linux-gdb，若成功，则证明安装无误
+进入gdb/gdbserver目录：
+# pwd
+xx/gdb-8.1/gdb/gdbserver
+#必须在gdbserver目录下运行配置命令，此时才能用相对路径
+#./configure --target=mips-linux --host=mips-linux
+（--target=mips-linux表示目标平台，--host表示主机端运行的是mips-linux-gdb，不需要配置—prefix，因为gdbserver不在主机端安装运行）
+#make CC=/usr/local/mips/2.95.3/bin/mips-linux-gcc
+(这一步要指定你自己的mips-linux-gcc的绝对位置，我试过相对的不行，提示make:mips-linux-gcc:Command notfound，可好多人都用的相对路径，即直接赋值mips-linux-gcc，可采取make时传递参数，也可以直接修改gdbserver目录下的Makefile文件中的环境变量CC)
+  使用mips-linux-strip命令处理一下gdbserver，将多余的符号信息删除，可让elf文件更精简。</code></pre>
 <h1 id="调试工具gdb-multiarch、pwndbg"><a href="#调试工具gdb-multiarch、pwndbg" class="headerlink" title="调试工具gdb-multiarch、pwndbg"></a>调试工具gdb-multiarch、pwndbg</h1><p>首先是安装pwndbg，peda对于mips的动态调试没有太好的支持。pwndbg的安装命令： </p>
 <pre class=" language-shell"><code class="language-shell">git clone https://github.com/pwndbg/pwndbg
 cd pwndbg
@@ -384,7 +491,7 @@ cd pwndbg
     </div>
     
         <div class='side'>
-			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#binwalk"><span class="toc-number">2.</span> <span class="toc-text">binwalk</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#安装sasquatch"><span class="toc-number">3.</span> <span class="toc-text">安装sasquatch</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#qemu"><span class="toc-number">4.</span> <span class="toc-text">qemu</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu安装"><span class="toc-number">4.1.</span> <span class="toc-text">qemu安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu网络配置"><span class="toc-number">4.2.</span> <span class="toc-text">qemu网络配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu-mips对应包下载"><span class="toc-number">4.3.</span> <span class="toc-text">qemu-mips对应包下载</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#buildroot"><span class="toc-number">5.</span> <span class="toc-text">buildroot</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Ghidra"><span class="toc-number">6.</span> <span class="toc-text">Ghidra</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#安装条件"><span class="toc-number">6.1.</span> <span class="toc-text">安装条件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#下载地址"><span class="toc-number">6.2.</span> <span class="toc-text">下载地址</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Ghidra插件使用"><span class="toc-number">6.3.</span> <span class="toc-text">Ghidra插件使用</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Firmadyne"><span class="toc-number">7.</span> <span class="toc-text">Firmadyne</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#IDA及其插件"><span class="toc-number">8.</span> <span class="toc-text">IDA及其插件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#wine安装和使用"><span class="toc-number">8.1.</span> <span class="toc-text">wine安装和使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#wine中安装使用IDA"><span class="toc-number">8.2.</span> <span class="toc-text">wine中安装使用IDA</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装keypatch-py插件"><span class="toc-number">8.3.</span> <span class="toc-text">安装keypatch.py插件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装mipsrop等插件"><span class="toc-number">8.4.</span> <span class="toc-text">安装mipsrop等插件</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#调试工具gdb-multiarch、pwndbg"><span class="toc-number">9.</span> <span class="toc-text">调试工具gdb-multiarch、pwndbg</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考资料"><span class="toc-number">10.</span> <span class="toc-text">参考资料</span></a></li></ol>	
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#binwalk"><span class="toc-number">2.</span> <span class="toc-text">binwalk</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#安装sasquatch"><span class="toc-number">3.</span> <span class="toc-text">安装sasquatch</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#qemu"><span class="toc-number">4.</span> <span class="toc-text">qemu</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu安装"><span class="toc-number">4.1.</span> <span class="toc-text">qemu安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu网络配置"><span class="toc-number">4.2.</span> <span class="toc-text">qemu网络配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#qemu-mips对应包下载"><span class="toc-number">4.3.</span> <span class="toc-text">qemu-mips对应包下载</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#buildroot"><span class="toc-number">5.</span> <span class="toc-text">buildroot</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Ghidra"><span class="toc-number">6.</span> <span class="toc-text">Ghidra</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#安装条件"><span class="toc-number">6.1.</span> <span class="toc-text">安装条件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#下载地址"><span class="toc-number">6.2.</span> <span class="toc-text">下载地址</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Ghidra插件使用"><span class="toc-number">6.3.</span> <span class="toc-text">Ghidra插件使用</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Firmadyne"><span class="toc-number">7.</span> <span class="toc-text">Firmadyne</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#IDA及其插件"><span class="toc-number">8.</span> <span class="toc-text">IDA及其插件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#wine安装和使用"><span class="toc-number">8.1.</span> <span class="toc-text">wine安装和使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#wine中安装使用IDA"><span class="toc-number">8.2.</span> <span class="toc-text">wine中安装使用IDA</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装keypatch-py插件"><span class="toc-number">8.3.</span> <span class="toc-text">安装keypatch.py插件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安装mipsrop等插件"><span class="toc-number">8.4.</span> <span class="toc-text">安装mipsrop等插件</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#gdbserver和gdb"><span class="toc-number">9.</span> <span class="toc-text">gdbserver和gdb</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#调试工具gdb-multiarch、pwndbg"><span class="toc-number">10.</span> <span class="toc-text">调试工具gdb-multiarch、pwndbg</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考资料"><span class="toc-number">11.</span> <span class="toc-text">参考资料</span></a></li></ol>	
         </div>
     
 </div>
