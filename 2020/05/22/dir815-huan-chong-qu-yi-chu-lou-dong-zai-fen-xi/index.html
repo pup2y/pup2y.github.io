@@ -83,10 +83,10 @@
 <p><img src="find-name.png" alt=""></p>
 <p>由之前的漏洞介绍可以知道<code>HTTP_COOKIE</code>过长导致漏洞，分别用IDA和ghidra打开cgibin这个文件，在string窗口中进行搜索<code>HTTP_COOKIE</code></p>
 <p><img src="http_cookie.png" alt="">可以找到有一个函数，就是<code>sess_get_uid</code>，我之前有写<a href="https://pup2y.github.io/2020/05/19/d-linkzhong-sobj-lei-han-shu-ni-xiang-fen-xi/">帖子</a>分析一下这个函数，就是提取<code>HTTP_COOKIE</code>里面的<code>uid=</code>之后的部分。交叉引用一下，找到了<code>hedwigcgi_main</code>函数。</p>
-<p><img src="sess_get_uid()ref.png" alt="">)利用Ghidra反汇编<code>hedwigcgi_main</code>函数，可以定位到其中的<code>sprintf</code>函数引起了栈溢出。<code>hedwigcgi_main</code>函数通过<code>sess_get_uid()</code>获取到<code>HTTP_COOKIE</code>中<code>uid=</code>之后的值，并将该内容按照<code>sprintf</code>函数中格式化字符串给定的形式拷贝到栈中，由于没有检测并限制输入的大小，导致栈溢出。</p>
-<p><img src="sprintf()1.png" alt=""></p>
+<p><img src="sess_get_uidref.png" alt="">)利用Ghidra反汇编<code>hedwigcgi_main</code>函数，可以定位到其中的<code>sprintf</code>函数引起了栈溢出。<code>hedwigcgi_main</code>函数通过<code>sess_get_uid()</code>获取到<code>HTTP_COOKIE</code>中<code>uid=</code>之后的值，并将该内容按照<code>sprintf</code>函数中格式化字符串给定的形式拷贝到栈中，由于没有检测并限制输入的大小，导致栈溢出。</p>
+<p><img src="sprintf1.png" alt=""></p>
 <p>但是继续往后看该函数中后面还有一个<code>sprintf</code>函数，第四个参数同样是<code>HTTP_COOKIE</code>中<code>uid=</code>后面的内容，这一块按道理来说也可以导致栈溢出。而且如果可以执行该<code>sprintf</code>函数则能覆盖之前<code>sprintf</code>函数栈上的内容。</p>
-<p><img src="sprintf()2.png" alt=""></p>
+<p><img src="sprintf2.png" alt=""></p>
 <p>在《揭秘家用路由器0day漏洞挖掘技术》一书中写到，如果在文件系统中手工创建<code>/var/tmp</code>文件夹，就能够到达第二个<code>sprintf</code>函数。我对比了下有无<code>/var/tmp</code>文件夹的返回结果:</p>
 <p>无<code>/var/tmp</code>，返回unable to open temp file。</p>
 <p><img src="var-tmp.png" alt=""></p>
@@ -161,7 +161,7 @@ rm -f ./qemu</code></pre>
 <p>执行命令</p>
 <pre class=" language-sh"><code class="language-sh">sudo ./test.sh  "uid=1234"  `python -c "print 'uid=' + open('content','r').read()"`</code></pre>
 <p>调试之后发现确实能够触发第二个sprintf()。</p>
-<p><img src="sprintf()3.png" alt=""></p>
+<p><img src="sprintf3.png" alt=""></p>
 <p>并且覆盖了ra=68423668。</p>
 <p><img src="ra2.png" alt=""></p>
 <p><img src="%E5%81%8F%E7%A7%BB2.png" alt=""></p>
