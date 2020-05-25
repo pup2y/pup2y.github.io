@@ -12,9 +12,9 @@
 <h1 id="固件获取及漏洞定位"><a href="#固件获取及漏洞定位" class="headerlink" title="固件获取及漏洞定位"></a>固件获取及漏洞定位</h1><p>调试环境：ubuntu16.04 x64和x32，IDA6.8和7.0，qemu2.5</p>
 <p>固件下载地址：<a href="ftp://ftp2.dlink.com/PRODUCTS/DIR-815/REVA/DIR-815_FIRMWARE_1.01.ZIP">ftp://ftp2.dlink.com/PRODUCTS/DIR-815/REVA/DIR-815_FIRMWARE_1.01.ZIP</a></p>
 <h2 id="固件解压"><a href="#固件解压" class="headerlink" title="固件解压"></a>固件解压</h2><p><code>binwalk -Me</code>解压 </p>
-<p><img src="binwalk.png" alt="">  </p>
+<p><img src="https://github.com/pup2y/pup2y.github.io/blob/master/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/binwalk.png" alt="">  </p>
 <h2 id="漏洞定位"><a href="#漏洞定位" class="headerlink" title="漏洞定位"></a>漏洞定位</h2><p>该漏洞的核心组件为hedwig.cgi，<code>find . -name '*cgi'</code>查找文件，并<code>ls -l ./htdocs/web/hedwig.cgi</code>发现hedwig.cgi是指向./htdocs/cgibin的符号链接，也就是说真正的漏洞代码在cgibin中。   </p>
-<p><img src="find-name.png" alt=""></p>
+<p><img src="https://github.com/pup2y/pup2y.github.io/blob/master/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/find-name.png" alt=""></p>
 <p>由之前的漏洞介绍可以知道<code>HTTP_COOKIE</code>过长导致漏洞，分别用IDA和ghidra打开cgibin这个文件，在string窗口中进行搜索<code>HTTP_COOKIE</code></p>
 <p><img src="http_cookie.png" alt="">可以找到有一个函数，就是<code>sess_get_uid</code>，我之前有写<a href="https://pup2y.github.io/2020/05/19/d-linkzhong-sobj-lei-han-shu-ni-xiang-fen-xi/">帖子</a>分析一下这个函数，就是提取<code>HTTP_COOKIE</code>里面的<code>uid=</code>之后的部分。交叉引用一下，找到了<code>hedwigcgi_main</code>函数。</p>
 <p><img src="sess_get_uid()ref.png" alt="">)利用Ghidra反汇编<code>hedwigcgi_main</code>函数，可以定位到其中的<code>sprintf</code>函数引起了栈溢出。<code>hedwigcgi_main</code>函数通过<code>sess_get_uid()</code>获取到<code>HTTP_COOKIE</code>中<code>uid=</code>之后的值，并将该内容按照<code>sprintf</code>函数中格式化字符串给定的形式拷贝到栈中，由于没有检测并限制输入的大小，导致栈溢出。</p>
