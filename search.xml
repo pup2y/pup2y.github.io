@@ -933,8 +933,7 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
 <p>测试结果显示能够执行<code>telnetd -p 222 -l /bin/sh</code>。telnet 上去对应的窗口直接反弹shell。</p>
 <p><img src="telnetdp222.png" alt=""></p>
 <h1 id="在实体机上测试"><a href="#在实体机上测试" class="headerlink" title="在实体机上测试"></a>在实体机上测试</h1><p> 在实体机上刷上1.01的版本，用system方法的exp同样能得到获取shell。</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>到这里，终于分析完了，整个过程其实遇到了不少的坑，从最开始死活到不了第二个sprintf，到后面的qemu系统模式如何修改http配置文件都起不来http服务，还有shellcode的修改等等问题都可能卡好久，最后解决的时候才知道并不是太难的问题。。。还是太菜了！我这都是第二次分析了，才能有个大概的了解，想想一年的自己到底学到了什么。。。整个流程完全自己复现一遍并且能够很清楚的讲出来，其实个人感觉收获还是很多的，比如路由器缓冲区溢出漏洞的分析调试详细流程，gdb、IDA、Ghidra等工具联调使用，以及该libc的万能gadget等等。</p>
-<p>真的特别感谢H4lo大佬，我碰到解决不了的问题会去询问他，他也不厌其烦的回答我并一起解决！希望不断保持学习的状态，追赶上他吧！</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>到这里，终于分析完了，整个过程其实遇到了不少的坑，从最开始死活到不了第二个sprintf，到后面的qemu系统模式如何修改http配置文件都起不来http服务，还有shellcode的修改等等问题都可能卡好久，最后解决的时候才知道并不是太难的问题。。。还是太菜了！我这都是第二次分析了，才能有个大概的了解，想想一年间的自己到底学到了什么。。。整个流程完全自己复现一遍并且能够很清楚的讲出来，其实个人感觉收获还是很多的，比如路由器缓冲区溢出漏洞的分析调试详细流程，gdb、IDA、Ghidra等工具联调使用，以及该libc的万能gadget等等。</p>
 <h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p><a href="https://www.anquanke.com/post/id/179510#h3-8" target="_blank" rel="noopener">路由器漏洞挖掘之 DIR-815 栈溢出漏洞分析</a></p>
 <p><a href="https://www.anquanke.com/post/id/187443#h2-9" target="_blank" rel="noopener">IOT设备漏洞挖掘从入门到入门（二）- DLink Dir 815漏洞分析及三种方式模拟复现</a></p>
 <p><a href="[https://kirin-say.top/2019/02/23/Building-MIPS-Environment-for-Router-PWN/#Run-POC-amp-amp-%E5%8F%8D%E5%BC%B9get-shell](https://kirin-say.top/2019/02/23/Building-MIPS-Environment-for-Router-PWN/#Run-POC-amp-amp-反弹get-shell)">Building MIPS Environment for Router &amp;&amp; PWN</a></p>
