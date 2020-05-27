@@ -10,8 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     <meta name="keywords" content="Fechin,"> 
-    <meta name="description" content="[TOC]
-00-前言之前跟着《揭秘家用路由器0day漏洞挖掘技术》调试分析过该漏洞，主要是从qemu用户模式进行分析调试，因为太菜了并没有getshell，在参考了其他师傅的分析文章和帖子后，这次,"> 
+    <meta name="description" content="00-前言之前跟着《揭秘家用路由器0day漏洞挖掘技术》调试分析过该漏洞，主要是从qemu用户模式进行分析调试，并没有getshell，在参考了其他师傅的分析文章和帖子后，这次分析增加了qemu系统,"> 
     <meta name="author" content="青云"> 
     <link rel="alternative" href="atom.xml" title="pup2y&#39;s world" type="application/atom+xml"> 
     <link rel="icon" href="/img/favicon.jpg"> 
@@ -70,8 +69,7 @@
 
         </div>
         <div class="content markdown">
-            <p>[TOC]</p>
-<h1 id="00-前言"><a href="#00-前言" class="headerlink" title="00-前言"></a>00-前言</h1><p>之前跟着《揭秘家用路由器0day漏洞挖掘技术》调试分析过该漏洞，主要是从qemu用户模式进行分析调试，因为太菜了并没有getshell，在参考了其他师傅的分析文章和帖子后，这次分析增加了qemu系统模式调试,Firmadyne仿真测试以及实体机测试，虽然这次的用户模式还是没能getshell（发这个帖子还是希望有经验的师傅帮忙分析下问题所在），但是其他三种方式都能成功。</p>
+            <h1 id="00-前言"><a href="#00-前言" class="headerlink" title="00-前言"></a>00-前言</h1><p>之前跟着《揭秘家用路由器0day漏洞挖掘技术》调试分析过该漏洞，主要是从qemu用户模式进行分析调试，并没有getshell，在参考了其他师傅的分析文章和帖子后，这次分析增加了qemu系统模式调试,Firmadyne仿真测试以及实体机测试，虽然这次的用户模式还是没能getshell（发这个帖子还是希望有经验的师傅帮忙分析下问题所在），但是其他三种方式都能成功。</p>
 <h1 id="01-漏洞介绍"><a href="#01-漏洞介绍" class="headerlink" title="01-漏洞介绍"></a>01-漏洞介绍</h1><blockquote>
 <p>Buffer overflow on “hedwig.cgi”<br>Another buffer overflow affects the “hedwig.cgi” CGI script. Unauthenticated remote attackers can invoke this CGI with an overly-long cookie value that can overflow a program buffer and overwrite the saved program address.</p>
 </blockquote>
