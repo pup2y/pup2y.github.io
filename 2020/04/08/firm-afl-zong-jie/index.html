@@ -73,7 +73,7 @@
 <p>对于AFL改动的地方主要就是FORK的地方。</p>
 <p>还有尽管是对busybox fuzz但是在运行的时候会unmap掉这些内存页，将真正fuzz的对象映射进来，这块逻辑体现在了FIRM-AFL/uer_mode/linux-user/main.c中原来的是在afl-2.52b/qemu_mode/qemu-2.10.0/linux-user/main.c中</p>
 <p>直接拼接AFL和QEMU系统模式的工具是Triforce-AFL</p>
-<p>现在最主要的事，还是找到自己要解决什么问题！工具不是最主要的，主要的还是找问题，解决它，不是结局的很完美也没关系。</p>
+<p>现在最主要的事，还是找到自己要解决什么问题！工具不是最主要的，主要的还是找问题，解决它，不是解决的很完美也没关系。</p>
 <script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
