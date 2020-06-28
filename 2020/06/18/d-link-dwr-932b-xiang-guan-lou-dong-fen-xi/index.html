@@ -96,17 +96,17 @@ ubuntu16.,">
 </ul>
 <p>有意思的是，当时<em>pierre</em>的个人观点是，这些漏洞产生的原因要么是能力不足，要么就是故意留下的这些漏洞（毕竟包括很多后门漏洞）。</p>
 <h1 id="测试流程"><a href="#测试流程" class="headerlink" title="测试流程"></a>测试流程</h1><p>第一步：获取固件提取文件系统，但是固件是加密之后的zip文件，利用fcrackzip工具暴力破解口令。我的fcrackzip使用报错：</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CD-Link-DWR-932B%E7%9B%B8%E5%85%B3%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%5Cimage-20200618110402238.png" alt="image-20200618110402238"></p>
-<p>分析原因应该是zip文件不是完整的zip格式，所以无法解压。我也不再补齐它的完整格式，直接使用研究员用fcrackzip爆破的密码：beUT9z。</p>
+<p><img src="image-20200618110402238.png" alt=""></p>
+<p>分析原因应该是zip文件不是完整的zip格式，所以无法解压。这里不再补齐它的完整格式，直接使用研究员用fcrackzip爆破的密码：beUT9z。</p>
 <p>第二步：获取了固件镜像，解压之后有3个yaffs文件系统，直接用binwalk解压其中的2K-mdm-image-mdm9625.yaffs文件系统，这样就得到了完整的文件系统。</p>
 <p>第三步：遍历文件系统中不同的目录，并从安全视角查找其中可能存在漏洞的文件，需要检查所有配置文件，可以利用find文件来查找所有.conf后缀名的文件。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CD-Link-DWR-932B%E7%9B%B8%E5%85%B3%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%5Cimage-20200618111251322.png" alt="image-20200618111251322"></p>
+<p><img src="image-20200618111251322.png" alt=""></p>
 <p>第四步：查看配置文件，例如./etc/inadyn-mt.conf，结果直接发现了敏感文件。</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CD-Link-DWR-932B%E7%9B%B8%E5%85%B3%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%5Cimage-20200618111417595.png" alt="image-20200618111417595"></p>
-<p>这些信息本不应该被他人看见的，因为其中存储了no-IP配置信息，no-IP这是一种动态域名服务，配置文件包含了访问<a href="https://www.no-ip.com的用户名和密码。现在肯定登录不了。。。" target="_blank" rel="noopener">https://www.no-ip.com的用户名和密码。现在肯定登录不了。。。</a></p>
+<p><img src="image-20200618111417595.png" alt=""></p>
+<p>这些信息本不应该被他人看见的，因为其中存储了no-IP配置信息，no-IP这是一种动态域名服务，配置文件包含了访问<a href="https://www.no-ip.com" target="_blank" rel="noopener">no-ip.com</a>的用户名和密码。现在肯定登录不了。。。</p>
 <p>上面是手工的方法，自动化的方法就是利用firmwalker自动化脚本，搜索敏感信息。</p>
-<p>接着的分析等待之后再继续吧。。。</p>
-<p>其实整个现在分析下来没什么意思，不如直接挖洞去</p>
+<p>接着的分析等待之后有空再继续吧。。。</p>
+<p>其实整个现在分析下来没什么意思，而且看<a href="https://pierrekim.github.io/blog/2016-09-28-dlink-dwr-932b-lte-routers-vulnerabilities.html" target="_blank" rel="noopener">IT Security Research</a>发现里面没意思的洞太多了，调试分析起来没意思，不如直接审计反汇编代码挖洞去。</p>
 <script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
