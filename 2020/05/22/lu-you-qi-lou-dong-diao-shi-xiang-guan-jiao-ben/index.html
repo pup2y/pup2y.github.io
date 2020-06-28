@@ -204,7 +204,7 @@ c <span class="token operator">=</span> <span class="token string">"0123456789"<
 
 <span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
     main<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
-<h1 id="IDA插件"><a href="#IDA插件" class="headerlink" title="IDA插件"></a>IDA插件</h1><p>scanvuln.py</p>
+<h1 id="IDA插件"><a href="#IDA插件" class="headerlink" title="IDA插件"></a>IDA插件</h1><p>##　scanvuln.py</p>
 <p>脚本使用：将脚本放置IDA的plugins文件下，在命令行输入scanvuln.find(‘xxx’)查找xxx函数</p>
 <pre class=" language-python"><code class="language-python"><span class="token keyword">from</span> idaapi <span class="token keyword">import</span> <span class="token operator">*</span>
 
@@ -261,7 +261,7 @@ c <span class="token operator">=</span> <span class="token string">"0123456789"<
 
 <span class="token keyword">def</span> <span class="token function">PLUGIN_ENTRY</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token keyword">return</span> scanvulnfinder<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
-<p>MIPS静态汇编审计辅助脚本： <a href="https://github.com/giantbranch/mipsAudit" target="_blank" rel="noopener">https://github.com/giantbranch/mipsAudit</a> </p>
+<h2 id="mipsAudit-py"><a href="#mipsAudit-py" class="headerlink" title="mipsAudit.py"></a>mipsAudit.py</h2><p>MIPS静态汇编审计辅助脚本： <a href="https://github.com/giantbranch/mipsAudit" target="_blank" rel="noopener">https://github.com/giantbranch/mipsAudit</a> </p>
 <pre class=" language-c"><code class="language-c">dangerous_functions <span class="token operator">=</span> <span class="token punctuation">[</span>
     <span class="token string">"strcpy"</span><span class="token punctuation">,</span> 
     <span class="token string">"strcat"</span><span class="token punctuation">,</span>  
@@ -358,8 +358,7 @@ if _name__=="__main__":
     ip_port = sys.argv[1]
     url = "http://" + ip_port + "/file"
     r = requests.post( url = url, headers = header, data = data)
-    print r
-</code></pre>
+    print r.text</code></pre>
 <script>
         document.querySelectorAll('.github-emoji')
           .forEach(el => {
@@ -417,7 +416,7 @@ if _name__=="__main__":
     </div>
     
         <div class='side'>
-			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#qemu用户模式动态调试脚本"><span class="toc-number">2.</span> <span class="toc-text">qemu用户模式动态调试脚本</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#计算偏移脚本"><span class="toc-number">3.</span> <span class="toc-text">计算偏移脚本</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#IDA插件"><span class="toc-number">4.</span> <span class="toc-text">IDA插件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#mips-shellcode"><span class="toc-number">5.</span> <span class="toc-text">mips shellcode</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#HTTP报文模版"><span class="toc-number">6.</span> <span class="toc-text">HTTP报文模版</span></a></li></ol>	
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#qemu用户模式动态调试脚本"><span class="toc-number">2.</span> <span class="toc-text">qemu用户模式动态调试脚本</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#计算偏移脚本"><span class="toc-number">3.</span> <span class="toc-text">计算偏移脚本</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#IDA插件"><span class="toc-number">4.</span> <span class="toc-text">IDA插件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#mipsAudit-py"><span class="toc-number">4.1.</span> <span class="toc-text">mipsAudit.py</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#mips-shellcode"><span class="toc-number">5.</span> <span class="toc-text">mips shellcode</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#HTTP报文模版"><span class="toc-number">6.</span> <span class="toc-text">HTTP报文模版</span></a></li></ol>	
         </div>
     
 </div>
