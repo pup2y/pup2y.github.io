@@ -3,10 +3,7 @@
   <entry>
     <title>记第五空间比赛</title>
     <url>/2020/06/24/ji-di-wu-kong-jian-bi-sai/</url>
-    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>这次比赛跟去年比起来，难度提高了一些，去年参加的队伍相对比较少，然后竞争也没有这次激烈！今年很多高校和强队都参与进来了！</p>
-<p>pwn有队内大佬做，本菜被安排的直接做misc，包括签到一共6道misc，一共出了5道（肯定包括简单的签到了,哈哈），还有一道mc不多说了，一共才三个队做出来，逆向发现里面有xxtea加密，而且是混合加密，远远超出我范围。</p>
-<p>但是毕竟是学pwn的，所以pwn的题肯定是要做的。</p>
-<h1 id="MISC"><a href="#MISC" class="headerlink" title="MISC"></a>MISC</h1><h2 id="loop"><a href="#loop" class="headerlink" title="loop"></a>loop</h2><p>名字是循环，解压得到file文件，zip格式。解压file得到tarfile文件，TAR格式。继续解压tarfile得到zipfile,zip格式。然后不断循环下去。</p>
+    <content><![CDATA[<h1 id="MISC"><a href="#MISC" class="headerlink" title="MISC"></a>MISC</h1><h2 id="loop"><a href="#loop" class="headerlink" title="loop"></a>loop</h2><p>名字是循环，解压得到file文件，zip格式。解压file得到tarfile文件，TAR格式。继续解压tarfile得到zipfile,zip格式。然后不断循环下去。</p>
 <p>写个shell脚本循环解压。</p>
 <pre class=" language-sh"><code class="language-sh">#!/bin/sh
 
@@ -284,7 +281,6 @@ exploit<span class="token punctuation">(</span><span class="token punctuation">)
     ret <span class="token operator">=</span> <span class="token number">0x40087A</span>
     <span class="token comment" spellcheck="true">#payload = p64(ret)*11+p64(pop_rdi)+p64(binsh)+p64(system)</span>
     payload <span class="token operator">=</span> p64<span class="token punctuation">(</span>pop_rdi<span class="token punctuation">)</span><span class="token operator">+</span>p64<span class="token punctuation">(</span>binsh<span class="token punctuation">)</span><span class="token operator">+</span>p64<span class="token punctuation">(</span>system<span class="token punctuation">)</span></code></pre>
-<p>还有两道，一道arm的堆溢出，一道UAF下次有时间再详细分析吧！</p>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>每次打比赛抱着学习的心态去学习就行了，不为成为赛棍，只为才艺精进，知识面拓展！</p>
 <p>一直保持学习的状态，不断超越吧！</p>
 <script>
@@ -336,7 +332,7 @@ exploit<span class="token punctuation">(</span><span class="token punctuation">)
 <li>Bad security pratices</li>
 <li>Security removed in UPNP</li>
 </ul>
-<p>有意思的是，当时<em>pierre</em>的个人观点是，这些漏洞产生的原因要么是能力不足，要么就是故意留下的这些漏洞（毕竟包括很多后门漏洞）。</p>
+<p>有意思的是，当时<em>pierre</em>的个人观点是，这些漏洞产生的原因要么是开发人员能力不足，要么就是故意留下的这些漏洞（毕竟包括很多后门漏洞）。</p>
 <h1 id="测试流程"><a href="#测试流程" class="headerlink" title="测试流程"></a>测试流程</h1><p>第一步：获取固件提取文件系统，但是固件是加密之后的zip文件，利用fcrackzip工具暴力破解口令。我的fcrackzip使用报错：</p>
 <p><img src="image-20200618110402238.png" alt=""></p>
 <p>分析原因应该是zip文件不是完整的zip格式，所以无法解压。这里不再补齐它的完整格式，直接使用研究员用fcrackzip爆破的密码：beUT9z。</p>

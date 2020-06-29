@@ -94,7 +94,7 @@ ubuntu16.,">
 <li>Bad security pratices</li>
 <li>Security removed in UPNP</li>
 </ul>
-<p>有意思的是，当时<em>pierre</em>的个人观点是，这些漏洞产生的原因要么是能力不足，要么就是故意留下的这些漏洞（毕竟包括很多后门漏洞）。</p>
+<p>有意思的是，当时<em>pierre</em>的个人观点是，这些漏洞产生的原因要么是开发人员能力不足，要么就是故意留下的这些漏洞（毕竟包括很多后门漏洞）。</p>
 <h1 id="测试流程"><a href="#测试流程" class="headerlink" title="测试流程"></a>测试流程</h1><p>第一步：获取固件提取文件系统，但是固件是加密之后的zip文件，利用fcrackzip工具暴力破解口令。我的fcrackzip使用报错：</p>
 <p><img src="image-20200618110402238.png" alt=""></p>
 <p>分析原因应该是zip文件不是完整的zip格式，所以无法解压。这里不再补齐它的完整格式，直接使用研究员用fcrackzip爆破的密码：beUT9z。</p>

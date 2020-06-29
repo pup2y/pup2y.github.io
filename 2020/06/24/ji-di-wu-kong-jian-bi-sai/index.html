@@ -10,8 +10,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     <meta name="keywords" content="Fechin,"> 
-    <meta name="description" content="前言这次比赛跟去年比起来，难度提高了一些，去年参加的队伍相对比较少，然后竞争也没有这次激烈！今年很多高校和强队都参与进来了！
-pwn有队内大佬做，本菜被安排的直接做misc，包括签到一共6道misc,"> 
+    <meta name="description" content="MISCloop名字是循环，解压得到file文件，zip格式。解压file得到tarfile文件，TAR格式。继续解压tarfile得到zipfile,zip格式。然后不断循环下去。
+写个shell,"> 
     <meta name="author" content="青云"> 
     <link rel="alternative" href="atom.xml" title="pup2y&#39;s world" type="application/atom+xml"> 
     <link rel="icon" href="/img/favicon.jpg"> 
@@ -68,10 +68,7 @@ pwn有队内大佬做，本菜被安排的直接做misc，包括签到一共6道
 
         </div>
         <div class="content markdown">
-            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>这次比赛跟去年比起来，难度提高了一些，去年参加的队伍相对比较少，然后竞争也没有这次激烈！今年很多高校和强队都参与进来了！</p>
-<p>pwn有队内大佬做，本菜被安排的直接做misc，包括签到一共6道misc，一共出了5道（肯定包括简单的签到了,哈哈），还有一道mc不多说了，一共才三个队做出来，逆向发现里面有xxtea加密，而且是混合加密，远远超出我范围。</p>
-<p>但是毕竟是学pwn的，所以pwn的题肯定是要做的。</p>
-<h1 id="MISC"><a href="#MISC" class="headerlink" title="MISC"></a>MISC</h1><h2 id="loop"><a href="#loop" class="headerlink" title="loop"></a>loop</h2><p>名字是循环，解压得到file文件，zip格式。解压file得到tarfile文件，TAR格式。继续解压tarfile得到zipfile,zip格式。然后不断循环下去。</p>
+            <h1 id="MISC"><a href="#MISC" class="headerlink" title="MISC"></a>MISC</h1><h2 id="loop"><a href="#loop" class="headerlink" title="loop"></a>loop</h2><p>名字是循环，解压得到file文件，zip格式。解压file得到tarfile文件，TAR格式。继续解压tarfile得到zipfile,zip格式。然后不断循环下去。</p>
 <p>写个shell脚本循环解压。</p>
 <pre class=" language-sh"><code class="language-sh">#!/bin/sh
 
@@ -349,7 +346,6 @@ exploit<span class="token punctuation">(</span><span class="token punctuation">)
     ret <span class="token operator">=</span> <span class="token number">0x40087A</span>
     <span class="token comment" spellcheck="true">#payload = p64(ret)*11+p64(pop_rdi)+p64(binsh)+p64(system)</span>
     payload <span class="token operator">=</span> p64<span class="token punctuation">(</span>pop_rdi<span class="token punctuation">)</span><span class="token operator">+</span>p64<span class="token punctuation">(</span>binsh<span class="token punctuation">)</span><span class="token operator">+</span>p64<span class="token punctuation">(</span>system<span class="token punctuation">)</span></code></pre>
-<p>还有两道，一道arm的堆溢出，一道UAF下次有时间再详细分析吧！</p>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>每次打比赛抱着学习的心态去学习就行了，不为成为赛棍，只为才艺精进，知识面拓展！</p>
 <p>一直保持学习的状态，不断超越吧！</p>
 <script>
@@ -409,7 +405,7 @@ exploit<span class="token punctuation">(</span><span class="token punctuation">)
     </div>
     
         <div class='side'>
-			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MISC"><span class="toc-number">2.</span> <span class="toc-text">MISC</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#loop"><span class="toc-number">2.1.</span> <span class="toc-text">loop</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#philosopher"><span class="toc-number">2.2.</span> <span class="toc-text">philosopher</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#run"><span class="toc-number">2.3.</span> <span class="toc-text">run</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#麒麟系统"><span class="toc-number">2.4.</span> <span class="toc-text">麒麟系统</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn"><span class="toc-number">3.</span> <span class="toc-text">pwn</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#twice"><span class="toc-number">3.1.</span> <span class="toc-text">twice</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li></ol>	
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#MISC"><span class="toc-number">1.</span> <span class="toc-text">MISC</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#loop"><span class="toc-number">1.1.</span> <span class="toc-text">loop</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#philosopher"><span class="toc-number">1.2.</span> <span class="toc-text">philosopher</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#run"><span class="toc-number">1.3.</span> <span class="toc-text">run</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#麒麟系统"><span class="toc-number">1.4.</span> <span class="toc-text">麒麟系统</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#pwn"><span class="toc-number">2.</span> <span class="toc-text">pwn</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#twice"><span class="toc-number">2.1.</span> <span class="toc-text">twice</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li></ol>	
         </div>
     
 </div>
