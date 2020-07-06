@@ -1,0 +1,394 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ripple20分析（一） - pup2y&#39;s world</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="Ripple20JSOF研究室在Treck公司开发的TCP/IP软件库中发现了一些列0day，这19个漏洞取名为Ripple20。Treck公司开发的软件库广泛传播，因其供应链Ripple20能够影,"> 
+    <meta name="author" content="青云"> 
+    <link rel="alternative" href="atom.xml" title="pup2y&#39;s world" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.jpg"> 
+    
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({
+              google_ad_client: "ca-pub-8691406134231910",
+              enable_page_level_ads: true
+         });
+    </script>
+    <script async custom-element="amp-auto-ads"
+        src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
+
+<body class="loading">
+    <span id="config-title" style="display:none">pup2y&#39;s world</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://pup2y.github.io"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle">Ripple20分析（一）</h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="article">
+    <div class='main'>
+        <h1 class="title">Ripple20分析（一）</h1>
+        <div class="stuff">
+            <span>六月 28, 2020</span>
+			
+			<span>
+   阅读数  <span id="busuanzi_value_page_pv"></span>
+</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <h1 id="Ripple20"><a href="#Ripple20" class="headerlink" title="Ripple20"></a>Ripple20</h1><p>JSOF研究室在Treck公司开发的TCP/IP软件库中发现了一些列0day，这19个漏洞取名为Ripple20。Treck公司开发的软件库广泛传播，因其供应链Ripple20能够影响到数亿台设备，所以分析Ripple20很有必要！</p>
+<h1 id="影响之广"><a href="#影响之广" class="headerlink" title="影响之广"></a>影响之广</h1><p>Ripple中包含了多个远程代码执行漏洞。参考JSOF研究室发表的<a href="https://www.jsof-tech.com/ripple20/" target="_blank" rel="noopener">文章</a>，利用Ripple20能够达到的效果有：从打印机中窃取数据，改变输液泵的行为或者导致工业控制设备出现故障，攻击者公告该漏洞在嵌入式设备中隐藏恶意代码达到绕过网络边界防护，达到获取内网设备控制权的目的。</p>
+<p>文章中还提到Ripple20同时影响了广泛领域的关键物联网设备，涉及了众多供应商。包括：惠普，施耐德电气，英特尔以及医疗，运输，工业控制方面，电信，零售等其他行业。</p>
+<p>一张图概括受影响的设备：</p>
+<p><img src="image-20200628103710852.png" alt=""></p>
+<p>JSOF在<a href="https://www.youtube.com/watch?time_continue=14&amp;v=jkfNE_Twa1s&amp;feature=emb_logo" target="_blank" rel="noopener">youtube</a>上展示了如何利用Ripple20来攻击UPS设备（不间断电源）,达到给所有连接到UPS设备的嵌入式设备断电的效果。</p>
+<h1 id="如何识别设备是否使用Treck的产品"><a href="#如何识别设备是否使用Treck的产品" class="headerlink" title="如何识别设备是否使用Treck的产品"></a>如何识别设备是否使用Treck的产品</h1><p>方法一：发送邮件到<strong><a href="mailto:Ripple20@jsof-tech.com">Ripple20@jsof-tech.com</a></strong>。</p>
+<p>方法二：了解19个漏洞的原理，尝试在相关设备上实验。</p>
+<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><p>漏洞用图表的方式显示：</p>
+<table>
+<thead>
+<tr>
+<th>CVE ID</th>
+<th>CVSSv3</th>
+<th>描述</th>
+<th>潜在影响</th>
+<th>受影响的版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CVE-2020-11896</td>
+<td>10</td>
+<td>可以通过将多个格式错误的IPv4数据包发送到支持IPv4隧道的设备来触发此漏洞。它会影响使用特定配置运行Treck的任何设备。它可以实现稳定的远程代码执行，并且已在Digi International设备上进行了演示。可能会触发此问题的变体，导致拒绝服务或永久拒绝服务，需要进行硬重置。</td>
+<td>远程代码执行</td>
+<td>6.0.1.66（2020年3月3日发行）</td>
+</tr>
+<tr>
+<td>CVE-2020-11897</td>
+<td>10</td>
+<td>可以通过向设备发送多个格式错误的IPv6数据包来触发此漏洞。它会影响运行支持IPv6的旧版Treck的任何设备，并且先前已作为例行代码更改进行了修复。它可能会允许稳定的远程代码执行。</td>
+<td>越界 写</td>
+<td>5.0.1.35（2009年4月6日发行）</td>
+</tr>
+<tr>
+<td>CVE-2020-11901</td>
+<td>9</td>
+<td>可以通过回答设备发出的单个DNS请求来触发此漏洞。它会影响任何运行支持DNS的Treck的设备，并且我们已经证明它可用于在Schneider Electric APC UPS上执行远程代码执行。我们认为，尽管CVSS评分为9.0，这是最严重的漏洞，这是因为DNS请求可能会离开该设备所在的网络，而精巧的攻击者可能能够利用此漏洞来进行攻击。通过DNS缓存中毒或其他方法从网络外部通过设备访问。因此，攻击者可以绕过网络并利用一个漏洞绕过任何安全措施来接管设备。 格式错误的数据包几乎完全符合RFC标准，因此对于防火墙等安全产品来说，检测该漏洞可能很困难。在仍然在某些设备上运行的非常老版本的Treck堆栈上，交易ID不会随机化，从而使攻击更加容易。</td>
+<td>远程 码 执行</td>
+<td>6.0.1.66（版本03/03/2020）</td>
+</tr>
+</tbody></table>
+<p>下面列出其他的漏洞</p>
+<table>
+<thead>
+<tr>
+<th>CVE ID</th>
+<th>CVSSv3</th>
+<th>描述</th>
+<th>受影响的版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CVE-2020-11898</td>
+<td>9.1</td>
+<td>处理未经授权的网络攻击者发送的数据包时，IPv4 / ICMPv4组件中的长度参数不一致（CWE-130）处理不当。可能暴露的敏感信息（CWE-200）</td>
+<td>6.0.1.66（版本03/03/2020）</td>
+</tr>
+<tr>
+<td>CVE-2020-11900</td>
+<td>8.2</td>
+<td>处理网络攻击者发送的数据包时，IPv4隧道组件中可能存在双重释放（CWE-415）。 免费使用（CWE-416）</td>
+<td>6.0.1.41（2014年10月15日发行）</td>
+</tr>
+<tr>
+<td>CVE-2020-11902</td>
+<td>7.3</td>
+<td>处理未经授权的网络攻击者发送的数据包时，IPv6OverIPv4隧道组件中的输入验证不正确（CWE-20）。 可能的越界读取（CWE-125）</td>
+<td>6.0.1.66（03/03/20版）</td>
+</tr>
+<tr>
+<td>CVE-2020-11904</td>
+<td>5.6</td>
+<td>处理未经授权的网络攻击者发送的数据包时，内存分配组件中可能存在整数溢出或环绕（CWE-190）可能的界外写入（CWE-787）</td>
+<td>6.0.1.66（版本03/03/2020）</td>
+</tr>
+<tr>
+<td>CVE-2020-11899</td>
+<td>5.4</td>
+<td>处理未经授权的网络攻击者发送的数据包时，IPv6组件中的输入验证不正确（CWE-20）。可能的越界读取（CWE-125）和可能的拒绝服务。</td>
+<td>6.0.1.66（03/03/20版）</td>
+</tr>
+<tr>
+<td>CVE-2020-11903</td>
+<td>5.3</td>
+<td>处理未经授权的网络攻击者发送的数据包时，DHCP组件中的可能的越界读取（CWE-125）。可能暴露的敏感信息（CWE-200）</td>
+<td>6.0.1.28（版本10/10/12）</td>
+</tr>
+<tr>
+<td>CVE-2020-11905</td>
+<td>5.3</td>
+<td>处理未经授权的网络攻击者发送的数据包时，DHCPv6组件中可能的越界读取（CWE-125）。可能暴露的敏感信息（CWE-200）</td>
+<td>6.0.1.66（03/03/20版）</td>
+</tr>
+<tr>
+<td>CVE-2020-11906</td>
+<td>5</td>
+<td>未经授权用户发送的数据包中的以太网链路层组件中的输入验证不正确（CWE-20）。整数下溢（CWE-191）</td>
+<td>6.0.1.66（03/03/20版）</td>
+</tr>
+<tr>
+<td>CVE-2020-11907</td>
+<td>5</td>
+<td>TCP组件中长度参数不一致（CWE-130）的不正确处理，来自未经授权的网络攻击者发送的数据包整数下溢（CWE-191）</td>
+<td>6.0.1.66（03/03/20版）</td>
+</tr>
+<tr>
+<td>CVE-2020-11909</td>
+<td>3.7</td>
+<td>处理未经授权的网络攻击者发送的数据包时，IPv4组件中的输入验证不正确（CWE-20）。整数下溢（CWE-191）</td>
+<td>6.0.1.66（03/03/20版）</td>
+</tr>
+<tr>
+<td>CVE-2020-11910</td>
+<td>3.7</td>
+<td>处理未经授权的网络攻击者发送的数据包时，ICMPv4组件中的输入验证不正确（CWE-20）。可能的越界读取（CWE-125）</td>
+<td>6.0.1.66（03/03/20版）</td>
+</tr>
+<tr>
+<td>CVE-2020-11911</td>
+<td>3.7</td>
+<td>处理未经授权的网络攻击者发送的数据包时，ICMPv4组件中的访问控制（CWE-284）不正确。 关键资源的权限分配不正确（CWE-732）</td>
+<td>6.0.1.66（03/03/20版）</td>
+</tr>
+<tr>
+<td>CVE-2020-11912</td>
+<td>3.7</td>
+<td>处理未经授权的网络攻击者发送的数据包时，TCP组件中的输入验证不正确（CWE-20）。可能的越界读取（CWE-125）</td>
+<td>6.0.1.66（03/03/20版）</td>
+</tr>
+<tr>
+<td>CVE-2020-11913</td>
+<td>3.7</td>
+<td>处理未经授权的网络攻击者发送的数据包时，IPv6组件中的输入验证不正确（CWE-20）。可能的越界读取（CWE-125）</td>
+<td>6.0.1.66（03/03/20版）</td>
+</tr>
+<tr>
+<td>CVE-2020-11914</td>
+<td>3.1</td>
+<td>“处理未经授权的网络攻击者发送的数据包时，ARP组件中的输入验证不正确（CWE-20）。”可能的越界读取（CWE-125）</td>
+<td>6.0.1.66（03/03/20版）</td>
+</tr>
+<tr>
+<td>CVE-2020-11908</td>
+<td>3.1</td>
+<td>处理未经授权的网络攻击者发送的数据包时，DHCP组件中的Null终止（CWE-170）不正确。可能暴露的敏感信息（CWE-200）</td>
+<td>4.7.1.27（07年11月8日发行）</td>
+</tr>
+</tbody></table>
+<h2 id="受影响的供应商"><a href="#受影响的供应商" class="headerlink" title="受影响的供应商"></a>受影响的供应商</h2><p>数据来源于：CISA ICS-CERT在内部文档中列出并联系过的供应商。并且CISA ICS-CERT根据供应商的响应来提供每个供应商受影响状态，包括表明没有受影响的供应商也被记录下来，用于以后问责。</p>
+<p><strong>受影响的产品可以通过下面相关漏洞分析中供应商建议中找到，也可以直接从供应商处找到。</strong></p>
+<p>以下的列表会不时的更新，如果有同学发现了错误的地方可以联系<a href="mailto:Ripple20@jsof-tech.com">Ripple20@jsof-tech.com</a>。</p>
+<table>
+<thead>
+<tr>
+<th>证实受影响的供应商（STATUS: CONFIRMED）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Aruba Networks 、B. Braun、Baxter、BECK/HMS Networks、CareStream、Caterpillar、<strong>Cisco(through Starent)</strong>、Digi International、Eaton、Green Hills Software、HCL Tech、<strong>HP</strong>、HPE、<strong>Intel</strong>、Maxlinear(through HLFN)、Opto22、Rockwell、<strong>Schneider Electric/APC</strong>、Teradici、Xeroex、Zuken Elmic</td>
+</tr>
+</tbody></table>
+<p> 待证实的供应商：</p>
+<p><img src="image-20200628124633023.png" alt=""></p>
+<p>不受影响的供应商：供应商自己报告的：</p>
+<p><img src="image-20200628124739261.png" alt=""></p>
+<p>确实不受影响的：</p>
+<p><img src="image-20200628132835631.png" alt=""></p>
+<h2 id="相关厂商和机构提供的安全建议"><a href="#相关厂商和机构提供的安全建议" class="headerlink" title="相关厂商和机构提供的安全建议"></a>相关厂商和机构提供的安全建议</h2><p>Advisories by: <a href="https://www.us-cert.gov/ics/advisories/icsa-20-168-01" target="_blank" rel="noopener">ICS CERT</a>, <a href="https://www.kb.cert.org/vuls/id/257161" target="_blank" rel="noopener">CERT/CC</a>, <a href="https://jvn.jp/vu/JVNVU94736763/" target="_blank" rel="noopener">JPCERT/CC</a>,<a href="https://www.gov.il/he/departments/publications/reports/treck_critical_vulnerability" target="_blank" rel="noopener">CERT-IL</a><br>Advisories by: <a href="https://www.arubanetworks.com/assets/alert/ARUBA-PSA-2020-006.txt" target="_blank" rel="noopener">Aruba Networ</a><a href="https://www.arubanetworks.com/assets/alert/ARUBA-PSA-2020-006.txt" target="_blank" rel="noopener">ks</a>, [B.Braun](<a href="https://www.bbraunusa.com/content/dam/b-braun/us/website/customer_communications/Skyline" target="_blank" rel="noopener">https://www.bbraunusa.com/content/dam/b-braun/us/website/customer_communications/Skyline</a> Response_Outlook_6.9.2020_FINAL1.pdf),[Baxter](<a href="https://www.baxter.com/sites/g/files/ebysai746/files/2020-06/BulletinSpectrumDigiTreck" target="_blank" rel="noopener">https://www.baxter.com/sites/g/files/ebysai746/files/2020-06/BulletinSpectrumDigiTreck</a> (003).pdf), <a href="https://www.carestream.com/en/us/services-and-support/cybersecurity-and-privacy" target="_blank" rel="noopener">CareStream</a>, <a href="https://www.cat.com/en_US/support/technology/connected-solutions-principles/security/caterpillar-cybersecurity-advisory.html" target="_blank" rel="noopener">Caterpillar</a>, <a href="https://tools.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-treck-ip-stack-JyBQ5GyC" target="_blank" rel="noopener">Cisco</a> , <a href="https://www.digi.com/resources/security" target="_blank" rel="noopener">Di</a><a href="https://www.digi.com/resources/security" target="_blank" rel="noopener">gi</a><a href="https://www.digi.com/resources/security" target="_blank" rel="noopener"> International</a>, <a href="https://support.ghs.com/psirt/PSA-2020-05/" target="_blank" rel="noopener">Green Hills</a>, <a href="https://support.hp.com/in-en/document/c06640149" target="_blank" rel="noopener">HP</a>, <a href="https://support.hpe.com/hpesc/public/docDisplay?docLocale=en_US&amp;docId=hpesbhf03999en_us" target="_blank" rel="noopener">HPE</a>, <a href="https://www.intel.com/content/www/us/en/security-center/advisory/intel-sa-00295.html" target="_blank" rel="noopener">Intel</a>, <a href="https://idp.rockwellautomation.com/adfs/ls/idpinitiatedsignon.aspx?RelayState=RPID%3Drockwellautomation.custhelp.com%26RelayState%3Danswers%2Fanswer_view%2Fa_id%2F1126896" target="_blank" rel="noopener">Rockwell Automation</a>, <a href="https://www.se.com/ww/en/download/document/SESB-2020-168-01/" target="_blank" rel="noopener">Schneider Electric</a>, <a href="https://advisory.teradici.com/security-advisories/56/" target="_blank" rel="noopener">Teradici</a>, <a href="https://security.business.xerox.com/wp-content/uploads/2020/06/cert_Security_Mini_Bulletin_XRX20J_for_B2XX.pdf" target="_blank" rel="noopener">Xerox</a></p>
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        
+                            <li title='0' data-url='http://music.163.com/song?id=441532&userid=258169074'></li>
+                        
+                    
+                        
+                            <li title='1' data-url='https://link.hhtjim.com/163/26584453.mp3'></li>
+                        
+                    
+                        
+                            <li title='2' data-url='https://link.hhtjim.com/163/28245304.mp3'></li>
+                        
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+		data-enable='true'
+        data-ae='true'
+        data-ci='177c577b486a2fd2b061'
+        data-cs='ce4ec96a3a9f14b35d6e9d750e1d7f231c22db0e'
+        data-r='pup2y.github.io'
+        data-o='pup2y'
+        data-a='pup2y'
+        data-d='true'
+    >查看评论</div>
+
+
+    </div>
+    
+        <div class='side'>
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Ripple20"><span class="toc-number">1.</span> <span class="toc-text">Ripple20</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#影响之广"><span class="toc-number">2.</span> <span class="toc-text">影响之广</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#如何识别设备是否使用Treck的产品"><span class="toc-number">3.</span> <span class="toc-text">如何识别设备是否使用Treck的产品</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#漏洞描述"><span class="toc-number">3.1.</span> <span class="toc-text">漏洞描述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#受影响的供应商"><span class="toc-number">3.2.</span> <span class="toc-text">受影响的供应商</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#相关厂商和机构提供的安全建议"><span class="toc-number">3.3.</span> <span class="toc-text">相关厂商和机构提供的安全建议</span></a></li></ol></li></ol>	
+        </div>
+    
+</div>
+
+
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/koharu.model.json"},"display":{"superSample":2,"hOffset":0,"vOffset":-20,"position":"right","width":145,"height":315},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body>
+
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+
+
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+        tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno",skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
+        TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+        messageStyle: "none"
+    });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+
+</html>
