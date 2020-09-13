@@ -1,6 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>近期小结</title>
+    <url>/2020/09/13/jin-qi-xiao-jie/</url>
+    <content><![CDATA[<h1 id="好久不见"><a href="#好久不见" class="headerlink" title="好久不见"></a>好久不见</h1><p>好久没有更新博客了，各种原因吧，主要原因还是毕业将近！忙着看论文写论文做实验，一些感想和记录都写在笔记中，同时也是觉得博客是用来记录学习的技术相关知识，所以博客很久没更新啦。</p>
+<p>这次更新博客主要是上周做了一个影响接下来快一年的决定并且这段时间经历了几场线下赛和线上比赛，在比赛自闭过程中想了挺多。所以这次更新下博客做个记录。</p>
+<h1 id="认识差距"><a href="#认识差距" class="headerlink" title="认识差距"></a>认识差距</h1><p>最近打了太多比赛了，第五空间线上线下，CISCN线上和半决赛，强网线上，后天又要去郑州打强网线下，这么多比赛真的打得我自闭了，特别是一道题目做不出来的时候，无地自容！最开始是去年8月xman学pwn出来的，libc堆还没学明白，慢慢转向iot，iot中的pwn也只是学了其中的栈溢出，学iot的过程中又学了些web漏洞，打比赛过程中如果全是堆题就开始懵逼，然后就去学了些misc和密码学！我也是菜到极致了！</p>
+<p>我算是认识到了，学一个东西吧，还是慢慢专心学下去，不然转眼一年过去了，一年前xman算是正式开始了我的安全之路吧，然后今年3月份开始跟随战队打ctf！我的pwn方向还是没有继续下去！通过这么多比赛认识到一个很深的道理，<strong>混圈子没有任何用，还是要靠自己的实力！</strong>，提高自身实力需要花时间下功夫去学很多东西！我通过这些比赛知道自己的差距目前要学的知识！真的不想在以后的比赛中拖累队友！</p>
+<h1 id="继续努力"><a href="#继续努力" class="headerlink" title="继续努力"></a>继续努力</h1><p>我不是一个很聪明的人，所以只能通过不断练习来提升，接下来打算把pwn的学习过程记录下来，打算花一个月学习libc中的堆。</p>
+<p>加油等待我的highlight！</p>
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>]]></content>
+  </entry>
+  <entry>
     <title>Ripple20分析（一）</title>
     <url>/2020/06/28/ripple20-fen-xi-yi/</url>
     <content><![CDATA[<h1 id="Ripple20"><a href="#Ripple20" class="headerlink" title="Ripple20"></a>Ripple20</h1><p>JSOF研究室在Treck公司开发的TCP/IP软件库中发现了一些列0day，这19个漏洞取名为Ripple20。Treck公司开发的软件库广泛传播，因其供应链Ripple20能够影响到数亿台设备，所以分析Ripple20很有必要！</p>
@@ -190,9 +219,6 @@
             document.body.appendChild(img);
           });
       </script>]]></content>
-      <categories>
-        <category>-iot</category>
-      </categories>
   </entry>
   <entry>
     <title>记第五空间比赛</title>
