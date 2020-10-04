@@ -77,42 +77,24 @@
 <h1 id="bindiff5-0安装与使用"><a href="#bindiff5-0安装与使用" class="headerlink" title="bindiff5.0安装与使用"></a>bindiff5.0安装与使用</h1><h2 id="作为ida插件使用"><a href="#作为ida插件使用" class="headerlink" title="作为ida插件使用"></a>作为ida插件使用</h2><ol>
 <li>指定IDA7.2的位置</li>
 </ol>
-<p><img src="win10-ida7-2-bindiff5-0/image-20200921145601336.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921145601336.png" alt=""></p>
 <ol start="2">
 <li><p>作为ida插件使用时，快捷键是ctrl+6，bindiff不能直接分析二进制程序，需要先使用ida打开需要diff的二进制程序，再关闭生成idb或i64数据库。bindiff插件中导入生成的idb或者i64数据库就能进行diff。</p>
-<p><img src="win10-ida7-2-bindiff5-0/image-20200921150448302.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921150448302.png" alt=""></p>
 </li>
 <li><p>在生成的Matched Functions窗口中，找到需要diff的函数，右键<strong>view flow graphs</strong>查看流图时会报错无法调用BinDiff用户接口。</p>
-<p><img src="win10-ida7-2-bindiff5-0/image-20200921151059134.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921151059134.png" alt=""></p>
 <p>需要找到bindiff5.0的安装位置中bin文件夹，运行bindiff.jar，再进行上述操作则不会报错。</p>
 </li>
 </ol>
 <h2 id="直接使用bindiff5-0"><a href="#直接使用bindiff5-0" class="headerlink" title="直接使用bindiff5.0"></a>直接使用bindiff5.0</h2><ol>
 <li><p>主菜单 -&gt; Diffs -&gt; New Diff</p>
-<p><img src="win10-ida7-2-bindiff5-0/image-20200921153121066.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921153121066.png" alt=""></p>
 <p>选择之前生成的idb文件或i64文件进行比较，就能在workspace得到<strong>xxx vs xxx</strong>。</p>
-<p><img src="win10-ida7-2-bindiff5-0/image-20200921224712552.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921224712552.png" alt=""></p>
 </li>
 </ol>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>
+
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
                 <source type="audio/mpeg" src="">

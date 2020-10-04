@@ -13,42 +13,24 @@
 <h1 id="bindiff5-0安装与使用"><a href="#bindiff5-0安装与使用" class="headerlink" title="bindiff5.0安装与使用"></a>bindiff5.0安装与使用</h1><h2 id="作为ida插件使用"><a href="#作为ida插件使用" class="headerlink" title="作为ida插件使用"></a>作为ida插件使用</h2><ol>
 <li>指定IDA7.2的位置</li>
 </ol>
-<p><img src="win10-ida7-2-bindiff5-0/image-20200921145601336.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921145601336.png" alt=""></p>
 <ol start="2">
 <li><p>作为ida插件使用时，快捷键是ctrl+6，bindiff不能直接分析二进制程序，需要先使用ida打开需要diff的二进制程序，再关闭生成idb或i64数据库。bindiff插件中导入生成的idb或者i64数据库就能进行diff。</p>
-<p><img src="win10-ida7-2-bindiff5-0/image-20200921150448302.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921150448302.png" alt=""></p>
 </li>
 <li><p>在生成的Matched Functions窗口中，找到需要diff的函数，右键<strong>view flow graphs</strong>查看流图时会报错无法调用BinDiff用户接口。</p>
-<p><img src="win10-ida7-2-bindiff5-0/image-20200921151059134.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921151059134.png" alt=""></p>
 <p>需要找到bindiff5.0的安装位置中bin文件夹，运行bindiff.jar，再进行上述操作则不会报错。</p>
 </li>
 </ol>
 <h2 id="直接使用bindiff5-0"><a href="#直接使用bindiff5-0" class="headerlink" title="直接使用bindiff5.0"></a>直接使用bindiff5.0</h2><ol>
 <li><p>主菜单 -&gt; Diffs -&gt; New Diff</p>
-<p><img src="win10-ida7-2-bindiff5-0/image-20200921153121066.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921153121066.png" alt=""></p>
 <p>选择之前生成的idb文件或i64文件进行比较，就能在workspace得到<strong>xxx vs xxx</strong>。</p>
-<p><img src="win10-ida7-2-bindiff5-0/image-20200921224712552.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921224712552.png" alt=""></p>
 </li>
 </ol>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>]]></content>
+]]></content>
   </entry>
   <entry>
     <title>2020强网杯决赛Cisco路由器</title>
@@ -111,33 +93,15 @@
 <pre class=" language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token style-attr language-css"><span class="token attr-name"> <span class="token attr-name">style</span></span><span class="token punctuation">="</span><span class="token attr-value"><span class="token property">font-size</span><span class="token punctuation">:</span><span class="token number">100</span>px<span class="token punctuation">;</span><span class="token property">color</span><span class="token punctuation">:</span>red<span class="token punctuation">;</span></span><span class="token punctuation">"</span></span> <span class="token attr-name">align</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>center<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Hacked by BOI<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span></code></pre>
 </li>
 <li><p>getshell后，执行下列命令：</p>
-<pre class=" language-sh"><code class="language-sh">echo "nameserver 搭建的DNS服务器公网" > /tmp/resolv.conf;
+<pre class=" language-sh"><code class="language-sh">echo "nameserver 搭建的DNS服务器公网IP" > /tmp/resolv.conf;
 killall dnsmasq;
 /usr/sbin/dnsmasq -C /tmp/dnsmasq.conf -r /tmp/resolv.conf</code></pre>
 </li>
 </ol>
 <p>之后让工作人员的验证机通过lan口连接路由器， 设置验证机的DNS服务器IP地址为路由器IP，清除浏览器历史记录，清除本机的DNS缓存，使用Firefox浏览器访问<a href="http://www.baidu.com。" target="_blank" rel="noopener">www.baidu.com。</a></p>
-<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/image-20200930133511445.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20200930133511445.png" alt=""></p>
 <h1 id="致谢"><a href="#致谢" class="headerlink" title="致谢"></a>致谢</h1><p>感谢关老哥不厌其烦的回答我所有问题，感谢张禹师兄！感谢阳哥！感谢恩泽巨佬！</p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>]]></content>
+]]></content>
       <categories>
         <category>iot</category>
       </categories>
@@ -2261,7 +2225,7 @@ if _name__=="__main__":
   <span class="token keyword">return</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span></code></pre>
 <p>gdb-multiarch联调发现执行完sobj_new之后返回值放在v0中。v0 = 0x42e048</p>
-<p><img src="F:%5Cmyblog%5Csource_posts%5CD-Link%C2%96%E4%B8%ADsobj%E7%B1%BB%E5%87%BD%E6%95%B0%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%5Csobj_new().png" alt=""></p>
+<p><img src="sobj_new().png" alt=""></p>
 <p>根据sobj_new函数来看出申请了0x18字节的堆空间作为结构体空间，其偏移0x0,0x4处存放对应分配的首地址。 （根据后续的分析得知：0x14处存放的是<strong>malloc/realloc返回的地址也就是申请存放字符串的堆栈空间</strong>，0x10处存放<strong>当前使用的字节数即进行拷贝过的字节数</strong>，0xc处存放*<em>当前申请的总长度减去1字节(减去的一字节代表空字节) *</em> ）</p>
 <h2 id="FUN-0040e864"><a href="#FUN-0040e864" class="headerlink" title="FUN_0040e864()"></a>FUN_0040e864()</h2><p>该函数在sobj_add_char()和sobj_add_string()中有调用，参数是sobj_new()申请的结构体地址。</p>
 <pre class=" language-c"><code class="language-c">undefined4 <span class="token function">FUN_0040e864</span><span class="token punctuation">(</span><span class="token keyword">int</span> malloc_addr<span class="token punctuation">)</span>
@@ -2601,25 +2565,7 @@ LAB_00407e40<span class="token punctuation">:</span>
 <p>之后通过sobj_add_string()将v0的内容给s6的0x14处。到此完成了uid中的内容的获取。最后就是利用sobj_del()将s2、s3中的内容给释放并清空。   </p>
 <p>函数返回时，uid的内容存储在之前sobj_new()的结构体s5=0x42e008的0x14处。</p>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>其实这算第一次这样仔细的阅读并调试汇编源码（虽然还是借助了ghidra的反汇编功能进行理解），还是太菜了呀，整个过程还是花了挺多时间的，但现在看来感觉还是挺值的，因为整个流程下来我对MIPS汇编代码理解以及寄存器的运用还有gdb、IDA的联调有了相对熟练的掌握，为以后静态和动态分析开一个好头吧！然后这篇文章的目的也是为了整理梳理整个思路然后以文字的形式记录下来。</p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>]]></content>
+]]></content>
       <categories>
         <category>iot</category>
       </categories>

