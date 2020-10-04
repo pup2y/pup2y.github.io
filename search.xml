@@ -1,6 +1,152 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>win10+ida7.2+bindiff5.0</title>
+    <url>/2020/09/21/win10-ida7-2-bindiff5-0/</url>
+    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>补丁比对神器怎么能少了bindiff呢？之前在win10上用过bindiff4.3+ida6.8，用着用着ida6.8直接崩了，我试的3个ida6.8全坏了，人也要往前走呀，尝试新的东西，就有了这次的bindiff5.0使用。</p>
+<h1 id="相关环境"><a href="#相关环境" class="headerlink" title="相关环境"></a>相关环境</h1><ul>
+<li>win10（bindiff5.0是基于）</li>
+<li>java环境（bindiff是基于java开发的）</li>
+<li>ida7.2</li>
+<li>bindiff5.0</li>
+</ul>
+<h1 id="bindiff5-0安装与使用"><a href="#bindiff5-0安装与使用" class="headerlink" title="bindiff5.0安装与使用"></a>bindiff5.0安装与使用</h1><h2 id="作为ida插件使用"><a href="#作为ida插件使用" class="headerlink" title="作为ida插件使用"></a>作为ida插件使用</h2><ol>
+<li>指定IDA7.2的位置</li>
+</ol>
+<p><img src="win10-ida7-2-bindiff5-0/image-20200921145601336.png" alt=""></p>
+<ol start="2">
+<li><p>作为ida插件使用时，快捷键是ctrl+6，bindiff不能直接分析二进制程序，需要先使用ida打开需要diff的二进制程序，再关闭生成idb或i64数据库。bindiff插件中导入生成的idb或者i64数据库就能进行diff。</p>
+<p><img src="win10-ida7-2-bindiff5-0/image-20200921150448302.png" alt=""></p>
+</li>
+<li><p>在生成的Matched Functions窗口中，找到需要diff的函数，右键<strong>view flow graphs</strong>查看流图时会报错无法调用BinDiff用户接口。</p>
+<p><img src="win10-ida7-2-bindiff5-0/image-20200921151059134.png" alt=""></p>
+<p>需要找到bindiff5.0的安装位置中bin文件夹，运行bindiff.jar，再进行上述操作则不会报错。</p>
+</li>
+</ol>
+<h2 id="直接使用bindiff5-0"><a href="#直接使用bindiff5-0" class="headerlink" title="直接使用bindiff5.0"></a>直接使用bindiff5.0</h2><ol>
+<li><p>主菜单 -&gt; Diffs -&gt; New Diff</p>
+<p><img src="win10-ida7-2-bindiff5-0/image-20200921153121066.png" alt=""></p>
+<p>选择之前生成的idb文件或i64文件进行比较，就能在workspace得到<strong>xxx vs xxx</strong>。</p>
+<p><img src="win10-ida7-2-bindiff5-0/image-20200921224712552.png" alt=""></p>
+</li>
+</ol>
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>]]></content>
+  </entry>
+  <entry>
+    <title>2020强网杯决赛Cisco路由器</title>
+    <url>/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/</url>
+    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本次CisCo路由器是比赛时临时给的，并不是提前告知的，该题属于强网杯realworld题目中的CC。比赛结束的时候该题目只有4只队伍解出。这四只队伍也是最后排名前四的队伍：eee（腾讯）、0x300R（长亭）、0ops（上海交大）、BOI（国防科大）。</p>
+<h1 id="题目相关"><a href="#题目相关" class="headerlink" title="题目相关"></a>题目相关</h1><p><strong>题目描述：</strong>挖掘并利用CISCO RV110W-E-CN-K9（固件版本1.2.2.5）中的漏洞，获取路由器的Root Shell，实现DNS劫持。</p>
+<p><strong>靶机环境：</strong>CISCO RV110W-E-CN-K9（固件版本1.2.2.5），设置后台管理密码、WIFI密码，默认关闭telnet。</p>
+<p><strong>附件信息：</strong>附件中提供了路由器固件（固件版本1.2.2.5，与靶机版本一致），路由器设备后台管理账号为cisco，密码为qwb2020 ，WiFi密码未设置。</p>
+<p><strong>展示环境拓扑：</strong>展台路由器WAN口连接互联网，选手攻击机和操作员验证机通过网线连接路由器LAN口，IP地址设置自动获取。</p>
+<p><strong>展示目标：</strong>选手携带自己的攻击机上台，通过有线方式连接路由器设备。在规定的时间内攻击展台路由器，获取路由器的Root Shell执行系统命令，劫持<a href="http://www.baidu.com为如下页面：">http://www.baidu.com为如下页面：</a></p>
+<pre class=" language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token style-attr language-css"><span class="token attr-name"> <span class="token attr-name">style</span></span><span class="token punctuation">="</span><span class="token attr-value"><span class="token property">font-size</span><span class="token punctuation">:</span><span class="token number">100</span>px<span class="token punctuation">;</span><span class="token property">color</span><span class="token punctuation">:</span>red<span class="token punctuation">;</span></span><span class="token punctuation">"</span></span> <span class="token attr-name">align</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>center<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Hacked by BOI<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span></code></pre>
+<p>操作人员使用验证机中的Firefox浏览器访问<a href="http://www.baidu.com查看攻击效果，确认实现DNS劫持后判定成功。" target="_blank" rel="noopener">http://www.baidu.com查看攻击效果，确认实现DNS劫持后判定成功。</a></p>
+<p><strong>注意事项：</strong>上台展示题解的时候注意关闭exp的调试信息。</p>
+<p><strong>展示时操作人员操作步骤：</strong></p>
+<p>1）  重启路由器设备；</p>
+<p>2）  将互联网网线连接路由器WAN口；</p>
+<p>3）  验证机通过有线方式连接路由器设备LAN口；</p>
+<p>4）  设置验证机的DNS服务器IP地址为路由器IP；</p>
+<p>5）  清除浏览器历史记录，清除本机的DNS缓存；</p>
+<p>6）  等待选手连接路由器；</p>
+<p>7）  等待选手攻击；</p>
+<p>8）  在规定时间内可以配合选手重启路由器设备（每次重启首先要重复步骤4，5）；</p>
+<p>9）  选手攻击完毕后，操作人员使用验证机中的浏览器访问网页验证效果；</p>
+<p>10）      攻击成功或超时后：关闭路由器。</p>
+<h1 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h1><p>根据题目要求，攻击机通过lan口连接，并没有提供用户名密码，登录不了管理界面，所以需要做到三点：前台身份验证绕过，后台命令执行或代码执行，DNS劫持。也可以改成两点：未授权命令执行或未授权代码执行，DNS劫持。</p>
+<h2 id="现有的？"><a href="#现有的？" class="headerlink" title="现有的？"></a>现有的？</h2><p>先找找有无公布exp的前台代码执行和命令执行的CVE，<a href="https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=CISCO%20RV110W" target="_blank" rel="noopener">链接</a></p>
+<p><strong>CVE-2019-1663（未授权，远程代码执行）</strong>&lt; 1.2.2.1</p>
+<p><strong>CVE-2020-3323</strong> <strong>(RCE，远程命令执行)</strong>  &lt; 1.2.2.8</p>
+<p><strong>CVE-2020-3331</strong> <strong>(RCE，任意代码执行)</strong>  &lt; 1.2.2.8</p>
+<p><strong>CVE-2020-3330（默认系统用户凭证）</strong> &lt; 1.2.2.8</p>
+<p><strong>CVE-2020-3144 (身份验证绕过,命令执行)</strong>  &lt; 1.2.2.8</p>
+<p>只有CVE-2019-1663有exp，而且msf集成了该漏洞利用模块，直接用msf测试一波发现无法使用了，说明1.2.2.5版本补了这个漏洞。其他的CVE是2020年7月份Cisco刚公布的严重漏洞，网上还没有利用代码。</p>
+<p>其实想想也可以知道，出题的师傅肯定做了充分的调研，不可能让大家这么简单找到exp直接使用的。</p>
+<h2 id="手工挖0day？"><a href="#手工挖0day？" class="headerlink" title="手工挖0day？"></a>手工挖0day？</h2><p>主办方提供了螺丝刀套装、焊台、万用表、TTL小板和飞线，很明显就是让你拆机了。</p>
+<p>没有能直接使用的未授权RCE，那就只能<strong>代码审计</strong>和<strong>补丁比对</strong>找0day了，代码审计也不是盲目的代码审计。结合补丁比对能够迅速定位厂商修补了哪些未公开的代码。</p>
+<p>CVE-2019-1663的漏洞点是login.cgi的strcpy函数。GDB+IDA+burp吃饭三件套复现该漏洞，这里不详细描述啦！</p>
+<h3 id="代码审计"><a href="#代码审计" class="headerlink" title="代码审计"></a>代码审计</h3><p>主要的思路是定位危险函数：system()、Popen()、strcpy()、strcat()、sprintf()等。</p>
+<h4 id="命令注入漏洞"><a href="#命令注入漏洞" class="headerlink" title="命令注入漏洞"></a>命令注入漏洞</h4><p>命令注入漏洞是优先考虑的漏洞，这种漏洞在路由器等嵌入式设备中出现的可能性很高。</p>
+<ol>
+<li>这些设备在配置和使用过程中与底层硬件的交互非常多，开发者为了方便通常直接使用system函数来执行配置命令。常见的命令注入点主要有：<strong>诊断页面中的ping输入框</strong>，开发者经常未对用户输入进行过滤，直接传递给system函数或popen函数，进而导致命令注入。</li>
+<li>命令注入漏洞相较于缓冲区溢出漏洞而言，调试起来更简单，使用<strong>burpsuite</strong>进行调试即可。</li>
+<li>很多命令注入漏洞无需认证，能够直接达到RCE的效果。</li>
+</ol>
+<h4 id="缓冲区溢出漏洞"><a href="#缓冲区溢出漏洞" class="headerlink" title="缓冲区溢出漏洞"></a>缓冲区溢出漏洞</h4><p>主要是栈溢出，栈溢出漏洞在路由器等小型嵌入式IoT设备中的占比尤其高，主要是因为开发者直接使用危险函数处理用户输入，导致攻击者能够覆盖返回地址，劫持程序控制流，达到任意代码执行的目的。</p>
+<ol>
+<li>定位strcpy()等危险函数。</li>
+<li>判断输入对应的cgi时候是否有相应的URI，这样就能利用Burp构造相应数据包进行测试，进而了解如何触发该漏洞。</li>
+<li>判断输入点距离ra的偏移量，一般情况下能够在IDA看出来，实在判断不了，只能通过上传相应的gdb，进行调试，同时判断出libc的基地址。</li>
+<li>最后构造完整的rop链进行不断测试。</li>
+</ol>
+<h3 id="补丁比对"><a href="#补丁比对" class="headerlink" title="补丁比对"></a>补丁比对</h3><p>通过比对最新版本1.2.2.8与当前版本1.2.2.5版本能够发现厂商自行修补但未公布的漏洞。</p>
+<p>这里主要使用bindiff工具，结合IDA pro进行补丁比对。找到其中相同函数名，但是相似度不高的函数进行分析。</p>
+<h1 id="成功Getshell并劫持DNS"><a href="#成功Getshell并劫持DNS" class="headerlink" title="成功Getshell并劫持DNS"></a>成功Getshell并劫持DNS</h1><p>因为这里使用的漏洞算是0day，所以在官方公布出来之前就不进行详细描述了。</p>
+<p>在成功getshell之后，考虑如何劫持DNS，这里的方法有很多。</p>
+<p>大体步骤是：</p>
+<ol>
+<li><p>利用bind等类型软件搭建DNS服务器，并提供公网地址IP。</p>
+</li>
+<li><p>配置DNS服务器，将所有解析域名为<a href="http://www.baidu.com的请求，劫持为下列页面。" target="_blank" rel="noopener">www.baidu.com的请求，劫持为下列页面。</a></p>
+<pre class=" language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>br</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token style-attr language-css"><span class="token attr-name"> <span class="token attr-name">style</span></span><span class="token punctuation">="</span><span class="token attr-value"><span class="token property">font-size</span><span class="token punctuation">:</span><span class="token number">100</span>px<span class="token punctuation">;</span><span class="token property">color</span><span class="token punctuation">:</span>red<span class="token punctuation">;</span></span><span class="token punctuation">"</span></span> <span class="token attr-name">align</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>center<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Hacked by BOI<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">></span></span></code></pre>
+</li>
+<li><p>getshell后，执行下列命令：</p>
+<pre class=" language-sh"><code class="language-sh">echo "nameserver 搭建的DNS服务器公网" > /tmp/resolv.conf;
+killall dnsmasq;
+/usr/sbin/dnsmasq -C /tmp/dnsmasq.conf -r /tmp/resolv.conf</code></pre>
+</li>
+</ol>
+<p>之后让工作人员的验证机通过lan口连接路由器， 设置验证机的DNS服务器IP地址为路由器IP，清除浏览器历史记录，清除本机的DNS缓存，使用Firefox浏览器访问<a href="http://www.baidu.com。" target="_blank" rel="noopener">www.baidu.com。</a></p>
+<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/image-20200930133511445.png" alt=""></p>
+<h1 id="致谢"><a href="#致谢" class="headerlink" title="致谢"></a>致谢</h1><p>感谢关老哥不厌其烦的回答我所有问题，感谢张禹师兄！感谢阳哥！感谢恩泽巨佬！</p>
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script>]]></content>
+      <categories>
+        <category>iot</category>
+      </categories>
+      <tags>
+        <tag>cisco</tag>
+        <tag>RV110W(1.2.2.5)</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>近期小结</title>
     <url>/2020/09/13/jin-qi-xiao-jie/</url>
     <content><![CDATA[<h1 id="好久不见"><a href="#好久不见" class="headerlink" title="好久不见"></a>好久不见</h1><p>好久没有更新博客了，各种原因吧，主要原因还是毕业将近！忙着看论文写论文做实验，一些感想和记录都写在笔记中，同时也是觉得博客是用来记录学习的技术相关知识，所以博客很久没更新啦。</p>
