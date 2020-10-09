@@ -1,0 +1,299 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>交叉编译mips架构gdb+gdbServer - pup2y&#39;s world</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="前言GDB + IDA + burp是吃饭三件套，一个能使用的gdb和gdbserver是调试IoT设备二进制漏洞的必备条件，之前都是从github下载他人编译好的，一旦他人gdb和gdbserve,"> 
+    <meta name="author" content="青云"> 
+    <link rel="alternative" href="atom.xml" title="pup2y&#39;s world" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.jpg"> 
+    
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({
+              google_ad_client: "ca-pub-8691406134231910",
+              enable_page_level_ads: true
+         });
+    </script>
+    <script async custom-element="amp-auto-ads"
+        src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
+
+<body class="loading">
+    <span id="config-title" style="display:none">pup2y&#39;s world</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://pup2y.github.io"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle">交叉编译mips架构gdb+gdbServer</h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="article">
+    <div class='main'>
+        <h1 class="title">交叉编译mips架构gdb+gdbServer</h1>
+        <div class="stuff">
+            <span>十月 06, 2020</span>
+			
+			<span>
+   阅读数  <span id="busuanzi_value_page_pv"></span>
+</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>GDB + IDA + burp是吃饭三件套，一个能使用的gdb和gdbserver是调试IoT设备二进制漏洞的必备条件，之前都是从github下载他人编译好的，一旦他人gdb和gdbserver用不了的话，直接歇菜！所以才有了这篇博客，自己编译生成一次能够在设备上使用的gdb！</p>
+<p>交叉编译是一门大学问，其中涉及的知识点还挺多的，这次走了不少弯路，在这里将遇到的问题进行总结吧！</p>
+<h1 id="相关工具"><a href="#相关工具" class="headerlink" title="相关工具"></a>相关工具</h1><p>这里的工具选择并不要求完全一样，我只是在这个环境第一次成功，然后直接记录下来了。</p>
+<ul>
+<li>ubuntu：14.04和16.04都可以的。</li>
+<li>buildroot：<a href="http://buildroot.net/downloads/" target="_blank" rel="noopener">源码下载</a>选择的是buildroot2015.02，其中包含的kernel版本以及gcc版本比较老。</li>
+<li>gdb：<a href="https://ftp.gnu.org/gnu/gdb/" target="_blank" rel="noopener">源码下载</a>选择gdb-6.8a.tar.gz和gdb-7.12.tar.gz。</li>
+</ul>
+<p>buildroot是为了生成交叉编译工具链，之后交叉编译gdb。</p>
+<h1 id="相关步骤"><a href="#相关步骤" class="headerlink" title="相关步骤"></a>相关步骤</h1><h2 id="buildroot"><a href="#buildroot" class="headerlink" title="buildroot"></a>buildroot</h2><ul>
+<li>Target options：MIPS小端，ELF，mips 32</li>
+</ul>
+<p><img src="image-20201006102450354.png" alt=""></p>
+<ul>
+<li>Toolchain：Kernel Headers version选择2.6.32，C library选择uClibc，GCC编译器版本选择gcc 4.5.x</li>
+</ul>
+<p><img src="image-20201006102953867.png" alt=""></p>
+<ul>
+<li><p>make，接下来等就完事了，时间看网速，很多东西有梯子下载会快些。完成之后需要的gcc会在bulidroot的output目录下。</p>
+<p><img src="image-20201006103545302.png" alt=""></p>
+</li>
+<li><p>可以添加环境变量</p>
+<p>在/etc/profile或者<del>/.bashrc或者</del>/.zshrc中添加</p>
+<p>export PATH=$PATH:xxx/buildroot-2015.02/output/host/bin</p>
+<p>之后source /etc/profile</p>
+<p><img src="image-20201006104216657.png" alt=""></p>
+</li>
+</ul>
+<h2 id="gdb"><a href="#gdb" class="headerlink" title="gdb"></a>gdb</h2><pre class=" language-sh"><code class="language-sh">cd gdb-6.8
+CC="xxx/project/buildroot-2015.02/output/host/usr/bin/mipsel-linux-gcc    "
+./configure --target=mipsel-linux --host=mipsel-linux  CFLAGS='-static'
+make</code></pre>
+<p>遇到的问题：</p>
+<ul>
+<li><p>./readline/support/wcwidth.c</p>
+<p>错误如下：</p>
+<pre class=" language-sh"><code class="language-sh">mipsel-linux-gcc -DHAVE_CONFIG_H -DCROSS_COMPILING   -I. -I.././readline -DRL_LIBRARY_VERSION='"5.1"' -static -c .././readline/support/wcwidth.c
+.././readline/support/wcwidth.c:17:29: 错误：expected ‘)’ before ‘ucs’
+.././readline/support/wcwidth.c:67:21: 错误：expected ‘)’ before ‘ucs’
+.././readline/support/wcwidth.c:134:28: 错误：expected ‘;’, ‘,’ or ‘)’ before ‘*’ token
+.././readline/support/wcwidth.c:156:32: 错误：expected ‘)’ before ‘ucs’
+.././readline/support/wcwidth.c:225:32: 错误：expected ‘;’, ‘,’ or ‘)’ before ‘*’ token
+Makefile:166: recipe for target 'wcwidth.o' failed</code></pre>
+<p>解决办法：</p>
+<p>在gdb根目录下的readline/support/wcwidth.c添加<strong>#include &lt;stddef.h&gt;</strong></p>
+</li>
+<li><p><strong>configure: error: no termcap library found</strong></p>
+<ol>
+<li><p><a href="https://ftp.gnu.org/gnu/termcap/下载termcap-1.3.1.tar.gz" target="_blank" rel="noopener">https://ftp.gnu.org/gnu/termcap/下载termcap-1.3.1.tar.gz</a></p>
+</li>
+<li><p>tar解压</p>
+</li>
+<li><p>./configure</p>
+</li>
+<li><p>在termcap-1.3.1根目录下的Makefile文件中修改CC AR RANLIB为：</p>
+<pre class=" language-sh"><code class="language-sh">CC = xxx/project/buildroot-2015.02/output/host/usr/bin/mipsel-linux-gcc
+AR = xxx/project/buildroot-2015.02/output/host/usr/bin/mipsel-linux-ar
+RANLIB = xxx/project/buildroot-2015.02/output/host/usr/bin/mipsel-linux-ranlib</code></pre>
+</li>
+<li><p>make，生成的libtermcap.a文件，将其拷贝到交叉编译工具链的lib文件夹。</p>
+<pre class=" language-sh"><code class="language-sh">~ mipsel-linux-gcc -print-file-name=libc.a
+xxx/project/buildroot-2015.02/output/host/usr/mipsel-buildroot-linux-uclibc/sysroot/usr/lib/libc.a
+~ cp libtermcap.a xxx/project/buildroot-2015.02/output/host/usr/mipsel-buildroot-linux-uclibc/sysroot/usr/lib/</code></pre>
+</li>
+</ol>
+</li>
+<li><p>./gdb/Makefile</p>
+<pre class=" language-sh"><code class="language-sh">cc1: warnings being treated as errors
+cp-name-parser.y: 在函数‘cp_comp_to_string’中:
+cp-name-parser.y:1980:20: 错误：在‘enum demangle_component_type’和‘enum <匿名>’间比较
+cp-name-parser.y:1985:25: 错误：在‘enum demangle_component_type’和‘enum <匿名>’间比较
+Makefile:1110: recipe for target 'cp-name-parser.o' failed
+make[2]: *** [cp-name-parser.o] Error 1
+make[2]: Leaving directory 'xxx/project/gdb-6.8/gdb'
+Makefile:10191: recipe for target 'all-gdb' failed
+make[1]: *** [all-gdb] Error 2
+make[1]: Leaving directory 'xxx/project/gdb-6.8'
+Makefile:701: recipe for target 'all' failed</code></pre>
+<p>根据报错知道问题出现在gdb根目录下的gdb文件夹中，打开其中Makefile文件</p>
+<p>定位Werror，删除WERROR_CFLAGS = 之后的<strong>-Werror</strong></p>
+<p><img src="image-20201009101053561.png" alt=""></p>
+</li>
+</ul>
+<p>之后会在/gdb-6.8/gdb和/gdb6.8/gdb/gdbserver下生成gdb和gdbserver</p>
+<pre class=" language-sh"><code class="language-sh">~ file gdb
+gdb: ELF 32-bit LSB executable, MIPS, MIPS32 version 1 (SYSV), statically linked, not stripped
+~ file gdbserver/gdbserver
+gdbserver/gdbserver: ELF 32-bit LSB executable, MIPS, MIPS32 version 1 (SYSV), statically linked, not stripped</code></pre>
+<p>可以去掉符号表</p>
+<pre class=" language-sh"><code class="language-sh">mipsel-linux-strip gdb
+mipsel-linux-strip gdbserver/gdbserver</code></pre>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        
+                            <li title='0' data-url='http://music.163.com/song?id=441532&userid=258169074'></li>
+                        
+                    
+                        
+                            <li title='1' data-url='https://link.hhtjim.com/163/26584453.mp3'></li>
+                        
+                    
+                        
+                            <li title='2' data-url='https://link.hhtjim.com/163/28245304.mp3'></li>
+                        
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+		data-enable='true'
+        data-ae='true'
+        data-ci='177c577b486a2fd2b061'
+        data-cs='ce4ec96a3a9f14b35d6e9d750e1d7f231c22db0e'
+        data-r='pup2y.github.io'
+        data-o='pup2y'
+        data-a='pup2y'
+        data-d='true'
+    >查看评论</div>
+
+
+    </div>
+    
+        <div class='side'>
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#相关工具"><span class="toc-number">2.</span> <span class="toc-text">相关工具</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#相关步骤"><span class="toc-number">3.</span> <span class="toc-text">相关步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#buildroot"><span class="toc-number">3.1.</span> <span class="toc-text">buildroot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gdb"><span class="toc-number">3.2.</span> <span class="toc-text">gdb</span></a></li></ol></li></ol>	
+        </div>
+    
+</div>
+
+
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/koharu.model.json"},"display":{"superSample":2,"hOffset":0,"vOffset":-20,"position":"right","width":145,"height":315},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body>
+
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+
+
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+        tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno",skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
+        TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+        messageStyle: "none"
+    });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+
+</html>
