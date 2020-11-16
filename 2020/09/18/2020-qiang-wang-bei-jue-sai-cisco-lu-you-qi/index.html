@@ -10,7 +10,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     <meta name="keywords" content="Fechin,"> 
-    <meta name="description" content="前言本次CisCo路由器是比赛时临时给的，并不是提前告知的，该题属于强网杯realworld题目中的CC。比赛结束的时候该题目只有4只队伍解出。这四只队伍也是最后排名前四的队伍：eee（腾讯）、0x,"> 
+    <meta name="description" content="题目相关题目描述：挖掘并利用CISCO RV110W-E-CN-K9（固件版本1.2.2.5）中的漏洞，获取路由器的Root Shell，实现DNS劫持。
+靶机环境：CISCO RV110W-E-C,"> 
     <meta name="author" content="青云"> 
     <link rel="alternative" href="atom.xml" title="pup2y&#39;s world" type="application/atom+xml"> 
     <link rel="icon" href="/img/favicon.jpg"> 
@@ -69,8 +70,7 @@
 
         </div>
         <div class="content markdown">
-            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本次CisCo路由器是比赛时临时给的，并不是提前告知的，该题属于强网杯realworld题目中的CC。比赛结束的时候该题目只有4只队伍解出。这四只队伍也是最后排名前四的队伍：eee（腾讯）、0x300R（长亭）、0ops（上海交大）、BOI（国防科大）。</p>
-<h1 id="题目相关"><a href="#题目相关" class="headerlink" title="题目相关"></a>题目相关</h1><p><strong>题目描述：</strong>挖掘并利用CISCO RV110W-E-CN-K9（固件版本1.2.2.5）中的漏洞，获取路由器的Root Shell，实现DNS劫持。</p>
+            <h1 id="题目相关"><a href="#题目相关" class="headerlink" title="题目相关"></a>题目相关</h1><p><strong>题目描述：</strong>挖掘并利用CISCO RV110W-E-CN-K9（固件版本1.2.2.5）中的漏洞，获取路由器的Root Shell，实现DNS劫持。</p>
 <p><strong>靶机环境：</strong>CISCO RV110W-E-CN-K9（固件版本1.2.2.5），设置后台管理密码、WIFI密码，默认关闭telnet。</p>
 <p><strong>附件信息：</strong>附件中提供了路由器固件（固件版本1.2.2.5，与靶机版本一致），路由器设备后台管理账号为cisco，密码为qwb2020 ，WiFi密码未设置。</p>
 <p><strong>展示环境拓扑：</strong>展台路由器WAN口连接互联网，选手攻击机和操作员验证机通过网线连接路由器LAN口，IP地址设置自动获取。</p>
@@ -117,8 +117,8 @@
 </ol>
 <h3 id="补丁比对"><a href="#补丁比对" class="headerlink" title="补丁比对"></a>补丁比对</h3><p>通过比对最新版本1.2.2.8与当前版本1.2.2.5版本能够发现厂商自行修补但未公布的漏洞。</p>
 <p>这里主要使用bindiff工具，结合IDA pro进行补丁比对。找到其中相同函数名，但是相似度不高的函数进行分析。</p>
-<h1 id="成功Getshell并劫持DNS"><a href="#成功Getshell并劫持DNS" class="headerlink" title="成功Getshell并劫持DNS"></a>成功Getshell并劫持DNS</h1><p>因为这里使用的漏洞算是0day，所以在官方公布出来之前就不进行详细描述了。</p>
-<p>在成功getshell之后，考虑如何劫持DNS，这里的方法有很多。</p>
+<p>本次的漏洞点是通过补丁比对找到的，能够清楚的找到在最新版本修复掉的危险函数。</p>
+<h1 id="劫持DNS"><a href="#劫持DNS" class="headerlink" title="劫持DNS"></a>劫持DNS</h1><p>在成功getshell之后，考虑如何劫持DNS，这里的方法有很多。</p>
 <p>大体步骤是：</p>
 <ol>
 <li><p>利用bind等类型软件搭建DNS服务器，并提供公网地址IP。</p>
@@ -133,7 +133,6 @@ killall dnsmasq;
 </li>
 </ol>
 <p>之后让工作人员的验证机通过lan口连接路由器， 设置验证机的DNS服务器IP地址为路由器IP，清除浏览器历史记录，清除本机的DNS缓存，使用Firefox浏览器访问<a href="http://www.baidu.com。" target="_blank" rel="noopener">www.baidu.com。</a></p>
-<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20200930133511445.png" alt=""></p>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
@@ -173,7 +172,7 @@ killall dnsmasq;
     </div>
     
         <div class='side'>
-			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#题目相关"><span class="toc-number">2.</span> <span class="toc-text">题目相关</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#解题思路"><span class="toc-number">3.</span> <span class="toc-text">解题思路</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#现有的？"><span class="toc-number">3.1.</span> <span class="toc-text">现有的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#手工挖0day？"><span class="toc-number">3.2.</span> <span class="toc-text">手工挖0day？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#代码审计"><span class="toc-number">3.2.1.</span> <span class="toc-text">代码审计</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#命令注入漏洞"><span class="toc-number">3.2.1.1.</span> <span class="toc-text">命令注入漏洞</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#缓冲区溢出漏洞"><span class="toc-number">3.2.1.2.</span> <span class="toc-text">缓冲区溢出漏洞</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#补丁比对"><span class="toc-number">3.2.2.</span> <span class="toc-text">补丁比对</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#成功Getshell并劫持DNS"><span class="toc-number">4.</span> <span class="toc-text">成功Getshell并劫持DNS</span></a></li></ol>	
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#题目相关"><span class="toc-number">1.</span> <span class="toc-text">题目相关</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#解题思路"><span class="toc-number">2.</span> <span class="toc-text">解题思路</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#现有的？"><span class="toc-number">2.1.</span> <span class="toc-text">现有的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#手工挖0day？"><span class="toc-number">2.2.</span> <span class="toc-text">手工挖0day？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#代码审计"><span class="toc-number">2.2.1.</span> <span class="toc-text">代码审计</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#命令注入漏洞"><span class="toc-number">2.2.1.1.</span> <span class="toc-text">命令注入漏洞</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#缓冲区溢出漏洞"><span class="toc-number">2.2.1.2.</span> <span class="toc-text">缓冲区溢出漏洞</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#补丁比对"><span class="toc-number">2.2.2.</span> <span class="toc-text">补丁比对</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#劫持DNS"><span class="toc-number">3.</span> <span class="toc-text">劫持DNS</span></a></li></ol>	
         </div>
     
 </div>

