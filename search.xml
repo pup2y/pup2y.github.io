@@ -606,7 +606,7 @@ context<span class="token punctuation">.</span>arch <span class="token operator"
 <p>想着往里面写个/temp.xml文件并添加内容就可以了吧，结果发现还是返回no xml data。因为fopen打开该文件的方式是’w’，创建一个用于写入的空文件。如果文件名称与已存在的文件相同，则会删除已有文件的内容，文件被视为一个新的空文件。所以只要执行了这条指令文件内容就会被清空，返回值一定是<code>no xml data</code>，所以利用qemu用户模式这样调试的话，是到不了第二个<code>sprintf</code>函数。</p>
 <p><img src="https://pup2y.github.io/2020/05/22/dir815-huan-chong-qu-yi-chu-lou-dong-zai-fen-xi/fopen.png" alt=""></p>
 <p>所以漏洞点是第一个<code>sprintf</code>函数，挺多帖子也是分析得到第一个<code>sprintf</code>函数是漏洞点。其实是第一个还是第二个对于用户模式下的调试并没有多大关系，就是偏移不一样罢了，构造rop链方法都是一样的。但是对于真实设备而言，就要找到真正的漏洞点在哪。</p>
-<h2 id="漏洞重新定位"><a href="#漏洞重新定位" class="headerlink" title="漏洞重新定位"></a>漏洞重新定位</h2><p>爆肝一晚，参考一个大佬的<a href="https://kirin-say.top/2019/02/23/Building-MIPS-Environment-for-Router-PWN" target="_blank" rel="noopener">文章</a>，发现了为什么到达不了第二个sprintf的原因。</p>
+<h2 id="漏洞重新定位"><a href="#漏洞重新定位" class="headerlink" title="漏洞重新定位"></a>漏洞重新定位</h2><p>参考一个大佬的<a href="https://kirin-say.top/2019/02/23/Building-MIPS-Environment-for-Router-PWN" target="_blank" rel="noopener">文章</a>，发现了为什么到达不了第二个sprintf的原因。</p>
 <p>还需要POST数据包中包含”uid=……”，否则运行不了下面的代码，</p>
 <pre class=" language-assembly"><code class="language-assembly">.text:00409AB0                 la      $t9, sobj_strdup
 .text:00409AB4                 lw      $a0, 4($s0)
