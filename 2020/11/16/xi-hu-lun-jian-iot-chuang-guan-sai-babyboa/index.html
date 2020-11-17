@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate" />
     <meta name="keywords" content="Fechin,"> 
-    <meta name="description" content="前言本次赛题所有题目都是通过下面的板子作为载体，板子全是安恒Aodzip师傅手焊的。其中的uart口用于调试，otg口刷固件。pwr开关机键，RST复位键。
+    <meta name="description" content="前言本次赛题所有题目都是通过下面的板子作为载体，所有板子安恒Aodzip师傅手焊的。其中的uart口用于调试，otg口刷固件。pwr开关机键，RST复位键。
 
 刷的固件存在spi flash中，带了,"> 
     <meta name="author" content="青云"> 
@@ -71,7 +71,7 @@
 
         </div>
         <div class="content markdown">
-            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本次赛题所有题目都是通过下面的板子作为载体，板子全是安恒Aodzip师傅手焊的。<img src="https://pup2y.github.io/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/image-20201116221316708.png" alt="">其中的uart口用于调试，otg口刷固件。pwr开关机键，RST复位键。</p>
+            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本次赛题所有题目都是通过下面的板子作为载体，所有板子安恒Aodzip师傅手焊的。<img src="https://pup2y.github.io/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/image-20201116221316708.png" alt="">其中的uart口用于调试，otg口刷固件。pwr开关机键，RST复位键。</p>
 <p><img src="https://pup2y.github.io/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/image-20201116221021281.png" alt=""></p>
 <p>刷的固件存在spi flash中，带了编程器和烧录夹的兄弟萌，可以直接提取固件然后进入其中extra分区中，里面有flag。</p>
 <h1 id="漏洞定位"><a href="#漏洞定位" class="headerlink" title="漏洞定位"></a>漏洞定位</h1><p>其中的3道嵌入式pwn题目全是H4lo师傅出的，第一题是babyboa，提供的固件中提供了二进制boa和boa.conf。正常情况是不给调试的，除非大家都做不出来。</p>
@@ -91,7 +91,9 @@
 <p>定位到字符串“Basic”后，进行base64decode之后定位冒号“：”，获取用户输入的密码。strcpy()函数将输入到BSS段的434F8，本以为漏洞点是通过BSS溢出覆盖全局变量，然而并不是……</p>
 <p><img src="https://pup2y.github.io/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/image-20201116230932922.png" alt=""></p>
 <p>继续往下分析，strtok函数获取用户名，并且v6中的内容也是用户名。</p>
-<p>然后进入sub_1D1AC函数，真正的漏洞点位于其中的sprintf()，将用户名密码按照”%s:%s”格式拷贝到栈上局部变量中，用户名和密码都是可以控制的，缓冲区溢出没错了。</p>
+<p>然后进入sub_1D1AC函数，真正的漏洞点位于其中的sprintf()，但是当时第一次看，IDA没有把sprintf后面两个参数显示出来，就放过了。还是洞挖少了，调少了，对这些没那么敏感……</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201117133610858.png" alt=""></p>
+<p>之后将参数补齐就很明显能够看出漏洞点了。sprintf函数将用户名密码按照”%s:%s”格式拷贝到栈上局部变量中，用户名和密码都是可以控制的，缓冲区溢出没错了。</p>
 <p><img src="https://pup2y.github.io/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/image-20201116231347607.png" alt=""></p>
 <h1 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h1><h2 id="确定偏移"><a href="#确定偏移" class="headerlink" title="确定偏移"></a>确定偏移</h2><p>直接通过汇编能够看出来，R0距离LR的偏移为0x130。</p>
 <p><img src="https://pup2y.github.io/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/image-20201116231833861.png" alt=""></p>
