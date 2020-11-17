@@ -92,7 +92,7 @@
 <p><img src="https://pup2y.github.io/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/image-20201116230932922.png" alt=""></p>
 <p>继续往下分析，strtok函数获取用户名，并且v6中的内容也是用户名。</p>
 <p>然后进入sub_1D1AC函数，真正的漏洞点位于其中的sprintf()，但是当时第一次看，IDA没有把sprintf后面两个参数显示出来，就放过了。还是洞挖少了，调少了，对这些没那么敏感……</p>
-<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201117133610858.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/image-20201117133610858.png" alt=""></p>
 <p>之后将参数补齐就很明显能够看出漏洞点了。sprintf函数将用户名密码按照”%s:%s”格式拷贝到栈上局部变量中，用户名和密码都是可以控制的，缓冲区溢出没错了。</p>
 <p><img src="https://pup2y.github.io/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/image-20201116231347607.png" alt=""></p>
 <h1 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h1><h2 id="确定偏移"><a href="#确定偏移" class="headerlink" title="确定偏移"></a>确定偏移</h2><p>直接通过汇编能够看出来，R0距离LR的偏移为0x130。</p>

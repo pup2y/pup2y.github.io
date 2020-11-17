@@ -24,7 +24,7 @@
 <p><img src="https://pup2y.github.io/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/image-20201116230932922.png" alt=""></p>
 <p>继续往下分析，strtok函数获取用户名，并且v6中的内容也是用户名。</p>
 <p>然后进入sub_1D1AC函数，真正的漏洞点位于其中的sprintf()，但是当时第一次看，IDA没有把sprintf后面两个参数显示出来，就放过了。还是洞挖少了，调少了，对这些没那么敏感……</p>
-<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201117133610858.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/image-20201117133610858.png" alt=""></p>
 <p>之后将参数补齐就很明显能够看出漏洞点了。sprintf函数将用户名密码按照”%s:%s”格式拷贝到栈上局部变量中，用户名和密码都是可以控制的，缓冲区溢出没错了。</p>
 <p><img src="https://pup2y.github.io/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/image-20201116231347607.png" alt=""></p>
 <h1 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h1><h2 id="确定偏移"><a href="#确定偏移" class="headerlink" title="确定偏移"></a>确定偏移</h2><p>直接通过汇编能够看出来，R0距离LR的偏移为0x130。</p>
@@ -225,7 +225,7 @@ mipsel-linux-strip gdbserver/gdbserver</code></pre>
 <p>7）  等待选手攻击；</p>
 <p>8）  在规定时间内可以配合选手重启路由器设备（每次重启首先要重复步骤4，5）；</p>
 <p>9）  选手攻击完毕后，操作人员使用验证机中的浏览器访问网页验证效果；</p>
-<p>10）      攻击成功或超时后：关闭路由器。</p>
+<p>10）攻击成功或超时后：关闭路由器。</p>
 <h1 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h1><p>根据题目要求，攻击机通过lan口连接，并没有提供用户名密码，登录不了管理界面，所以需要做到三点：前台身份验证绕过，后台命令执行或代码执行，DNS劫持。也可以改成两点：未授权命令执行或未授权代码执行，DNS劫持。</p>
 <h2 id="现有的？"><a href="#现有的？" class="headerlink" title="现有的？"></a>现有的？</h2><p>先找找有无公布exp的前台代码执行和命令执行的CVE，<a href="https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=CISCO%20RV110W" target="_blank" rel="noopener">链接</a></p>
 <p><strong>CVE-2019-1663（未授权，远程代码执行）</strong>&lt; 1.2.2.1</p>
@@ -254,42 +254,36 @@ mipsel-linux-strip gdbserver/gdbserver</code></pre>
 </ol>
 <h3 id="补丁比对"><a href="#补丁比对" class="headerlink" title="补丁比对"></a>补丁比对</h3><p>通过比对最新版本1.2.2.8与当前版本1.2.2.5版本能够发现厂商自行修补但未公布的漏洞。</p>
 <p>这里主要使用bindiff工具，结合IDA pro进行补丁比对。找到其中相同函数名，但是相似度不高的函数进行分析。</p>
-<p>本次的漏洞点是通过补丁比对找到的，能够清楚的找到在最新版本修复掉的危险函数。</p>
+<p>本次的漏洞点是通过补丁比对找到的，能够清楚的找到在最新版本修复掉的危险函数。 </p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20201117130136686.png" alt=""></p>
+<p>在guest_logout_cgi函数中，1.2.2.8版本使用限定了拷贝大小的strncpy来替换危险函数sscanf。</p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20201117131927688.png" alt=""></p>
 <h1 id="漏洞定位与分析"><a href="#漏洞定位与分析" class="headerlink" title="漏洞定位与分析"></a>漏洞定位与分析</h1><p>binwalk解压后，针对web服务器二进制程序usr/sbin/httpd进行分析。</p>
 <p>httpd中guest_lougou_cgi()函数的sscanf函数。</p>
-<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/sscanf.png" alt="Image"></p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/sscanf.png" alt=""></p>
 <p>危险函数sscanf()将第一个参数的内容按照第二个参数的格式传递给后面的参数所对应的缓冲区中。而后两个缓冲区的大小都为0x40。</p>
-<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image.png" alt="Image"></p>
-<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605237981005.png" alt="Image"></p>
-<p>第二个参数所对应的正则表达式含义：%表示匹配参数的个数，第一个<code>%[^;]</code>表示取值到指定的”;”为止的字符串其中第二个<code>%*</code>表示满足条件的字符串被过滤。整个sscanf的含义为：将haystack中的内容按照”;”之前的内容给变量acStack108，”;”到”=”之间的内容忽略，”=”之后的内容到换行”\n”之前的内容给变量acStack172。这个时候往前回溯可以发现要执行这个sscanf(),需要在haystack中找到status_guestnet.asp这个字符串。</p>
-<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605238213655.png" alt="Image"></p>
-<p>而haystack这个缓冲区中的内容通过get_cgi函数获取submit_button后的内容，</p>
-<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605238262615.png" alt="Image"></p>
-<p>通过fprintf打印的内容为submit_button对应的内容为_haystack，url对应的内容为acStack108，session_id的内容为acStack172。</p>
-<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605238365580.png" alt="Image"></p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image-1605237981005.png" alt=""></p>
+<p>第二个参数所对应的正则表达式含义：%个数表示匹配参数的个数，第一个<code>%[^;];</code>表示取”;”之前的字符串，第二个<code>%*[^=]=</code>表示”=”之前的字符串被过滤。整个sscanf的含义为：将haystack中的内容按照”;”之前的内容给变量acStack108，”;”到”=”之间的内容忽略，”=”之后的内容到换行”\n”之前的内容给变量acStack172。这个时候往前回溯可以发现要执行这个sscanf(),需要在haystack中找到status_guestnet.asp这个字符串。</p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image-1605238213655.png" alt=""></p>
+<p>而haystack这个缓冲区中的内容是通过get_cgi函数获取submit_button后的内容，</p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image-1605238262615.png" alt=""></p>
+<p>并且通过fprintf打印的内容可以看出，submit_button对应的内容为_haystack，url对应的内容为acStack108，session_id的内容为acStack172。</p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image-1605238365580.png" alt=""></p>
 <p>通过fprintf打印的内容为submit_button对应的内容为_haystack，url对应的内容为acStack108，session_id的内容为acStack172。</p>
 <p>同时要求_haystack中的内容包含status_guestnet.asp；第一个分号”;”之前的内容给acStack108，分号到等号之间的内容忽略，等号之后的内容给acStack172。所以可以这样构造数据包：</p>
-<p>submit_button=status_guestnet.asp;seesion_id=xxxxxxxxxxxxxxxx。这样执行完sscanf之后acStack108中的内容为status_guestnet.asp，acStack172内容为xxxxxxxxxxxxxxxx。因为acStack172的大 小为0x40而没有对submit_button之后的_haystack内容长度做限制，所以能够达到缓冲区溢出的目的。</p>
-<h1 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h1><p>整个漏洞利用过程是</p>
-<ul>
-<li>劫持PC，通过调试确定缓冲区大小，定位并确定控制偏移</li>
-<li>确定攻击路径，构造ROP链</li>
-<li>编写exp,getshell</li>
-</ul>
-<h2 id="劫持PC，确定偏移"><a href="#劫持PC，确定偏移" class="headerlink" title="劫持PC，确定偏移"></a>劫持PC，确定偏移</h2><p>距离返回地址的偏移可以直接通过IDA中的汇编代码获得。</p>
+<p>submit_button=status_guestnet.asp;seesion_id=xxxxxxxxxxxxxxxx。这样执行完sscanf之后acStack108中的内容为status_guestnet.asp，acStack172内容为xxxxxxxxxxxxxxxx。因为acStack172的大小为0x40而没有对submit_button之后的_haystack内容长度做限制，所以能够达到缓冲区溢出的目的。</p>
+<h1 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h1><h2 id="确定偏移"><a href="#确定偏移" class="headerlink" title="确定偏移"></a>确定偏移</h2><p>距离返回地址的偏移可以直接通过IDA中的汇编代码获得。</p>
 <p>acStack172的内容是通过寄存器s5传递而来，acStack108的内容是通过寄存器fp中传递过来。</p>
-<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605238972710.png" alt="Image"></p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image-1605238972710.png" alt=""></p>
 <p>往上查找发现fp是$(sp+0x7c)，所以acStack108的内容从$(sp+0x7c)开始。</p>
-<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605238989905.png" alt="Image"></p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image-1605238989905.png" alt=""></p>
 <p>s5是$(SP+0xe8+var_AC)=$(SP+0x3c)，acStack172的内容从$(SP+0x3c)，在acStack108下方0x40处，会被acStack172覆盖。</p>
-<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605239039732.png" alt="Image"></p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image-1605239039732.png" alt=""></p>
 <p>而返回地址ra保存在$(sp+0xe8+var_4)=$(sp+0xe4)</p>
-<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605239049033.png" alt="Image"></p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image-1605239049033.png" alt=""></p>
 <p>所以acStack172输入的位置距离ra的偏移量为0xac-4=0xa8。</p>
-<h2 id="选择攻击路径构造ROP链"><a href="#选择攻击路径构造ROP链" class="headerlink" title="选择攻击路径构造ROP链"></a>选择攻击路径构造ROP链</h2><h4 id="通过system函数getshell"><a href="#通过system函数getshell" class="headerlink" title="通过system函数getshell"></a>通过system函数getshell</h4><p>主要目的是调用system(‘/bin/sh’)来getshell，system函数在libc.so中找，参数’/bin/sh’首先放入栈中，然后利用gadget将栈上的’/bin/sh’传入a0寄存器，再调用system函数即可。</p>
-<p>1.定位system函数地址</p>
-<p>知道偏移量之后考虑，该函数guest_logout_cgi要触发所对应的http报文中的资源请求句柄uri是啥！</p>
-<h1 id="劫持DNS"><a href="#劫持DNS" class="headerlink" title="劫持DNS"></a>劫持DNS</h1><p>在成功getshell之后，考虑如何劫持DNS，这里的方法有很多。</p>
+<h2 id="构造ROP链"><a href="#构造ROP链" class="headerlink" title="构造ROP链"></a>构造ROP链</h2><h1 id="劫持DNS"><a href="#劫持DNS" class="headerlink" title="劫持DNS"></a>劫持DNS</h1><p>在成功getshell之后，考虑如何劫持DNS，这里的方法有很多。</p>
 <p>大体步骤是：</p>
 <ol>
 <li><p>利用bind等类型软件搭建DNS服务器，并提供公网地址IP。</p>
