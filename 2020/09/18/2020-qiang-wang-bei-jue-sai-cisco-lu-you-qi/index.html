@@ -146,7 +146,27 @@
 <p>而返回地址ra保存在$(sp+0xe8+var_4)=$(sp+0xe4)</p>
 <p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image-1605239049033.png" alt=""></p>
 <p>所以acStack172输入的位置距离ra的偏移量为0xac-4=0xa8。</p>
-<h2 id="构造ROP链"><a href="#构造ROP链" class="headerlink" title="构造ROP链"></a>构造ROP链</h2><h1 id="劫持DNS"><a href="#劫持DNS" class="headerlink" title="劫持DNS"></a>劫持DNS</h1><p>在成功getshell之后，考虑如何劫持DNS，这里的方法有很多。</p>
+<h2 id="构造ROP链"><a href="#构造ROP链" class="headerlink" title="构造ROP链"></a>构造ROP链</h2><p>因00截断，使用libc库中的gadget。</p>
+<p>libc.so.0中的system函数地址为0x4c7E0。</p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20201117190707876.png" alt=""></p>
+<p>使用mipsrop插件寻找libc.so.0中gadget。因为寻找将栈地址拷贝到寄存器的gadget，应使用<code>mipsrop.stackfinders()</code>命令。0x257A0处的gadget作用是使a0指向当前栈指针SP+0x18的位置，然后跳转至s0处。</p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20201117215249204.png" alt=""></p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image-1605623710326.png" alt=""></p>
+<p>guest_logout_cgi()函数在返回时，栈上的值能够覆盖s0-s7,fp寄存器。所以s0也能被控制。</p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20201117221102005.png" alt=""></p>
+<p>payload形式如下：</p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image-1605623647315.png" alt=""></p>
+<h1 id="漏洞调试"><a href="#漏洞调试" class="headerlink" title="漏洞调试"></a>漏洞调试</h1><p>拆开路由器，很容易发现uart串口。</p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20201117214616001.png" alt=""></p>
+<p>可以看到路由器的启动过程。</p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20201117215101453.png" alt=""></p>
+<p>接下来就是上传gdbserver调试或者直接上传gdb调试。</p>
+<p>在jr ra的地址断下来，能够看到ra以及被覆盖。</p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/Image-1605624308378.png" alt=""></p>
+<p>调试过程中发现虽然地址随机化参数为1，但是libc的基地址一直保持不变为0x2af98000。</p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20201117230002937.png" alt=""></p>
+<p>并且因为usr/sbin目录下存在utelnetd，所以构造的cmd命令可以为<code>utelnetd -l /bin/sh -p 2222</code>。并且每次栈溢出后都会将其中的https服务打down，需要重启httpd服务。</p>
+<h1 id="劫持DNS"><a href="#劫持DNS" class="headerlink" title="劫持DNS"></a>劫持DNS</h1><p>在成功getshell之后，考虑如何劫持DNS，这里的方法有很多。</p>
 <p>大体步骤是：</p>
 <ol>
 <li><p>利用bind等类型软件搭建DNS服务器，并提供公网地址IP。</p>
@@ -161,6 +181,7 @@ killall dnsmasq;
 </li>
 </ol>
 <p>之后让工作人员的验证机通过lan口连接路由器， 设置验证机的DNS服务器IP地址为路由器IP，清除浏览器历史记录，清除本机的DNS缓存，使用Firefox浏览器访问<a href="http://www.baidu.com。" target="_blank" rel="noopener">www.baidu.com。</a></p>
+<p><img src="https://pup2y.github.io/2020/09/18/2020-qiang-wang-bei-jue-sai-cisco-lu-you-qi/image-20201117230524657.png" alt=""></p>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="true">
@@ -200,7 +221,7 @@ killall dnsmasq;
     </div>
     
         <div class='side'>
-			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#题目相关"><span class="toc-number">1.</span> <span class="toc-text">题目相关</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#解题思路"><span class="toc-number">2.</span> <span class="toc-text">解题思路</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#现有的？"><span class="toc-number">2.1.</span> <span class="toc-text">现有的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#手工挖0day？"><span class="toc-number">2.2.</span> <span class="toc-text">手工挖0day？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#代码审计"><span class="toc-number">2.2.1.</span> <span class="toc-text">代码审计</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#命令注入漏洞"><span class="toc-number">2.2.1.1.</span> <span class="toc-text">命令注入漏洞</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#缓冲区溢出漏洞"><span class="toc-number">2.2.1.2.</span> <span class="toc-text">缓冲区溢出漏洞</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#补丁比对"><span class="toc-number">2.2.2.</span> <span class="toc-text">补丁比对</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#漏洞定位与分析"><span class="toc-number">3.</span> <span class="toc-text">漏洞定位与分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#漏洞利用"><span class="toc-number">4.</span> <span class="toc-text">漏洞利用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#确定偏移"><span class="toc-number">4.1.</span> <span class="toc-text">确定偏移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构造ROP链"><span class="toc-number">4.2.</span> <span class="toc-text">构造ROP链</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#劫持DNS"><span class="toc-number">5.</span> <span class="toc-text">劫持DNS</span></a></li></ol>	
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#题目相关"><span class="toc-number">1.</span> <span class="toc-text">题目相关</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#解题思路"><span class="toc-number">2.</span> <span class="toc-text">解题思路</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#现有的？"><span class="toc-number">2.1.</span> <span class="toc-text">现有的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#手工挖0day？"><span class="toc-number">2.2.</span> <span class="toc-text">手工挖0day？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#代码审计"><span class="toc-number">2.2.1.</span> <span class="toc-text">代码审计</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#命令注入漏洞"><span class="toc-number">2.2.1.1.</span> <span class="toc-text">命令注入漏洞</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#缓冲区溢出漏洞"><span class="toc-number">2.2.1.2.</span> <span class="toc-text">缓冲区溢出漏洞</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#补丁比对"><span class="toc-number">2.2.2.</span> <span class="toc-text">补丁比对</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#漏洞定位与分析"><span class="toc-number">3.</span> <span class="toc-text">漏洞定位与分析</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#漏洞利用"><span class="toc-number">4.</span> <span class="toc-text">漏洞利用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#确定偏移"><span class="toc-number">4.1.</span> <span class="toc-text">确定偏移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构造ROP链"><span class="toc-number">4.2.</span> <span class="toc-text">构造ROP链</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#漏洞调试"><span class="toc-number">5.</span> <span class="toc-text">漏洞调试</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#劫持DNS"><span class="toc-number">6.</span> <span class="toc-text">劫持DNS</span></a></li></ol>	
         </div>
     
 </div>
